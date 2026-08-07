@@ -1,3 +1,5 @@
+/* estilos.css — Hoja de estilos global de la aplicación. */
+
 :root {
     --color-sena-verde: #39A900;
     --color-sena-verde-hover: #2d8a00;
@@ -165,7 +167,7 @@ body {
 
 #toast-container {
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
     z-index: 9999;
     display: flex;
@@ -210,3 +212,20 @@ body {
 .toast-danger .toast-icon { background-color: var(--color-danger); }
 .toast-warning .toast-icon { background-color: var(--color-warning); }
 .toast-info .toast-icon { background-color: var(--color-info); }
+
+/* Validación de formularios: mensaje bajo el campo e input inválido. */
+.error-text {
+    display: block;
+    color: var(--color-danger);
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.form-control-invalid {
+    border-color: var(--color-danger);
+}
+
+.form-control-invalid:focus {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2);
+}
