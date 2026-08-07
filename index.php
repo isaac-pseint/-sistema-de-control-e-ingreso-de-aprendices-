@@ -42,6 +42,16 @@ switch ($action) {
         (new AuthController())->login();
         break;
 
+    case 'logout':
+        // Destruye la sesión de PHP
+        (new AuthController())->logout();
+        break;
+
+    case 'sesion':
+        // Comprueba si hay una sesión activa
+        (new AuthController())->session();
+        break;
+
     default:
         // Acción no reconocida → 404, siempre en JSON.
         http_response_code(404);

@@ -2,9 +2,23 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Ingreso</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="../assets/css/estilos.css">
 </head>
 <body>
-    <!-- Página de destino post-login (placeholder vacío). -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <h2>Bienvenido, <span id="userNombre">Usuario</span></h2>
+            <button id="btnLogout" class="btn btn-danger">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <main class="dashboard-content">
+        <p>Has iniciado sesión correctamente. Aquí irá el contenido del sistema.</p>
+    </main>
+
+    <script type="module" src="../assets/js/pages/dashboard.js"></script>
 </body>
 </html>

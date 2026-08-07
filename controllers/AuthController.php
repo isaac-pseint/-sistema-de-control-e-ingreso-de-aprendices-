@@ -38,4 +38,33 @@ class AuthController
             echo json_encode(['ok' => false, 'error' => 'Credenciales inválidas']);
         }
     }
+
+    public function logout()
+    {
+        // Limpiamos el array de sesión
+        $_SESSION = [];
+        
+        // Destruimos la sesión en el servidor
+        session_destroy();
+        
+        echo json_encode(['ok' => true]);
+    }
+
+    public function session()
+    {
+        if (isset($_SESSION['user_id'])) {
+            echo json_encode([
+                'ok' => true,
+                'data' => [
+                    'usuario' => [
+                        'nombre' => $_SESSION['user_nombre'],
+                        'email' => $_SESSION['user_email']
+                    ]
+                ]
+            ]);
+        } else {
+            http_response_code(401);
+            echo json_encode(['ok' => false, 'error' => 'No autorizado']);
+        }
+    }
 }
