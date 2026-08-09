@@ -52,6 +52,14 @@ switch ($action) {
         (new AuthController())->session();
         break;
 
+    case 'datosFormularioUsuario':
+        (new UsuarioController())->datosFormulario();
+        break;
+
+    case 'crearUsuario':
+        (new UsuarioController())->crear();
+        break;
+
     default:
         // Acción no reconocida → 404, siempre en JSON.
         http_response_code(404);

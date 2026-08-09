@@ -42,4 +42,61 @@ class UserModel
         }
         return false;
     }
+
+    public function buscarPorEmail(string $email): ?array
+    {
+        $stmt = Database::conn()->prepare("SELECT id FROM usuario WHERE email = ?");
+        $stmt->execute([$email]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public function buscarPorIdentificacion(string $identificacion): ?array
+    {
+        $stmt = Database::conn()->prepare("SELECT id FROM usuario WHERE identificacion = ?");
+        $stmt->execute([$identificacion]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public function buscarPorCodigoLlavero(string $codigoLlavero): ?array
+    {
+        $stmt = Database::conn()->prepare("SELECT id FROM usuario WHERE codigo_llavero = ?");
+        $stmt->execute([$codigoLlavero]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public function crear(string $nombre, string $apellido, string $identificacion, string $email, string $passwordPlano, int $rolId, ?int $fichaId, ?string $codigoLlavero): bool
+    {
+        $hash = password_hash($passwordPlano, PASSWORD_DEFAULT);
+        $stmt = Database::conn()->prepare("
+            INSERT INTO usuario (nombre, apellido, identificacion, email, password, Rol_id, Ficha_id, codigo_llavero, estado)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'activo')
+        ");
+        return $stmt->execute([
+            $nombre,
+            $apellido,
+            $identificacion,
+            $email,
+            $hash,
+            $rolId,
+            $fichaId,
+            $codigoLlavero
+        ]);
+    }
+
+    public function listarRoles(): array
+    {
+        $stmt = Database::conn()->prepare("SELECT id, nombre FROM rol ORDER BY id ASC");
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function listarFichas(): array
+    {
+        $stmt = Database::conn()->prepare("SELECT id, codigo FROM ficha ORDER BY codigo ASC");
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }
