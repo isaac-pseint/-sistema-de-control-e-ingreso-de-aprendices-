@@ -2,7 +2,7 @@
 
 // AuthController — Autenticación de la API. Responde JSON.
 // Cada método público es una "acción": index.php lo llama según ?action=.
-class AuthController
+class AuthController extends ControllerBase
 {
     private UserModel $userModel;
 
@@ -33,9 +33,10 @@ class AuthController
             $_SESSION['user_ficha'] = $user['ficha'];
 
             // json_encode convierte el array en texto JSON. El frontend lo lee con res.json().
-            echo json_encode(['ok' => true, 'redirect' => 'dashboard.html']);
+            $this->ok(['redirect' => 'dashboard.html', 'Sesion iniciada correctamente.']);
         } else {
-            echo json_encode(['ok' => false, 'error' => 'Credenciales inválidas']);
+
+            $this->fail("Credenciales inválidas", 401);
         }
     }
 
@@ -43,28 +44,24 @@ class AuthController
     {
         // Limpiamos el array de sesión
         $_SESSION = [];
-        
+
         // Destruimos la sesión en el servidor
         session_destroy();
-        
-        echo json_encode(['ok' => true]);
+
+        $this->ok();
     }
 
     public function session()
     {
         if (isset($_SESSION['user_id'])) {
-            echo json_encode([
-                'ok' => true,
-                'data' => [
-                    'usuario' => [
-                        'nombre' => $_SESSION['user_nombre'],
-                        'email' => $_SESSION['user_email']
-                    ]
+            $this->ok([
+                'usuario' => [
+                    'nombre' => $_SESSION['user_nombre'],
+                    'email' => $_SESSION['user_email']
                 ]
             ]);
         } else {
-            http_response_code(401);
-            echo json_encode(['ok' => false, 'error' => 'No autorizado']);
+            $this->fail("No autorizado", 401);
         }
     }
 }

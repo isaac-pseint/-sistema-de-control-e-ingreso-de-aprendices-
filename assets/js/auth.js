@@ -57,6 +57,8 @@ export function comprobarSesion() {
             const usuario = data.data.usuario;
             const nav = document.getElementById("userNombre");
             if (usuario && nav) nav.textContent = usuario.nombre || usuario.email || "";
+        }else{
+            window.location.href = new URL("../../views/login.html", import.meta.url).href;
         }
     });
 }

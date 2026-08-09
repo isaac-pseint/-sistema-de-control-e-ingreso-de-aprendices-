@@ -11,8 +11,8 @@ export function api(action, opciones = {}) {
             ...(opciones.headers || {})
         }
     }).then(res => {
-        // Sesión caducada → volver al login.
-        if (res.status === 401) {
+        // Sesión caducada → volver al login (excepto al intentar loguearse).
+        if (res.status === 401 && action !== "login") {
             window.location.href = new URL("../../views/login.html", import.meta.url).href;
             throw new Error("Sesion expirada");
         }
