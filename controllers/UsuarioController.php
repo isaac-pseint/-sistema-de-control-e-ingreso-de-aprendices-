@@ -94,4 +94,11 @@ class UsuarioController extends ControllerBase
             $this->fail("No se pudo crear el usuario. Verifica que el rol y la ficha existan.");
         }
     }
+
+    public function listar(): void
+    {
+        $this->requireRol('Administrador');
+        $usuarios = $this->model->listarTodos();
+        $this->ok(['usuarios' => $usuarios]);
+    }
 }

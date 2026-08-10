@@ -1,5 +1,5 @@
 import { api } from "./api.js";
-import { showToast } from "./ui.js";
+import { showToast, esc } from "./ui.js";
 import { conectarFormulario, mostrarErrorCampo } from "./forms.js";
 
 // funciones de validacion de campos
@@ -170,4 +170,44 @@ export function conectarFormularioCrearUsuario() {
         validar: validarFormularioCrearUsuario
     });
 
+}
+
+export function cargarListado() {
+    api("listarUsuarios")
+        .then(data => {
+            const tbody = document.getElementById("tablaUsuarios");
+            const contenedorMensajes = document.getElementById("contenedorMensajes");
+            
+            if (data.ok) {
+                const usuarios = data.data.usuarios;
+                
+                if (usuarios.length === 0) {
+                    contenedorMensajes.textContent = "No hay usuarios registrados.";
+                    tbody.innerHTML = "";
+                    return;
+                }
+                
+                contenedorMensajes.textContent = "";
+                tbody.innerHTML = usuarios.map(u => `
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.nombre)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.apellido)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.identificacion)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.email)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.rol)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${u.ficha ? esc(u.ficha) : "—"}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${u.codigo_llavero ? esc(u.codigo_llavero) : "—"}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.estado)}</td>
+                    </tr>
+                `).join("");
+            } else {
+                showToast("danger", data.error || "No se pudo cargar el listado de usuarios.");
+                if (contenedorMensajes) contenedorMensajes.textContent = "Error al cargar los datos.";
+            }
+        })
+        .catch(err => {
+            showToast("danger", "Error de conexión al cargar el listado.");
+            const contenedorMensajes = document.getElementById("contenedorMensajes");
+            if (contenedorMensajes) contenedorMensajes.textContent = "Error de conexión.";
+        });
 }

@@ -60,6 +60,10 @@ switch ($action) {
         (new UsuarioController())->crear();
         break;
 
+    case 'listarUsuarios':
+        (new UsuarioController())->listar();
+        break;
+
     default:
         // Acción no reconocida → 404, siempre en JSON.
         http_response_code(404);

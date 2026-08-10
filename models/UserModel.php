@@ -99,4 +99,26 @@ class UserModel
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public function listarTodos(?string $rolFiltro = null, ?string $busqueda = null): array
+    {
+        $sql = "SELECT 
+                    u.id, 
+                    u.nombre, 
+                    u.apellido, 
+                    u.identificacion, 
+                    u.email, 
+                    u.codigo_llavero, 
+                    u.estado, 
+                    r.nombre AS rol, 
+                    f.codigo AS ficha
+                FROM usuario u
+                INNER JOIN rol r ON u.Rol_id = r.id
+                LEFT JOIN ficha f ON u.Ficha_id = f.id
+                ORDER BY u.id DESC";
+
+        $stmt = Database::conn()->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }
