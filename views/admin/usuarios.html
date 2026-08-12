@@ -9,31 +9,31 @@
 </head>
 <body>
 
-    <div class="login-container" style="max-width: 1000px;">
-        <div class="login-card" style="width: 100%; max-width: 100%;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div class="login-container lista-container">
+        <div class="login-card lista-card">
+            <div class="page-header">
                 <h1>Usuarios</h1>
-                <a href="crear-usuario.html" class="btn btn-primary" style="text-decoration: none;">+ Nuevo usuario</a>
+                <a href="crear-usuario.html" class="btn btn-primary btn-auto btn-a">+ Nuevo usuario</a>
             </div>
 
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <table class="table-admin">
                 <thead>
                     <tr>
-                        <th style="padding: 10px; border-bottom: 1px solid #ccc;">Nombre</th>
-                        <th style="padding: 10px; border-bottom: 1px solid #ccc;">Apellido</th>
-                        <th style="padding: 10px; border-bottom: 1px solid #ccc;">Identificación</th>
-                        <th style="padding: 10px; border-bottom: 1px solid #ccc;">Email</th>
-                        <th style="padding: 10px; border-bottom: 1px solid #ccc;">Rol</th>
-                        <th style="padding: 10px; border-bottom: 1px solid #ccc;">Ficha</th>
-                        <th style="padding: 10px; border-bottom: 1px solid #ccc;">Código llavero</th>
-                        <th style="padding: 10px; border-bottom: 1px solid #ccc;">Estado</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Identificación</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Ficha</th>
+                        <th>Código llavero</th>
+                        <th>Estado</th>
                     </tr>
                 </thead>
                 <tbody id="tablaUsuarios">
                 </tbody>
             </table>
             
-            <div id="contenedorMensajes" style="margin-top: 15px; text-align: center; color: #666;"></div>
+            <div id="contenedorMensajes" class="mensaje-vacio"></div>
         </div>
     </div>
 

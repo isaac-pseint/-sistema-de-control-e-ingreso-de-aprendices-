@@ -72,7 +72,7 @@ class UserModel
         $hash = password_hash($passwordPlano, PASSWORD_DEFAULT);
         $stmt = Database::conn()->prepare("
             INSERT INTO usuario (nombre, apellido, identificacion, email, password, Rol_id, Ficha_id, codigo_llavero, estado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'activo')
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Activo')
         ");
         return $stmt->execute([
             $nombre,
@@ -100,7 +100,7 @@ class UserModel
         return $stmt->fetchAll();
     }
 
-    public function listarTodos(?string $rolFiltro = null, ?string $busqueda = null): array
+    public function listarTodos(): array
     {
         $sql = "SELECT 
                     u.id, 

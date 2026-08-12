@@ -85,8 +85,8 @@ class UsuarioController extends ControllerBase
             );
 
             if ($creado) {
-                // Respondemos OK con un redirect
-                $this->ok(["redirect" => "../dashboard.html"], "Usuario creado correctamente.");
+                // Respondemos OK con un redirect, el admin solo puede crear usuarios, lo redirigimos a la vista de listado
+                $this->ok(["redirect" => "../admin/usuarios.html"], "Usuario creado correctamente.");
             } else {
                 $this->fail("No se pudo crear el usuario.");
             }

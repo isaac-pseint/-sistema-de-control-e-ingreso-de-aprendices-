@@ -190,14 +190,14 @@ export function cargarListado() {
                 contenedorMensajes.textContent = "";
                 tbody.innerHTML = usuarios.map(u => `
                     <tr>
-                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.nombre)}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.apellido)}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.identificacion)}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.email)}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.rol)}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${u.ficha ? esc(u.ficha) : "—"}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${u.codigo_llavero ? esc(u.codigo_llavero) : "—"}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #ccc;">${esc(u.estado)}</td>
+                        <td>${esc(u.nombre)}</td>
+                        <td>${esc(u.apellido)}</td>
+                        <td>${esc(u.identificacion)}</td>
+                        <td>${esc(u.email)}</td>
+                        <td>${esc(u.rol)}</td>
+                        <td>${u.ficha ? esc(u.ficha) : "—"}</td>
+                        <td>${u.codigo_llavero ? esc(u.codigo_llavero) : "—"}</td>
+                        <td>${esc(u.estado)}</td>
                     </tr>
                 `).join("");
             } else {
