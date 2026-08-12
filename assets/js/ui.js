@@ -1,5 +1,13 @@
 // ui.js — Helpers de presentación (toasts).
 
+// Escapar HTML para evitar inyección XSS
+export function esc(texto) {
+    if (texto === null || texto === undefined) return "";
+    const div = document.createElement("div");
+    div.textContent = texto;
+    return div.innerHTML;
+}
+
 export function showToast(tipo, mensaje) {
     let container = document.getElementById("toast-container");
 

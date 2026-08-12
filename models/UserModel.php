@@ -72,7 +72,7 @@ class UserModel
         $hash = password_hash($passwordPlano, PASSWORD_DEFAULT);
         $stmt = Database::conn()->prepare("
             INSERT INTO usuario (nombre, apellido, identificacion, email, password, Rol_id, Ficha_id, codigo_llavero, estado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'activo')
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Activo')
         ");
         return $stmt->execute([
             $nombre,
@@ -96,6 +96,28 @@ class UserModel
     public function listarFichas(): array
     {
         $stmt = Database::conn()->prepare("SELECT id, codigo FROM ficha ORDER BY codigo ASC");
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function listarTodos(): array
+    {
+        $sql = "SELECT 
+                    u.id, 
+                    u.nombre, 
+                    u.apellido, 
+                    u.identificacion, 
+                    u.email, 
+                    u.codigo_llavero, 
+                    u.estado, 
+                    r.nombre AS rol, 
+                    f.codigo AS ficha
+                FROM usuario u
+                INNER JOIN rol r ON u.Rol_id = r.id
+                LEFT JOIN ficha f ON u.Ficha_id = f.id
+                ORDER BY u.id DESC";
+
+        $stmt = Database::conn()->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll();
     }

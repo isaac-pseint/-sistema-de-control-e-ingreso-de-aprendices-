@@ -32,8 +32,9 @@ class AuthController extends ControllerBase
             $_SESSION['user_rol'] = $user['rol'];
             $_SESSION['user_ficha'] = $user['ficha'];
 
-            // json_encode convierte el array en texto JSON. El frontend lo lee con res.json().
-            $this->ok(['redirect' => 'dashboard.html', 'Sesion iniciada correctamente.']);
+            // El servidor decide a dónde ir según el rol; el frontend solo consume data.redirect.
+            $redirect = ($_SESSION['user_rol'] === 'Administrador') ? 'admin/usuarios.html' : 'dashboard.html';
+            $this->ok(['redirect' => $redirect, 'rol' => $_SESSION['user_rol']], 'Sesión iniciada correctamente.');
         } else {
 
             $this->fail("Credenciales inválidas", 401);
@@ -57,7 +58,8 @@ class AuthController extends ControllerBase
             $this->ok([
                 'usuario' => [
                     'nombre' => $_SESSION['user_nombre'],
-                    'email' => $_SESSION['user_email']
+                    'email' => $_SESSION['user_email'],
+                    'rol' => $_SESSION['user_rol']
                 ]
             ]);
         } else {
