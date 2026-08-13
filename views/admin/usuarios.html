@@ -27,6 +27,7 @@
                         <th>Ficha</th>
                         <th>Código llavero</th>
                         <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tablaUsuarios">
@@ -34,6 +35,44 @@
             </table>
             
             <div id="contenedorMensajes" class="mensaje-vacio"></div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para eliminar usuario -->
+    <div id="modalEliminarUsuario" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTituloEliminar">
+            <div class="modal-header">
+                <h3 id="modalTituloEliminar">Eliminar usuario</h3>
+                <button type="button" class="modal-close" id="btnCerrarModal" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar a este usuario?</p>
+                <p class="modal-detalle" id="modalUsuarioDetalle"></p>
+                <p>El registro se desactivará y podrás volver a activarlo cuando lo necesites.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarEliminar">Cancelar</button>
+                <button type="button" class="btn btn-danger btn-auto" id="btnConfirmarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para activar usuario -->
+    <div id="modalActivarUsuario" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTituloActivar">
+            <div class="modal-header">
+                <h3 id="modalTituloActivar">Activar usuario</h3>
+                <button type="button" class="modal-close" id="btnCerrarModalActivar" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas activar a este usuario?</p>
+                <p class="modal-detalle" id="modalActivarDetalle"></p>
+                <p>El usuario volverá a poder iniciar sesión.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarActivar">Cancelar</button>
+                <button type="button" class="btn btn-info btn-auto" id="btnConfirmarActivar">Activar</button>
+            </div>
         </div>
     </div>
 

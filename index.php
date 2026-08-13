@@ -63,6 +63,22 @@ switch ($action) {
     case 'listarUsuarios':
         (new UsuarioController())->listar();
         break;
+    
+    case 'editarUsuario':
+        (new UsuarioController())->editar();
+        break;
+    
+    case 'listarUsuario':
+        (new UsuarioController())->listarPorId();
+        break;
+
+    case 'eliminarUsuario':
+        (new UsuarioController())->eliminar();
+        break;
+
+    case 'activarUsuario':
+        (new UsuarioController())->activar();
+        break;
 
     default:
         // Acción no reconocida → 404, siempre en JSON.
