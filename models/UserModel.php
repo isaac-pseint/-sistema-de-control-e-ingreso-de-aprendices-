@@ -43,26 +43,50 @@ class UserModel
         return false;
     }
 
-    public function buscarPorEmail(string $email): ?array
+    public function buscarPorEmail(string $email, ?int $excluirId = null): ?array
     {
-        $stmt = Database::conn()->prepare("SELECT id FROM usuario WHERE email = ?");
-        $stmt->execute([$email]);
+        $sql = "SELECT id FROM usuario WHERE email = ?";
+        $params = [$email];
+
+        if ($excluirId !== null) {
+            $sql .= " AND id != ?";
+            $params[] = $excluirId;
+        }
+
+        $stmt = Database::conn()->prepare($sql);
+        $stmt->execute($params);
         $row = $stmt->fetch();
         return $row ?: null;
     }
 
-    public function buscarPorIdentificacion(string $identificacion): ?array
+    public function buscarPorIdentificacion(string $identificacion, ?int $excluirId = null): ?array
     {
-        $stmt = Database::conn()->prepare("SELECT id FROM usuario WHERE identificacion = ?");
-        $stmt->execute([$identificacion]);
+        $sql = "SELECT id FROM usuario WHERE identificacion = ?";
+        $params = [$identificacion];
+
+        if ($excluirId !== null) {
+            $sql .= " AND id != ?";
+            $params[] = $excluirId;
+        }
+
+        $stmt = Database::conn()->prepare($sql);
+        $stmt->execute($params);
         $row = $stmt->fetch();
         return $row ?: null;
     }
 
-    public function buscarPorCodigoLlavero(string $codigoLlavero): ?array
+    public function buscarPorCodigoLlavero(string $codigoLlavero, ?int $excluirId = null): ?array
     {
-        $stmt = Database::conn()->prepare("SELECT id FROM usuario WHERE codigo_llavero = ?");
-        $stmt->execute([$codigoLlavero]);
+        $sql = "SELECT id FROM usuario WHERE codigo_llavero = ?";
+        $params = [$codigoLlavero];
+
+        if ($excluirId !== null) {
+            $sql .= " AND id != ?";
+            $params[] = $excluirId;
+        }
+
+        $stmt = Database::conn()->prepare($sql);
+        $stmt->execute($params);
         $row = $stmt->fetch();
         return $row ?: null;
     }
@@ -83,6 +107,72 @@ class UserModel
             $rolId,
             $fichaId,
             $codigoLlavero
+        ]);
+    }
+
+    public function editar(
+        int $id,
+        string $nombre,
+        string $apellido,
+        string $identificacion,
+        string $email,
+        ?string $passwordPlano,
+        int $rolId,
+        ?int $fichaId,
+        ?string $codigoLlavero
+    ): bool {
+        $db = Database::conn();
+
+        if ($passwordPlano !== null && $passwordPlano !== '') {
+            $hash = password_hash($passwordPlano, PASSWORD_DEFAULT);
+
+            $stmt = $db->prepare("
+            UPDATE usuario
+            SET nombre = ?,
+                apellido = ?,
+                identificacion = ?,
+                email = ?,
+                password = ?,
+                Rol_id = ?,
+                Ficha_id = ?,
+                codigo_llavero = ?
+            WHERE id = ?
+        ");
+
+            return $stmt->execute([
+                $nombre,
+                $apellido,
+                $identificacion,
+                $email,
+                $hash,
+                $rolId,
+                $fichaId,
+                $codigoLlavero,
+                $id
+            ]);
+        }
+
+        $stmt = $db->prepare("
+        UPDATE usuario
+        SET nombre = ?,
+            apellido = ?,
+            identificacion = ?,
+            email = ?,
+            Rol_id = ?,
+            Ficha_id = ?,
+            codigo_llavero = ?
+        WHERE id = ?
+    ");
+
+        return $stmt->execute([
+            $nombre,
+            $apellido,
+            $identificacion,
+            $email,
+            $rolId,
+            $fichaId,
+            $codigoLlavero,
+            $id
         ]);
     }
 
@@ -120,5 +210,51 @@ class UserModel
         $stmt = Database::conn()->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    public function listarPorId(int $id): ?array
+    {
+        // No se incluye u.password: el hash nunca debe llegar al cliente.
+        $sql = "SELECT 
+                u.id, 
+                u.nombre, 
+                u.apellido, 
+                u.identificacion, 
+                u.email, 
+                u.codigo_llavero, 
+                u.estado, 
+                u.Rol_id, 
+                u.Ficha_id, 
+                r.nombre AS rol, 
+                f.codigo AS ficha
+            FROM usuario u
+            INNER JOIN rol r ON u.Rol_id = r.id
+            LEFT JOIN ficha f ON u.Ficha_id = f.id
+            WHERE u.id = ?";
+
+        $stmt = Database::conn()->prepare($sql);
+        $stmt->execute([$id]);
+
+        $usuario = $stmt->fetch();
+
+        return $usuario ?: null;
+    }
+
+    public function eliminar(int $id): bool
+    {
+        // Soft delete: solo se inactiva, la fila se conserva.
+        $stmt = Database::conn()->prepare(
+            "UPDATE usuario SET estado = 'Inactivo' WHERE id = ?"
+        );
+        return $stmt->execute([$id]);
+    }
+
+    public function activar(int $id): bool
+    {
+        // Reactiva un usuario inactivo.
+        $stmt = Database::conn()->prepare(
+            "UPDATE usuario SET estado = 'Activo' WHERE id = ?"
+        );
+        return $stmt->execute([$id]);
     }
 }
