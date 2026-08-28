@@ -9,6 +9,11 @@
 // Inicia/reanuda la sesión. Sin esto $_SESSION no guarda nada entre peticiones.
 session_start();
 
+// Zona horaria del servidor en tiempo real (Colombia, UTC-5). Fijarla aquí hace
+// que todo date()/time() del backend use la hora local correcta en cualquier
+// entorno, sin depender de la config de php.ini de cada máquina.
+date_default_timezone_set('America/Bogota');
+
 // Acceso directo a la aplicación sin ?action=: redirige a login o dashboard
 // según haya una sesión activa. Nunca devuelve HTML desde aquí.
 $action = $_GET['action'] ?? null;
@@ -78,6 +83,14 @@ switch ($action) {
 
     case 'activarUsuario':
         (new UsuarioController())->activar();
+        break;
+
+    case 'registrarAsistencia':
+        (new AsistenciaController)->registrarEntrada();
+        break;
+
+    case 'registrarSalida':
+        (new AsistenciaController)->registrarSalida();
         break;
 
     default:
