@@ -104,4 +104,81 @@ class AsistenciaController extends ControllerBase
             $this->fail("No se pudo insertar la asistencia, verifique los datos ingresados");
         }
     }
+
+    public function registrarSalida()
+    {
+        $codigo_llavero = trim($_POST['codigo_llavero'] ?? '');
+
+        if (!$codigo_llavero) {
+            $this->fail("El codigo del llavero no puede estar vacio.");
+            return;
+        }
+
+        // confirmar que el llavero existe y que el usuario este activo
+        $usuario = $this->userModel->buscarPorCodigoLlavero($codigo_llavero);
+
+        if (!$usuario) {
+            $this->fail("No se encontro un usuario con ese codigo.");
+            return;
+        }
+
+        if ($usuario['estado'] == 'Inactivo') {
+            $this->fail("El Usuario esta inactivo.");
+            return;
+        }
+
+        // buscar el registro de asistencia del dia de hoy
+        $asistencia = $this->asistenciaModel->buscarPorCodigoFecha($codigo_llavero, date('Y-m-d'));
+
+        if (!$asistencia) {
+            $this->fail("No hay entrada registrada hoy para registrar la salida.");
+            return;
+        }
+
+        if ($asistencia['estado'] == 'Completado') {
+            $this->fail("La salida ya fue registrada hoy.");
+            return;
+        }
+
+        // buscar la ficha del usuario para la ventana de referencia
+        $ficha = $this->ficha_model->buscarPorId($usuario['Ficha_id']);
+
+        if (!$ficha) {
+            $this->fail("El usuario no tiene ficha.");
+            return;
+        }
+
+        $hora_salida = date("H:i");
+        $hora_entrada_ficha = date("H:i", strtotime($ficha['hora_entrada']));
+
+        // validacion de coherencia: no registrar salida antes de la hora de entrada de la ficha
+        if ($hora_salida < $hora_entrada_ficha) {
+            $this->fail("No se puede registrar la salida antes de la hora de entrada.");
+            return;
+        }
+
+        // minutos de anticipacion por salida temprana (antes de la hora de salida de la ficha)
+        $minutos_anticipacion = 0;
+        $hora_salida_ficha = date("H:i", strtotime($ficha['hora_salida']));
+
+        $diferencia_segundos = strtotime($hora_salida_ficha) - strtotime($hora_salida);
+        $diferencia_minutos = $diferencia_segundos / 60;
+
+        if ($diferencia_minutos > 0) {
+            $minutos_anticipacion = $diferencia_minutos;
+        }
+
+        // actualizar en la bd
+        try {
+            $actualizado = $this->asistenciaModel->registrarSalida((int)$asistencia['id'], $hora_salida, (int)$minutos_anticipacion);
+
+            if ($actualizado) {
+                $this->ok([], "Salida registrada correctamente.");
+            } else {
+                $this->fail("No se pudo registrar la salida.");
+            }
+        } catch (PDOException $e) {
+            $this->fail("No se pudo registrar la salida, verifique los datos ingresados");
+        }
+    }
 }

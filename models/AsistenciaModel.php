@@ -9,13 +9,29 @@ class AsistenciaModel
     {
 
 
-        $sql = "SELECT id from asistencia where codigo_llavero = ? AND fecha = ?";
+        $sql = "SELECT id, estado, hora_salida from asistencia where codigo_llavero = ? AND fecha = ?";
         $params = [$codigo_llavero, $fecha];
 
         $stmt = Database::conn()->prepare($sql);
         $stmt->execute($params);
         $row = $stmt->fetch();
         return $row ?: null;
+    }
+
+
+    public function registrarSalida(int $id_asistencia, string $hora_salida, int $minutos_anticipacion): bool
+    {
+        $sql = "UPDATE asistencia
+                SET hora_salida = ?, estado = 'Completado', minutos_anticipacion = ?
+                WHERE id = ?";
+
+        $stmt = Database::conn()->prepare($sql);
+
+        return $stmt->execute([
+            $hora_salida,
+            $minutos_anticipacion,
+            $id_asistencia
+        ]);
     }
 
 
