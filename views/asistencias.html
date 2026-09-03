@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencias</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="../assets/css/estilos.css">
+</head>
+<body>
+
+    <div class="login-container lista-container">
+        <div class="login-card lista-card">
+            <div class="page-header">
+                <h1>Asistencias</h1>
+                <div class="filtro-fechas">
+                    <div class="filtro-inputs">
+                        <div class="form-group">
+                            <label for="filtroDesde">Desde</label>
+                            <input type="date" id="filtroDesde" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="filtroHasta">Hasta</label>
+                            <input type="date" id="filtroHasta" class="form-control">
+                        </div>
+                    </div>
+                    <a href="#" id="btnLimpiarFiltro" class="btn-limpiar-filtro" hidden>Limpiar filtro</a>
+                </div>
+            </div>
+
+            <table class="table-admin">
+                <thead>
+                    <tr>  
+                        <th>Fecha</th>
+                        <th>Hora Entrada</th>
+                        <th>Hora Salida</th>
+                        <th>Estado</th>
+                        <th>Minutos de retardo</th>
+                        <th>Minutos de anticipacion</th>
+                        <th>Codigo de llavero</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaAsistencias">
+                </tbody>
+            </table>
+            
+            <div id="contenedorMensajes" class="mensaje-vacio"></div>
+        </div>
+    </div>
+
+    
+
+   
+
+    <script type="module" src="../assets/js/pages/listado-asistencias.js"></script>
+</body>
+</html>

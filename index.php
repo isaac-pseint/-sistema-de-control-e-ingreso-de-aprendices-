@@ -93,6 +93,9 @@ switch ($action) {
         (new AsistenciaController)->registrarSalida();
         break;
 
+    case 'listarAsistencias':
+        (new AsistenciaController())->listar();
+
     default:
         // Acción no reconocida → 404, siempre en JSON.
         http_response_code(404);
