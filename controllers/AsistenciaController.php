@@ -99,7 +99,6 @@ class AsistenciaController extends ControllerBase
             } else {
                 $this->fail("No se pudo registrar la asistencia.");
             }
-            
         } catch (PDOException $e) {
             $this->fail("No se pudo insertar la asistencia, verifique los datos ingresados");
         }
@@ -179,6 +178,20 @@ class AsistenciaController extends ControllerBase
             }
         } catch (PDOException $e) {
             $this->fail("No se pudo registrar la salida, verifique los datos ingresados");
+        }
+    }
+
+    public function listar()
+    {
+        try {
+
+            $this->requireRol('Aprendiz');
+            $id = $_SESSION['user_id'] ?? null;
+            $asistencias = $this->asistenciaModel->listar($id);
+
+            $this->ok(['asistencias' => $asistencias]);
+        } catch (PDOException $e) {
+            $this->fail("Error al listar las asistencias.");
         }
     }
 }

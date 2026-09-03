@@ -58,4 +58,17 @@ class AsistenciaModel
             $minutos_anticipacion
         ]);
     }
+
+
+    public function listar($id): array
+    {
+        $sql = "SELECT fecha,
+                       DATE_FORMAT(hora_entrada, '%r') AS hora_entrada,
+                       DATE_FORMAT(hora_salida, '%r') AS hora_salida,
+                       estado, minutos_retardo, minutos_anticipacion, codigo_llavero
+                FROM asistencia WHERE Usuario_id = ? ORDER BY fecha DESC, hora_entrada DESC";
+        $stmt = Database::conn()->prepare($sql);
+        $stmt->execute([$id]);
+        return $stmt->fetchAll();
+    }
 }
