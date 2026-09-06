@@ -1,8 +1,8 @@
 // pages/admin-editar-usuario.js — Punto de entrada de la vista editar usuario.
-import { comprobarSesion, cerrarSesion } from "../auth.js";
+import { requerirRol, cerrarSesion } from "../auth.js";
 import { cargarPorId, conectarFormularioEditarUsuario } from "../admin-usuarios.js";
 
-comprobarSesion();
+requerirRol("Administrador");
 cargarPorId();
 conectarFormularioEditarUsuario();
 

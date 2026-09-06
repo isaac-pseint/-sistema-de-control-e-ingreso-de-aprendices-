@@ -179,7 +179,11 @@ class UsuarioController extends ControllerBase
     public function listar(): void
     {
         $this->requireRol('Administrador');
-        $usuarios = $this->model->listarTodos();
+
+        $rol = isset($_GET['rol']) && trim($_GET['rol']) !== '' ? trim($_GET['rol']) : null;
+        $busqueda = isset($_GET['busqueda']) && trim($_GET['busqueda']) !== '' ? trim($_GET['busqueda']) : null;
+
+        $usuarios = $this->model->listarTodos($rol, $busqueda);
         $this->ok(['usuarios' => $usuarios]);
     }
 
