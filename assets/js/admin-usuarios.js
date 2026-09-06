@@ -248,8 +248,23 @@ export function conectarFormularioEditarUsuario() {
     });
 }
 
-export function cargarListado() {
-    api("listarUsuarios")
+export function cargarListado(rolFiltro = null, busqueda = null) {
+    const inputBusqueda = document.getElementById("filtroBusqueda");
+    const selectRol = document.getElementById("filtroRol");
+
+    const rol = rolFiltro !== null ? rolFiltro : (selectRol ? selectRol.value.trim() : "");
+    const busq = busqueda !== null ? busqueda : (inputBusqueda ? inputBusqueda.value.trim() : "");
+
+    let action = "listarUsuarios";
+    const params = new URLSearchParams();
+    if (rol) params.append("rol", rol);
+    if (busq) params.append("busqueda", busq);
+    const queryString = params.toString();
+    if (queryString) {
+        action += `&${queryString}`;
+    }
+
+    api(action)
         .then(data => {
             const tbody = document.getElementById("tablaUsuarios");
             const contenedorMensajes = document.getElementById("contenedorMensajes");
@@ -258,7 +273,9 @@ export function cargarListado() {
                 const usuarios = data.data.usuarios;
 
                 if (usuarios.length === 0) {
-                    contenedorMensajes.textContent = "No hay usuarios registrados.";
+                    contenedorMensajes.textContent = (rol || busq)
+                        ? "No se encontraron usuarios con los filtros aplicados."
+                        : "No hay usuarios registrados.";
                     tbody.innerHTML = "";
                     return;
                 }
@@ -460,5 +477,25 @@ export function configurarAccionesListado() {
         document.getElementById("btnCerrarModalActivar")?.addEventListener("click", cerrarModalActivar);
         document.getElementById("btnCancelarActivar")?.addEventListener("click", cerrarModalActivar);
         document.getElementById("btnConfirmarActivar")?.addEventListener("click", confirmarActivacion);
+    }
+
+    // Filtros de búsqueda (con debounce) y rol
+    const inputBusqueda = document.getElementById("filtroBusqueda");
+    const selectRol = document.getElementById("filtroRol");
+
+    if (inputBusqueda) {
+        let debounceTimer = null;
+        inputBusqueda.addEventListener("input", () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                cargarListado();
+            }, 300);
+        });
+    }
+
+    if (selectRol) {
+        selectRol.addEventListener("change", () => {
+            cargarListado();
+        });
     }
 }

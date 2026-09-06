@@ -3,8 +3,7 @@
 -- Normaliza el casing del estado del usuario al convenio
 -- del proyecto ('Activo'/'Inactivo') definido en la GUIA.
 -- ============================================
-
-USE ControlAprendices;
+USE control_aprendices;
 
 -- Actualizar los valores existentes escritos en minúsculas por 005.
 UPDATE usuario SET estado = 'Activo' WHERE estado = 'activo';

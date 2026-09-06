@@ -63,6 +63,25 @@ export function comprobarSesion() {
     });
 }
 
+export function requerirRol(rolEsperado) {
+    return api("sesion").then(data => {
+        if (data.ok && data.data && data.data.usuario) {
+            const usuario = data.data.usuario;
+            if (usuario.rol !== rolEsperado) {
+                window.location.href = new URL("../../views/login.html", import.meta.url).href;
+                return;
+            }
+            const nav = document.getElementById("userNombre");
+            if (nav) nav.textContent = usuario.nombre || usuario.email || "";
+            return usuario;
+        } else {
+            window.location.href = new URL("../../views/login.html", import.meta.url).href;
+        }
+    }).catch(() => {
+        window.location.href = new URL("../../views/login.html", import.meta.url).href;
+    });
+}
+
 export function cerrarSesion() {
     api("logout", { method: "POST" })
         .then(() => window.location.href = new URL("../../views/login.html", import.meta.url).href);

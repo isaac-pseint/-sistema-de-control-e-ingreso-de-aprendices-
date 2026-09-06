@@ -192,7 +192,7 @@ class UserModel
         return $stmt->fetchAll();
     }
 
-    public function listarTodos(): array
+    public function listarTodos(?string $rolFiltro = null, ?string $busqueda = null): array
     {
         $sql = "SELECT 
                     u.id, 
@@ -206,11 +206,29 @@ class UserModel
                     f.codigo AS ficha
                 FROM usuario u
                 INNER JOIN rol r ON u.Rol_id = r.id
-                LEFT JOIN ficha f ON u.Ficha_id = f.id
-                ORDER BY u.id DESC";
+                LEFT JOIN ficha f ON u.Ficha_id = f.id";
+
+        $where = [];
+        $params = [];
+
+        if ($rolFiltro !== null && trim($rolFiltro) !== '') {
+            $where[] = "r.nombre = ?";
+            $params[] = trim($rolFiltro);
+        }
+
+        if ($busqueda !== null && trim($busqueda) !== '') {
+            $where[] = "CONCAT(u.nombre, ' ', u.apellido) LIKE ?";
+            $params[] = '%' . trim($busqueda) . '%';
+        }
+
+        if (!empty($where)) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
+
+        $sql .= " ORDER BY u.id DESC";
 
         $stmt = Database::conn()->prepare($sql);
-        $stmt->execute();
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 

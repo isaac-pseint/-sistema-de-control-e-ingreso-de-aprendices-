@@ -1,7 +1,8 @@
-import { comprobarSesion, cerrarSesion } from "../auth.js";
+import { requerirRol, cerrarSesion } from "../auth.js";
 import { cargarDatosFormulario } from "../admin-usuarios.js";
 import { conectarFormularioCrearUsuario } from "../admin-usuarios.js";
-comprobarSesion();
+
+requerirRol("Administrador");
 cargarDatosFormulario();
 conectarFormularioCrearUsuario();
 
