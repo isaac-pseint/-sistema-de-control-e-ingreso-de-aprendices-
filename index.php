@@ -113,6 +113,26 @@ switch ($action) {
         (new FichaController())->activar();
         break;
 
+    case 'crearPrograma':
+        (new ProgramaController())->crear();
+        break;
+
+    case 'listarProgramas':
+        (new ProgramaController())->listar();
+        break;
+
+    case 'obtenerPrograma':
+        (new ProgramaController())->obtener();
+        break;
+
+    case 'actualizarPrograma':
+        (new ProgramaController())->actualizar();
+        break;
+
+    case 'eliminarPrograma':
+        (new ProgramaController())->eliminar();
+        break;
+
     case 'registrarAsistencia':
         (new AsistenciaController)->registrarEntrada();
         break;
