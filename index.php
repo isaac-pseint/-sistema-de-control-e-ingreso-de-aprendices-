@@ -85,6 +85,34 @@ switch ($action) {
         (new UsuarioController())->activar();
         break;
 
+    case 'datosFormularioFicha':
+        (new FichaController())->datosFormulario();
+        break;
+
+    case 'crearFicha':
+        (new FichaController())->crear();
+        break;
+
+    case 'listarFichas':
+        (new FichaController())->listar();
+        break;
+
+    case 'obtenerFicha':
+        (new FichaController())->obtener();
+        break;
+
+    case 'actualizarFicha':
+        (new FichaController())->actualizar();
+        break;
+
+    case 'eliminarFicha':
+        (new FichaController())->eliminar();
+        break;
+
+    case 'activarFicha':
+        (new FichaController())->activar();
+        break;
+
     case 'registrarAsistencia':
         (new AsistenciaController)->registrarEntrada();
         break;
@@ -95,6 +123,7 @@ switch ($action) {
 
     case 'listarAsistencias':
         (new AsistenciaController())->listar();
+        break;
 
     default:
         // Acción no reconocida → 404, siempre en JSON.
