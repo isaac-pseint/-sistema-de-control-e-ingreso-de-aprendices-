@@ -324,6 +324,8 @@ export function cargarDatosFormularioFicha(programaSeleccionado = null, instruct
 // Conecta el formulario de creación de ficha con la API.
 export function conectarFormularioCrearFicha() {
     const config = {
+        textoEnviando: "Guardando ficha...",
+        textoRestaurar: "Guardar Ficha",
         validar: (form) => {
             const he = form.querySelector("#hora_entrada");
             const hs = form.querySelector("#hora_salida");
@@ -335,19 +337,9 @@ export function conectarFormularioCrearFicha() {
                 if (he) mostrarErrorCampo(he, "");
             }
             return ok;
-        },
-        exito: () => {
-            window.location.href = "fichas.html";
         }
     };
     conectarFormulario("formCrearFicha", "crearFicha", config);
-
-    const form = document.getElementById("formCrearFicha");
-    form?.addEventListener("reset", () => {
-        setTimeout(() => {
-            config.exito();
-        }, 500);
-    });
 }
 
 // Carga los datos de una ficha por su ID y prellena el formulario de edición.
@@ -395,6 +387,8 @@ export function cargarFichaPorId(id) {
 // Conecta el formulario de edición de ficha con la API.
 export function conectarFormularioEditarFicha() {
     const config = {
+        textoEnviando: "Actualizando ficha...",
+        textoRestaurar: "Actualizar Ficha",
         validar: (form) => {
             const he = form.querySelector("#hora_entrada");
             const hs = form.querySelector("#hora_salida");
@@ -406,18 +400,8 @@ export function conectarFormularioEditarFicha() {
                 if (he) mostrarErrorCampo(he, "");
             }
             return ok;
-        },
-        exito: () => {
-            window.location.href = "fichas.html";
         }
     };
     conectarFormulario("formEditarFicha", "actualizarFicha", config);
-
-    const form = document.getElementById("formEditarFicha");
-    form?.addEventListener("reset", () => {
-        setTimeout(() => {
-            config.exito();
-        }, 500);
-    });
 }
 

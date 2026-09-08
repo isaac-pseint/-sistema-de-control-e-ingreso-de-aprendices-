@@ -82,7 +82,7 @@ class FichaController extends ControllerBase
             );
 
             if ($creado) {
-                $this->ok([], 'Ficha creada correctamente.');
+                $this->ok(['redirect' => '../admin/fichas.html'], 'Ficha creada correctamente.');
             } else {
                 $this->fail('No se pudo crear la ficha.');
             }
@@ -200,7 +200,7 @@ class FichaController extends ControllerBase
             );
 
             if ($actualizado) {
-                $this->ok([], 'Ficha actualizada correctamente.');
+                $this->ok(['redirect' => '../admin/fichas.html'], 'Ficha actualizada correctamente.');
             } else {
                 $this->fail('No se pudo actualizar la ficha.');
             }

@@ -147,7 +147,7 @@ body {
     width: 100%;
 }
 
-.btn-group{
+.btn-group {
     display: flex;
     gap: 8px;
 }
@@ -164,7 +164,7 @@ body {
     border-color: var(--color-sena-verde);
 }
 
-.btn-danger{
+.btn-danger {
     color: var(--color-blanco);
     background-color: var(--color-danger);
     border-color: var(--color-danger);
@@ -200,7 +200,7 @@ body {
 
 .app-header {
     background-color: var(--color-blanco);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     padding: 15px 30px;
     display: flex;
     justify-content: space-between;
@@ -234,8 +234,10 @@ body {
 
 
 
-.btn-a{
-text-decoration: none;
+.btn-a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
 }
 
 .app-main {
@@ -258,7 +260,7 @@ text-decoration: none;
     background-color: var(--color-blanco);
     min-width: 250px;
     max-width: 350px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-radius: 4px;
     overflow: hidden;
     display: flex;
@@ -287,10 +289,21 @@ text-decoration: none;
     font-size: 0.95rem;
 }
 
-.toast-success .toast-icon { background-color: var(--color-success); }
-.toast-danger .toast-icon { background-color: var(--color-danger); }
-.toast-warning .toast-icon { background-color: var(--color-warning); }
-.toast-info .toast-icon { background-color: var(--color-info); }
+.toast-success .toast-icon {
+    background-color: var(--color-success);
+}
+
+.toast-danger .toast-icon {
+    background-color: var(--color-danger);
+}
+
+.toast-warning .toast-icon {
+    background-color: var(--color-warning);
+}
+
+.toast-info .toast-icon {
+    background-color: var(--color-info);
+}
 
 /* Validación de formularios: mensaje bajo el campo e input inválido. */
 .error-text {
@@ -363,15 +376,15 @@ text-decoration: none;
     color: var(--color-texto-ligero);
 }
 
-.text-success{
+.text-success {
     color: var(--color-success);
 }
 
-.text-info{
+.text-info {
     color: var(--color-info);
 }
 
-.text-danger{
+.text-danger {
     color: var(--color-danger);
 }
 
