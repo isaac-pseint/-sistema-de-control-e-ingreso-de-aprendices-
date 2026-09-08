@@ -68,6 +68,10 @@ class FichaController extends ControllerBase
         $horaEntradaFinal = $horaEntrada !== '' ? $horaEntrada : null;
         $horaSalidaFinal = $horaSalida !== '' ? $horaSalida : null;
 
+        if ($horaEntradaFinal !== null && $horaSalidaFinal !== null && $horaEntradaFinal >= $horaSalidaFinal) {
+            $this->fail('La hora de entrada debe ser menor que la hora de salida.');
+        }
+
         try {
             $creado = $this->model->crear(
                 $codigo,
@@ -179,6 +183,10 @@ class FichaController extends ControllerBase
 
         $horaEntradaFinal = $horaEntrada !== '' ? $horaEntrada : null;
         $horaSalidaFinal = $horaSalida !== '' ? $horaSalida : null;
+
+        if ($horaEntradaFinal !== null && $horaSalidaFinal !== null && $horaEntradaFinal >= $horaSalidaFinal) {
+            $this->fail('La hora de entrada debe ser menor que la hora de salida.');
+        }
 
         try {
             $actualizado = $this->model->actualizar(

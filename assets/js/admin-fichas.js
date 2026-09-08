@@ -1,6 +1,6 @@
 import { api } from "./api.js";
 import { showToast, esc } from "./ui.js";
-import { conectarFormulario } from "./forms.js";
+import { conectarFormulario, mostrarErrorCampo } from "./forms.js";
 
 // Llena el selector de programas con los datos obtenidos del backend.
 export function cargarFiltroProgramas() {
@@ -324,6 +324,18 @@ export function cargarDatosFormularioFicha(programaSeleccionado = null, instruct
 // Conecta el formulario de creación de ficha con la API.
 export function conectarFormularioCrearFicha() {
     const config = {
+        validar: (form) => {
+            const he = form.querySelector("#hora_entrada");
+            const hs = form.querySelector("#hora_salida");
+            let ok = true;
+            if (he && hs && he.value && hs.value && he.value >= hs.value) {
+                mostrarErrorCampo(he, "La hora de entrada debe ser menor que la hora de salida.");
+                ok = false;
+            } else {
+                if (he) mostrarErrorCampo(he, "");
+            }
+            return ok;
+        },
         exito: () => {
             window.location.href = "fichas.html";
         }
@@ -383,6 +395,18 @@ export function cargarFichaPorId(id) {
 // Conecta el formulario de edición de ficha con la API.
 export function conectarFormularioEditarFicha() {
     const config = {
+        validar: (form) => {
+            const he = form.querySelector("#hora_entrada");
+            const hs = form.querySelector("#hora_salida");
+            let ok = true;
+            if (he && hs && he.value && hs.value && he.value >= hs.value) {
+                mostrarErrorCampo(he, "La hora de entrada debe ser menor que la hora de salida.");
+                ok = false;
+            } else {
+                if (he) mostrarErrorCampo(he, "");
+            }
+            return ok;
+        },
         exito: () => {
             window.location.href = "fichas.html";
         }
