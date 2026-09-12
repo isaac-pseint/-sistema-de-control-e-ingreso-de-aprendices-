@@ -1,0 +1,121 @@
+/* layout.css — Estructura general y layout de páginas.
+   Clases: .login-container, .login-card, .login-logo, .app-header, .app-title,
+           .dashboard-content, .app-main, .page-header, .filtro-fechas,
+           .filtro-inputs, .btn-limpiar-filtro, .lista-container, .lista-card */
+
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--color-fondo) 0%, #e0ece5 100%);
+    padding: 20px;
+}
+
+.login-card {
+    background-color: var(--color-blanco);
+    border-radius: var(--borde-radio);
+    box-shadow: var(--sombra-card);
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    text-align: center;
+    transition: var(--transicion);
+}
+
+.login-card:hover {
+    box-shadow: var(--sombra-hover);
+}
+
+.login-logo {
+    width: 120px;
+    margin-bottom: 20px;
+}
+
+.login-card h1 {
+    color: var(--color-sena-verde);
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+}
+
+.app-header {
+    background-color: var(--color-blanco);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-title {
+    color: var(--color-sena-verde);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.dashboard-content {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.app-main {
+    padding: 40px;
+    flex-grow: 1;
+}
+
+.lista-container {
+    max-width: 100%;
+}
+
+.lista-card {
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.page-header h1 {
+    margin-bottom: 0;
+}
+
+.page-header .filtro-fechas {
+    margin-bottom: 0;
+    max-width: 380px;
+}
+
+.filtro-fechas {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    max-width: 420px;
+}
+
+.filtro-inputs {
+    display: flex;
+    gap: 15px;
+}
+
+.filtro-inputs .form-group {
+    flex: 1;
+}
+
+.btn-limpiar-filtro {
+    margin-top: 8px;
+    align-self: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--color-sena-verde);
+    text-decoration: underline;
+    transition: var(--transicion);
+}
+
+.btn-limpiar-filtro:hover {
+    color: var(--color-texto-ligero);
+}

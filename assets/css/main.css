@@ -1,0 +1,21 @@
+/* main.css — Punto de entrada del CSS de la aplicación.
+   Índice de @import (en orden de dependencia):
+   - tokens.css                 → variables de diseño
+   - base.css                   → reset y estilos base
+   - layout.css                 → estructura y layout
+   - components/botones.css     → .btn-*
+   - components/formularios.css → .form-*
+   - components/tablas.css      → .table-*
+   - components/modales.css     → .modal-*
+   - components/toasts.css      → .toast-*
+   - components/utilidades.css  → .text-* */
+
+@import url("tokens.css");
+@import url("base.css");
+@import url("layout.css");
+@import url("components/botones.css");
+@import url("components/formularios.css");
+@import url("components/tablas.css");
+@import url("components/modales.css");
+@import url("components/toasts.css");
+@import url("components/utilidades.css");

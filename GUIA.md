@@ -127,30 +127,26 @@ ControlAprendices/
 ├── migrations/
 │   └── 001_esquema_inicial.sql  ← esquema de BD
 ├── controllers/
-│   ├── ControllerBase.php       ← helpers de la API (json, ok, fail, auth)
+│   ├── ControllerBase.php       ← helpers de la API (json, ok, fail)
 │   ├── AuthController.php       ← login / logout / sesion
-│   └── AprendizController.php   ← CRUD de aprendices
+│   ├── UsuarioController.php    ← CRUD de usuarios
+│   ├── FichaController.php      ← CRUD de fichas
+│   ├── ProgramaController.php   ← CRUD de programas
+│   └── AsistenciaController.php ← entrada/salida + listado
 ├── models/
 │   ├── Database.php             ← conexión PDO (singleton)
-│   └── AprendizModel.php        ← consultas PDO de aprendices
-├── views/                       ← HTML ESTÁTICO (sin PHP)
-│   ├── login.html
-│   ├── lista.html
-│   ├── crear.html
-│   └── editar.html
+│   └── ...Model.php             ← consultas PDO por dominio
+├── views/                       ← HTML ESTÁTICO (sin PHP), separado POR ROL
+│   ├── public/                  ← login, entrada, salida (visible sin sesión)
+│   ├── admin/                   ← dashboard + usuarios, fichas, programas (Administrador)
+│   ├── instructor/              ← dashboard placeholder (gestión próximamente)
+│   └── aprendiz/                ← dashboard + asistencias (Aprendiz)
 └── assets/
-    ├── css/estilos.css
-    └── js/                        ← Módulos ES (import / export)
-        ├── api.js                 ← [base] exporta api(): cliente del servidor
-        ├── ui.js                  ← [base] exporta showToast + esc
-        ├── forms.js               ← exporta conectarFormulario (envío AJAX)
-        ├── auth.js                ← exporta sesión: login, logout, comprobar
-        ├── aprendices.js          ← exporta la lógica del módulo (tabla, editar, desactivar)
-        └── pages/                 ← UN módulo por página (lo carga la vista)
-            ├── login.js
-            ├── lista.js
-            ├── crear.js
-            └── editar.js
+    ├── css/                     ← main.css (@import tokens/base/layout/components/)
+    └── js/                      ← Módulos ES (import / export)
+        ├── core/                ← api.js, ui.js, forms.js, validacion.js, modal.js (sin roles ni dominios)
+        ├── features/            ← auth.js (transversal) + un rol por carpeta (public, admin, aprendiz)
+        └── pages/               ← UN módulo de entrada por vista, espejando features/ y views/ por rol
 ```
 
 ---
@@ -189,7 +185,10 @@ ControlAprendices/
 1. **El servidor SOLO devuelve JSON.** Jamás HTML de páginas, jamás `render()` de vistas.
 2. **Las views son HTML estático**: cero PHP, cero SQL. Todo lo pinta JavaScript.
 3. **La capa de datos usa PDO** con prepared statements (anti inyección SQL).
-4. Las páginas `login.html`/`lista.html`/`crear.html`/`editar.html` se navegan con enlaces
-   normales (`<a href="views/lista.html">`); la información se carga por AJAX.
-5. Sesión caducada: la API responde **401** → `api.js` redirige a `login.html`.
+4. Las vistas se navegan con enlaces normales relativos a su carpeta (**rama-rol**):
+   una vista y sus crear/editar viven juntas (mismo nivel `listado.html` ↔ `crear.html`),
+   `../dashboard.html` sube al panel de su rol, `../fichas/listado.html` cambia de dominio
+   dentro del mismo rol; la información se carga por AJAX.
+5. Sesión caducada o rol incorrecto: la API responde **401** → `core/api.js` (o
+   `features/auth.js`) redirige a `views/public/login.html`.
 6. Si la API no reconoce la acción → **404 JSON**, nunca una página HTML.

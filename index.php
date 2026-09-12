@@ -19,7 +19,13 @@ date_default_timezone_set('America/Bogota');
 $action = $_GET['action'] ?? null;
 
 if ($action === null) {
-    $vista = isset($_SESSION['user_id']) ? 'dashboard.html' : 'login.html';
+    $rol = $_SESSION['user_rol'] ?? null;
+    $vista = match (isset($_SESSION['user_id']) ? $rol : null) {
+        'Administrador' => 'admin/dashboard.html',
+        'Instructor' => 'instructor/dashboard.html',
+        'Aprendiz' => 'aprendiz/dashboard.html',
+        default => 'public/login.html'
+    };
     header('Location: views/' . $vista);
     exit;
 }

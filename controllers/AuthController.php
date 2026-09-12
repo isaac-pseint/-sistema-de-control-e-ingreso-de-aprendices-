@@ -33,7 +33,12 @@ class AuthController extends ControllerBase
             $_SESSION['user_ficha'] = $user['ficha'];
 
             // El servidor decide a dónde ir según el rol; el frontend solo consume data.redirect.
-            $redirect = ($_SESSION['user_rol'] === 'Administrador') ? 'admin/usuarios.html' : 'dashboard.html';
+            $redirect = match ($_SESSION['user_rol']) {
+                'Administrador' => '../admin/dashboard.html',
+                'Instructor' => '../instructor/dashboard.html',
+                'Aprendiz' => '../aprendiz/dashboard.html',
+                default => '../public/login.html'
+            };
             $this->ok(['redirect' => $redirect, 'rol' => $_SESSION['user_rol']], 'Sesión iniciada correctamente.');
         } else {
 

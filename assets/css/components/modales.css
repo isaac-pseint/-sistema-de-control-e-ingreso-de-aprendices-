@@ -1,0 +1,82 @@
+/* modales.css — Modales de confirmación.
+   Clases: .modal-overlay, .modal-card, .modal-header, .modal-close,
+           .modal-body, .modal-detalle, .modal-footer */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    padding: 20px;
+    visibility: hidden;
+    opacity: 0;
+    transition: var(--transicion);
+}
+
+.modal-overlay.abierto {
+    visibility: visible;
+    opacity: 1;
+}
+
+.modal-card {
+    background-color: var(--color-blanco);
+    border-radius: var(--borde-radio);
+    box-shadow: var(--sombra-card);
+    width: 100%;
+    max-width: 420px;
+    padding: 24px;
+    text-align: left;
+    transform: translateY(-10px);
+    transition: var(--transicion);
+}
+
+.modal-overlay.abierto .modal-card {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.modal-header h3 {
+    color: var(--color-texto);
+    font-size: 1.2rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--color-texto-ligero);
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: var(--transicion);
+}
+
+.modal-close:hover {
+    color: var(--color-danger);
+}
+
+.modal-body p {
+    color: var(--color-texto-ligero);
+    margin-bottom: 8px;
+}
+
+.modal-detalle {
+    font-weight: 500;
+    color: var(--color-texto);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
