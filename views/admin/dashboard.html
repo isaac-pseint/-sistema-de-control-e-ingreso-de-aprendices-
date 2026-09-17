@@ -7,22 +7,21 @@
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="../../assets/css/main.css">
 </head>
-<body>
+<body class="app-layout">
     <nav class="app-header">
-        <a href="dashboard.html" class="app-title btn-a">Sistema de Ingreso</a>
-        <div class="btn-group">
-            <button id="btnLogout" class="btn btn-danger btn-sm">Cerrar Sesión</button>
-        </div>
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <h2 id="tituloSeccion" class="app-title"></h2>
     </nav>
 
-    <main class="dashboard-content">
-        <p>Has iniciado sesión correctamente. Aquí irá el contenido del sistema.</p>
-        <div class="btn-group">
-            <a href="usuarios/listado.html" class="btn btn-outline btn-a">Gestión de Usuarios</a>
-            <a href="fichas/listado.html" class="btn btn-primary btn-auto btn-a">Gestión de Fichas</a>
-            <a href="programas/listado.html" class="btn btn-outline btn-a">Gestión de Programas</a>
-        </div>
-    </main>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+            <div class="dashboard-content">
+                <p>Has iniciado sesión correctamente. Aquí irá el contenido del sistema.</p>
+            </div>
+        </main>
+    </div>
 
     <script type="module" src="../../assets/js/pages/admin/dashboard.js"></script>
 </body>

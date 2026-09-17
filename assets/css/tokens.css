@@ -19,4 +19,6 @@
     --sombra-hover: 0 8px 24px rgba(0, 0, 0, 0.15);
     --borde-radio: 8px;
     --transicion: all 0.3s ease;
+    --sidebar-ancho: 250px;
+    --app-header-alto: 60px;
 }

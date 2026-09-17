@@ -39,18 +39,6 @@ export function conectarLogin() {
     });
 }
 
-export function comprobarSesion() {
-    api("sesion").then(data => {
-        if (data.ok && data.data) {
-            const usuario = data.data.usuario;
-            const nav = document.getElementById("userNombre");
-            if (usuario && nav) nav.textContent = usuario.nombre || usuario.email || "";
-        }else{
-            window.location.href = new URL("../../../views/public/login.html", import.meta.url).href;
-        }
-    });
-}
-
 export function requerirRol(rolEsperado) {
     return api("sesion").then(data => {
         if (data.ok && data.data && data.data.usuario) {
@@ -59,8 +47,6 @@ export function requerirRol(rolEsperado) {
                 window.location.href = new URL("../../../views/public/login.html", import.meta.url).href;
                 return;
             }
-            const nav = document.getElementById("userNombre");
-            if (nav) nav.textContent = usuario.nombre || usuario.email || "";
             return usuario;
         } else {
             window.location.href = new URL("../../../views/public/login.html", import.meta.url).href;

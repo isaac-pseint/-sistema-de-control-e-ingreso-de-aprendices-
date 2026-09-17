@@ -7,19 +7,20 @@
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="../../../assets/css/main.css">
 </head>
-<body>
+<body class="app-layout">
 
     <nav class="app-header">
-        <a href="../dashboard.html" class="app-title btn-a">Sistema de Ingreso</a>
-        <div class="btn-group">
-            <button id="btnLogout" class="btn btn-danger btn-sm">Cerrar Sesión</button>
-        </div>
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
     </nav>
 
-    <div class="login-container lista-container">
-        <div class="login-card lista-card">
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+
             <div class="page-header">
-                <h1>Asistencias</h1>
+                <h2>Asistencias</h2>
                 <div class="filtro-fechas">
                     <div class="filtro-inputs">
                         <div class="form-group">
@@ -52,12 +53,8 @@
             </table>
             
             <div id="contenedorMensajes" class="mensaje-vacio"></div>
-        </div>
+        </main>
     </div>
-
-    
-
-   
 
     <script type="module" src="../../../assets/js/pages/aprendiz/asistencias/listado.js"></script>
 </body>

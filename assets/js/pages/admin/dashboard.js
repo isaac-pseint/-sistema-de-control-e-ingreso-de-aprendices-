@@ -1,6 +1,5 @@
 // pages/admin/dashboard.js — Punto de entrada del dashboard de administrador.
-import { requerirRol, cerrarSesion } from "../../features/auth.js";
+import { requerirRol } from "../../features/auth.js";
+import { montarSidebar } from "../../features/sidebar.js";
 
-requerirRol("Administrador");
-
-document.getElementById("btnLogout")?.addEventListener("click", cerrarSesion);
+requerirRol("Administrador").then(usuario => montarSidebar("Administrador", usuario));

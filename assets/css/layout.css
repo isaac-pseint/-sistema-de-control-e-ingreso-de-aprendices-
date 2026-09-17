@@ -1,7 +1,7 @@
 /* layout.css — Estructura general y layout de páginas.
    Clases: .login-container, .login-card, .login-logo, .app-header, .app-title,
-           .dashboard-content, .app-main, .page-header, .filtro-fechas,
-           .filtro-inputs, .btn-limpiar-filtro, .lista-container, .lista-card */
+.dashboard-content, .app-main, .page-header, .breadcrumb,
+            .filtro-fechas, .filtro-inputs, .btn-limpiar-filtro */
 
 .login-container {
     display: flex;
@@ -53,25 +53,187 @@
     font-weight: bold;
 }
 
+/* En las vistas con sesión el título del header comparte estilo con el <h2>
+   de la sección (ver .page-header h2). */
+.app-layout .app-header .app-title {
+    font-size: 1.3rem;
+}
+
 .dashboard-content {
     max-width: 900px;
     margin: 30px auto;
     padding: 0 20px;
 }
 
+.app-shell {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
 .app-main {
+    flex: 1;
+    min-width: 0;
     padding: 40px;
-    flex-grow: 1;
+    overflow-y: auto;
 }
 
-.lista-container {
-    max-width: 100%;
+/* Sidebar: mismo blanco que el header, sin bordes. En escritorio sube hasta
+   arriba (columna izquierda de altura completa) y el header queda a su
+   derecha con el título del sistema.
+   Clases: .sidebar, .sidebar-marca, .sidebar-usuario(-nombre/-rol),
+           .sidebar-nav, .sidebar-pie, .sidebar-logout, .sidebar-overlay,
+           .btn-menu */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-ancho);
+    z-index: 1060;
+    background-color: var(--color-blanco);
+    display: flex;
+    flex-direction: column;
 }
 
-.lista-card {
+.sidebar-marca {
+    padding: 20px 20px 4px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--color-sena-verde);
+}
+
+.sidebar-usuario {
+    padding: 10px 20px ;
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--color-borde);
+   
+}
+
+.sidebar-usuario-nombre {
+    display: block;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.sidebar-usuario-rol {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--color-texto-ligero);
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    color: var(--color-texto);
+    text-decoration: none;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: var(--transicion);
+}
+
+.sidebar-nav a:hover {
+    background-color: var(--color-fondo);
+}
+
+.sidebar-nav a.activo {
+    background-color: rgba(57, 169, 0, 0.12);
+    color: var(--color-sena-verde);
+    border-left-color: var(--color-sena-verde);
+}
+
+.sidebar-pie {
+    padding: 0;
+}
+
+/* Cierre de sesión: como un enlace del nav, con borde lateral rojo. */
+.sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     width: 100%;
-    max-width: 100%;
+    padding: 12px 20px;
+    color: var(--color-danger);
+    background: none;
+    border: none;
+    border-left: 3px solid var(--color-danger);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
     text-align: left;
+    transition: var(--transicion);
+}
+
+.sidebar-logout:hover {
+    background-color: var(--color-fondo);
+}
+
+/* Botón hamburguesa: solo se muestra en pantallas pequeñas. */
+.btn-menu {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-texto);
+    padding: 4px 8px;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1055;
+}
+
+@media (min-width: 768px) {
+    /* En escritorio el sidebar sube hasta arriba (columna izquierda). El
+       header con el título del sistema queda a su derecha, sobre el contenido,
+       y el contenido reserva el ancho del sidebar. */
+    .app-layout .app-header {
+        margin-left: var(--sidebar-ancho);
+    }
+
+    .app-layout .app-main {
+        margin-left: var(--sidebar-ancho);
+    }
+
+    .app-layout .sidebar-overlay {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    .btn-menu {
+        display: inline-flex;
+    }
+
+    /* En móvil el header vuelve a ocupar todo el ancho y el sidebar es un
+       panel off-canvas que se desliza desde la izquierda, debajo del header. */
+    .app-layout .app-header,
+    .app-layout .app-main {
+        margin-left: 0;
+    }
+
+    .sidebar {
+        top: var(--app-header-alto);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.abierto {
+        transform: translateX(0);
+    }
 }
 
 .page-header {
@@ -81,7 +243,41 @@
     margin-bottom: 20px;
 }
 
-.page-header h1 {
+/* Migas de pan: navegación sobre el título de la sección actual. */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    color: var(--color-texto-ligero);
+}
+
+.breadcrumb a {
+    color: var(--color-texto-ligero);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.breadcrumb a:hover {
+    color: var(--color-sena-verde);
+    text-decoration: underline;
+}
+
+.breadcrumb-actual {
+    color: var(--color-sena-verde);
+    font-weight: 600;
+}
+
+.app-main > h2 {
+    color: var(--color-sena-verde);
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.page-header h2 {
+    color: var(--color-sena-verde);
     margin-bottom: 0;
 }
 

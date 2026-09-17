@@ -1,9 +1,5 @@
-// pages/aprendiz/dashboard.js — Punto de entrada del dashboard de instructor/aprendiz.
-import { cerrarSesion, requerirRol } from "../../features/auth.js";
+// pages/aprendiz/dashboard.js — Punto de entrada del dashboard de aprendiz.
+import { requerirRol } from "../../features/auth.js";
+import { montarSidebar } from "../../features/sidebar.js";
 
-requerirRol("Aprendiz");
-
-const btnLogout = document.getElementById("btnLogout");
-if (btnLogout) {
-    btnLogout.addEventListener("click", cerrarSesion);
-}
+requerirRol("Aprendiz").then(usuario => montarSidebar("Aprendiz", usuario));

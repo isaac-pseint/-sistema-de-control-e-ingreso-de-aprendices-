@@ -1,5 +1,6 @@
 // pages/admin/fichas/listado.js — Punto de entrada de la vista de fichas.
-import { requerirRol, cerrarSesion } from "../../../features/auth.js";
+import { requerirRol } from "../../../features/auth.js";
+import { montarSidebar } from "../../../features/sidebar.js";
 import {
     cargarFiltroProgramas,
     cargarListadoFichas,
@@ -7,11 +8,9 @@ import {
 } from "../../../features/admin/fichas/listado.js";
 import { configurarModalesFicha } from "../../../features/admin/fichas/acciones.js";
 
-requerirRol("Administrador");
+requerirRol("Administrador").then(usuario => montarSidebar("Administrador", usuario));
 
 cargarFiltroProgramas();
 cargarListadoFichas();
 configurarAccionesFichas();
 configurarModalesFicha();
-
-document.getElementById("btnLogout")?.addEventListener("click", cerrarSesion);
