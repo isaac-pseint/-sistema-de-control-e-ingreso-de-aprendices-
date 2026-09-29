@@ -118,15 +118,19 @@ function validarFormularioCrearUsuario(form) {
 }
 
 // validamos el rol del usuario y si requiere ficha
-function validarRolConFicha(input, ficha) {
-    const selected = input.options.selectedIndex;
+export function validarRolConFicha(input, ficha) {
+    if (!input || !ficha) return;
+    const grupo = ficha.closest(".form-group");
+    if (!grupo) return;
 
-    if (input.options[selected].textContent === "Aprendiz") {
-        // si es un aprendiz, puede pertenecer a una ficha
-        ficha.parentElement.style.display = "block";
+    const esCrear = input.form?.id === "formCrearUsuario";
+    const textoRol = input.options[input.selectedIndex]?.textContent ?? "";
+
+    // En crear la ficha sigue visible para asignarla después; en editar solo para Aprendiz.
+    if (esCrear || textoRol === "Aprendiz") {
+        grupo.style.display = "";
     } else {
-        // un admin o instructor no requiere ficha
-        ficha.parentElement.style.display = "none";
+        grupo.style.display = "none";
         ficha.value = "";
     }
 }

@@ -73,8 +73,7 @@ export function cargarListadoFichas(programaId = "", busqueda = "") {
                         <td>${esc(f.codigo)}</td>
                         <td>${esc(f.programa)}</td>
                         <td>${f.instructor ? esc(f.instructor) : "—"}</td>
-                        <td>${f.hora_entrada ? esc(f.hora_entrada) : "—"}</td>
-                        <td>${f.hora_salida ? esc(f.hora_salida) : "—"}</td>
+                        <td>${f.jornada ? esc(f.jornada) : "—"}</td>
                         ${f.estado === "Activo" ? `<td class="text-success">${esc(f.estado)}</td>` : `<td class="text-danger">${esc(f.estado)}</td>`}
                         <td>
                             <div class="btn-group" role="group" aria-label="Acciones">

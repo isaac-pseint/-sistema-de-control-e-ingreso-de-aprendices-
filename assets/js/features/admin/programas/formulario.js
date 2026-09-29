@@ -8,10 +8,7 @@ import { conectarFormulario } from "../../../core/forms.js";
 export function conectarFormularioCrearPrograma() {
     conectarFormulario("formCrearPrograma", "crearPrograma", {
         textoEnviando: "Guardando programa...",
-        textoRestaurar: "Guardar Programa",
-        exito: () => {
-            window.location.href = "listado.html";
-        }
+        textoRestaurar: "Guardar Programa"
     });
 }
 
@@ -19,7 +16,6 @@ export function conectarFormularioCrearPrograma() {
 export function cargarProgramaPorId(id) {
     if (!id) {
         showToast("danger", "ID de programa no proporcionado.");
-        window.location.href = "listado.html";
         return Promise.resolve(null);
     }
 
@@ -27,7 +23,6 @@ export function cargarProgramaPorId(id) {
         .then(data => {
             if (!data.ok || !data.data?.programa) {
                 showToast("danger", data.error || "Programa no encontrado.");
-                window.location.href = "listado.html";
                 return null;
             }
 
@@ -45,7 +40,6 @@ export function cargarProgramaPorId(id) {
         })
         .catch(() => {
             showToast("danger", "Error de conexión al cargar el programa.");
-            window.location.href = "listado.html";
             return null;
         });
 }
@@ -54,9 +48,6 @@ export function cargarProgramaPorId(id) {
 export function conectarFormularioEditarPrograma() {
     conectarFormulario("formEditarPrograma", "actualizarPrograma", {
         textoEnviando: "Actualizando programa...",
-        textoRestaurar: "Actualizar Programa",
-        exito: () => {
-            window.location.href = "listado.html";
-        }
+        textoRestaurar: "Actualizar Programa"
     });
 }

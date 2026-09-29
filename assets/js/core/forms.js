@@ -46,10 +46,23 @@ export function conectarFormulario(formId, action, config = {}) {
         api(action, { method: "POST", body: new FormData(form) })
             .then(data => {
                 if (data.ok) {
-                    const redirect = (data.data && data.data.redirect) || data.redirect;
-                    form.reset();
-                    if (redirect) window.location.href = redirect;
                     showToast("success", data.mensaje || "Operación exitosa.");
+
+                    if (config.seguirRedirectServidor) {
+                        const redirect = (data.data && data.data.redirect) || data.redirect;
+                        if (redirect) {
+                            window.location.href = redirect;
+                            return;
+                        }
+                    }
+
+                    if (config.resetOnSuccess) {
+                        form.reset();
+                    }
+
+                    if (typeof config.onExito === "function") {
+                        config.onExito(data, form);
+                    }
                 } else {
                     showToast("danger", data.error || "Ocurrió un error.");
                 }

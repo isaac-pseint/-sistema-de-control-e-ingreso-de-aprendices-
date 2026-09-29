@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Competencias</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+            <div class="page-header">
+                <h2>Competencias</h2>
+                <a href="crear.html" class="btn btn-primary btn-auto btn-a">Crear competencia</a>
+            </div>
+            <div class="filtro-inputs">
+                <div class="form-group">
+                    <label for="filtroPrograma">Programa</label>
+                    <select id="filtroPrograma" class="form-control"></select>
+                </div>
+            </div>
+            <table class="table-admin">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Programa</th>
+                        <th>Instructor</th>
+                        <th>Descripción</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaCompetencias"></tbody>
+            </table>
+            <div id="contenedorMensajes" class="mensaje-vacio"></div>
+        </main>
+    </div>
+    <div id="modalEliminarCompetencia" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header"><h3>Eliminar competencia</h3>
+                <button type="button" class="modal-close" id="btnCerrarModalEliminar">×</button></div>
+            <div class="modal-body"><p class="modal-detalle" id="modalCompetenciaDetalle"></p></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarEliminar">Cancelar</button>
+                <button type="button" class="btn btn-danger btn-auto" id="btnConfirmarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="../../../assets/js/pages/admin/competencias/listado.js"></script>
+</body>
+</html>

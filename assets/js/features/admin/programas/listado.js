@@ -42,6 +42,7 @@ export function cargarListadoProgramas(busqueda = "") {
                         <td>
                             <div class="btn-group" role="group" aria-label="Acciones">
                                 <a href="editar.html?id=${p.id}" class="btn btn-sm btn-primary btn-a">Editar</a>
+                                <a href="../competencias/listado.html?programa_id=${p.id}" class="btn btn-sm btn-outline btn-a">Competencias</a>
                                 <button data-id="${p.id}" data-nombre="${esc(p.nombre)}" class="btn btn-sm btn-danger btnEliminarPrograma">Eliminar</button>
                             </div>
                         </td>

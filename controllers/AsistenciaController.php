@@ -1,194 +1,221 @@
 <?php
 
+// AsistenciaController — Asistencia por sesión; registra el instructor asignado a la sesión.
 class AsistenciaController extends ControllerBase
 {
-
-
     private UserModel $userModel;
     private AsistenciaModel $asistenciaModel;
-
-    private FichaModel $ficha_model;
+    private SesionModel $sesionModel;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
         $this->asistenciaModel = new AsistenciaModel();
-        $this->ficha_model = new FichaModel();
+        $this->sesionModel = new SesionModel();
     }
 
-    public function registrarEntrada()
+    private function resolverAlcance(): array
     {
+        $sesionId = (int)($_POST['sesion_id'] ?? 0);
+        $codigoLlavero = trim($_POST['codigo_llavero'] ?? '');
 
-        $codigo_llavero = trim($_POST['codigo_llavero'] ?? '');
-
-        if (!$codigo_llavero) {
-            $this->fail("El codigo del llavero no puede estar vacio.");
-            return;
+        if ($sesionId <= 0) {
+            $this->fail("Debe indicar la sesión.");
         }
 
+        $sesion = $this->sesionModel->buscarPorId($sesionId);
+        if (!$sesion) {
+            $this->fail("La sesión no existe.");
+        }
 
-        // confirmar que el llavero existe y que el usuario este activo
-        $usuario = $this->userModel->buscarPorCodigoLlavero($codigo_llavero);
+        if ($codigoLlavero === '') {
+            $this->fail("El código del llavero es obligatorio.");
+        }
 
-
+        $usuario = $this->userModel->buscarPorCodigoLlavero($codigoLlavero);
         if (!$usuario) {
-            $this->fail("No se encontro un usuario con ese codigo.");
+            $this->fail("No se encontró un usuario con ese código.");
+        }
+        if ($usuario['estado'] === 'Inactivo') {
+            $this->fail("El usuario está inactivo.");
+        }
+
+        $usuario['codigo_llavero'] = $codigoLlavero;
+        return ['sesion' => $sesion, 'usuario' => $usuario];
+    }
+
+    private function validarInstructorSesion(array $sesion): void
+    {
+        $this->requireAuth();
+
+        if (($_SESSION['user_rol'] ?? '') === 'Administrador') {
             return;
         }
 
-        if ($usuario['estado'] == 'Inactivo') {
-            $this->fail("El Usuario esta inactivo.");
-            return;
+        if (($_SESSION['user_rol'] ?? '') !== 'Instructor') {
+            $this->fail("No tienes permisos para esta acción.", 403);
         }
 
-        // buscar si ya tiene un registro para el dia de hoy
-        $asistencia = $this->asistenciaModel->buscarPorCodigoFecha($codigo_llavero, date('Y-m-d'));
+        if ((int)$sesion['Instructor_id'] !== (int)$_SESSION['user_id']) {
+            $this->fail("Debes ser el instructor asignado a esta sesión.", 403);
+        }
+    }
 
-        if ($asistencia) {
-            $this->fail("El usuario ya registro su entrada el dia de hoy.");
-            return;
+    private function validarFechaSesionHoy(array $sesion): void
+    {
+        if ($sesion['fecha'] !== date('Y-m-d')) {
+            $this->fail("Solo se puede registrar asistencia el día de la sesión.");
+        }
+    }
+
+    private function validarSesionActiva(array $sesion): void
+    {
+        if ($sesion['estado'] === 'Cancelado') {
+            $this->fail("La sesión fue cancelada.");
+        }
+        if ($sesion['estado'] === 'Finalizada') {
+            $this->fail("La sesión ya fue finalizada.");
+        }
+        if ($sesion['estado'] !== 'Activo') {
+            $this->fail("La sesión no está disponible para registro.");
+        }
+    }
+
+    private function resolverAprendiz(array $alcance): array
+    {
+        $sesion = $alcance['sesion'];
+        $usuario = $alcance['usuario'];
+
+        if ((int)$usuario['Ficha_id'] !== (int)$sesion['Ficha_id']) {
+            $this->fail("El aprendiz no pertenece a la ficha de la sesión.");
+        }
+        if (($usuario['estado'] ?? '') === 'Inactivo') {
+            $this->fail("El usuario está inactivo.");
         }
 
-        // registrar la asistencia
+        return $usuario;
+    }
 
-        // buscar la hora de entrada de la ficha del usuario
-        $ficha = $this->ficha_model->buscarPorId($usuario['Ficha_id']);
+    public function marcarEntrada(): void
+    {
+        $alcance = $this->resolverAlcance();
+        $sesion = $alcance['sesion'];
 
+        $this->validarInstructorSesion($sesion);
+        $this->validarFechaSesionHoy($sesion);
+        $this->validarSesionActiva($sesion);
+        $usuario = $this->resolverAprendiz($alcance);
 
-        if (!$ficha) {
-            $this->fail("El usuario no tiene ficha.");
-            return;
+        if ($this->asistenciaModel->buscarPorUsuarioSesion((int)$usuario['id'], (int)$sesion['id'])) {
+            $this->fail("El aprendiz ya registró entrada en esta sesión.");
         }
 
+        $hora = date('H:i:s');
 
-        // comparar la hora de ingreso con la hora de entrada de la ficha
-        $minutos_anticipacion = 0;
-        $minutos_retardo = 0;
-
-        $hora_entrada = date("H:i");
-        $hora_ficha = date("H:i", strtotime($ficha['hora_entrada']));
-
-        $diferencia_segundos = strtotime($hora_entrada) - strtotime($hora_ficha);
-        $diferencia_minutos = $diferencia_segundos / 60;
-
-        // Llegó después de la hora de entrada → retardo (minutos).
-        if ($diferencia_minutos > 0) {
-            $minutos_retardo = $diferencia_minutos;
+        if ($hora > $sesion['hora_fin']) {
+            $this->fail("La sesión ya finalizó, no se puede registrar la entrada.");
         }
 
-        // La anticipación es de la salida (salida temprana), no aplica
-        // al registrar la entrada. Se calcula recién al registrar la salida.
-        $minutos_anticipacion = 0;
-
-        // Registrar entrada solo dentro de la ventana de la ficha:
-        // rechazar si ya pasó la hora de salida.
-        $hora_salida = date("H:i", strtotime($ficha['hora_salida']));
-
-        if ($hora_entrada > $hora_salida) {
-            $this->fail("Ya pasó la hora de salida de la ficha. No se puede registrar la entrada.");
-            return;
+        $minutosRetardo = 0;
+        if ($hora > $sesion['hora_inicio']) {
+            $minutosRetardo = (int)round((strtotime($hora) - strtotime($sesion['hora_inicio'])) / 60);
         }
-
-        // insertar en la bd
 
         try {
-            $creado = $this->asistenciaModel->registrarAsistencia(date('Y-m-d'), $hora_entrada, (int)$usuario['id'], $codigo_llavero, (int)$minutos_retardo, (int)$minutos_anticipacion);
+            $creado = $this->asistenciaModel->registrarEntrada(
+                (int)$usuario['id'],
+                (int)$sesion['id'],
+                (int)$_SESSION['user_id'],
+                $sesion['fecha'],
+                $hora,
+                $usuario['codigo_llavero'] ?: null,
+                $minutosRetardo
+            );
 
             if ($creado) {
                 $this->ok([], "Entrada registrada correctamente.");
-            } else {
-                $this->fail("No se pudo registrar la asistencia.");
             }
+            $this->fail("No se pudo registrar la entrada.");
         } catch (PDOException $e) {
-            $this->fail("No se pudo insertar la asistencia, verifique los datos ingresados");
+            $this->fail("No se pudo registrar la entrada, verifique los datos.");
         }
     }
 
-    public function registrarSalida()
+    public function marcarSalida(): void
     {
-        $codigo_llavero = trim($_POST['codigo_llavero'] ?? '');
+        $alcance = $this->resolverAlcance();
+        $sesion = $alcance['sesion'];
 
-        if (!$codigo_llavero) {
-            $this->fail("El codigo del llavero no puede estar vacio.");
-            return;
-        }
+        $this->validarInstructorSesion($sesion);
+        $this->validarFechaSesionHoy($sesion);
+        $this->validarSesionActiva($sesion);
+        $usuario = $this->resolverAprendiz($alcance);
 
-        // confirmar que el llavero existe y que el usuario este activo
-        $usuario = $this->userModel->buscarPorCodigoLlavero($codigo_llavero);
-
-        if (!$usuario) {
-            $this->fail("No se encontro un usuario con ese codigo.");
-            return;
-        }
-
-        if ($usuario['estado'] == 'Inactivo') {
-            $this->fail("El Usuario esta inactivo.");
-            return;
-        }
-
-        // buscar el registro de asistencia del dia de hoy
-        $asistencia = $this->asistenciaModel->buscarPorCodigoFecha($codigo_llavero, date('Y-m-d'));
-
+        $asistencia = $this->asistenciaModel->buscarPorUsuarioSesion((int)$usuario['id'], (int)$sesion['id']);
         if (!$asistencia) {
-            $this->fail("No hay entrada registrada hoy para registrar la salida.");
-            return;
+            $this->fail("No hay entrada registrada para esta sesión.");
+        }
+        if ($asistencia['estado'] === 'Completado') {
+            $this->fail("La salida ya fue registrada en esta sesión.");
         }
 
-        if ($asistencia['estado'] == 'Completado') {
-            $this->fail("La salida ya fue registrada hoy.");
-            return;
+        $hora = date('H:i:s');
+
+        if ($hora < $sesion['hora_inicio']) {
+            $this->fail("No se puede registrar la salida antes del inicio de la sesión.");
         }
 
-        // buscar la ficha del usuario para la ventana de referencia
-        $ficha = $this->ficha_model->buscarPorId($usuario['Ficha_id']);
-
-        if (!$ficha) {
-            $this->fail("El usuario no tiene ficha.");
-            return;
+        $minutosAnticipacion = 0;
+        if ($hora < $sesion['hora_fin']) {
+            $minutosAnticipacion = (int)round((strtotime($sesion['hora_fin']) - strtotime($hora)) / 60);
         }
 
-        $hora_salida = date("H:i");
-        $hora_entrada_ficha = date("H:i", strtotime($ficha['hora_entrada']));
-
-        // validacion de coherencia: no registrar salida antes de la hora de entrada de la ficha
-        if ($hora_salida < $hora_entrada_ficha) {
-            $this->fail("No se puede registrar la salida antes de la hora de entrada.");
-            return;
-        }
-
-        // minutos de anticipacion por salida temprana (antes de la hora de salida de la ficha)
-        $minutos_anticipacion = 0;
-        $hora_salida_ficha = date("H:i", strtotime($ficha['hora_salida']));
-
-        $diferencia_segundos = strtotime($hora_salida_ficha) - strtotime($hora_salida);
-        $diferencia_minutos = $diferencia_segundos / 60;
-
-        if ($diferencia_minutos > 0) {
-            $minutos_anticipacion = $diferencia_minutos;
-        }
-
-        // actualizar en la bd
         try {
-            $actualizado = $this->asistenciaModel->registrarSalida((int)$asistencia['id'], $hora_salida, (int)$minutos_anticipacion);
+            $actualizado = $this->asistenciaModel->registrarSalida((int)$asistencia['id'], $hora, $minutosAnticipacion);
 
             if ($actualizado) {
                 $this->ok([], "Salida registrada correctamente.");
-            } else {
-                $this->fail("No se pudo registrar la salida.");
             }
+            $this->fail("No se pudo registrar la salida.");
         } catch (PDOException $e) {
-            $this->fail("No se pudo registrar la salida, verifique los datos ingresados");
+            $this->fail("No se pudo registrar la salida, verifique los datos.");
         }
     }
 
-    public function listar()
+    public function listarPorSesion(): void
     {
+        $this->requireAuth();
+        (new SesionController())->ejecutarCierresAutomaticos();
+
+        $sesionId = (int)($_GET['sesion_id'] ?? 0);
+        if ($sesionId <= 0) {
+            $this->fail("ID de sesión no válido.");
+        }
+
+        $sesion = $this->sesionModel->buscarPorId($sesionId);
+        if (!$sesion) {
+            $this->fail("La sesión no existe.", 404);
+        }
+
+        $this->validarInstructorSesion($sesion);
+
+        $aprendices = $this->asistenciaModel->listarPorSesion($sesionId);
+        $permisos = (new SesionController())->permisosSesion($sesion);
+
+        $this->ok([
+            'sesion' => $sesion,
+            'aprendices' => $aprendices,
+            'permisos' => $permisos
+        ]);
+    }
+
+    public function listar(): void
+    {
+        $this->requireRol('Aprendiz');
+
         try {
-
-            $this->requireRol('Aprendiz');
-            $id = $_SESSION['user_id'] ?? null;
-            $asistencias = $this->asistenciaModel->listar($id);
-
+            $id = (int)$_SESSION['user_id'];
+            $asistencias = $this->asistenciaModel->listarHistorial($id);
             $this->ok(['asistencias' => $asistencias]);
         } catch (PDOException $e) {
             $this->fail("Error al listar las asistencias.");

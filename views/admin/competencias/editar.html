@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Competencia</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+            <nav class="breadcrumb" aria-label="Migas de pan">
+                <a href="listado.html">Competencias</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-actual">Editar</span>
+            </nav>
+            <h2>Editar competencia</h2>
+            <form id="formEditarCompetencia" class="form-grid">
+                <input type="hidden" id="id" name="id">
+                <div class="form-group">
+                    <label for="programa_id">Programa</label>
+                    <select id="programa_id" name="programa_id" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="instructor_id">Instructor</label>
+                    <select id="instructor_id" name="instructor_id" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="listado.html" class="btn btn-outline btn-a">Volver</a>
+                </div>
+            </form>
+        </main>
+    </div>
+    <script type="module" src="../../../assets/js/pages/admin/competencias/editar.js"></script>
+</body>
+</html>

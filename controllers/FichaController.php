@@ -10,17 +10,19 @@ class FichaController extends ControllerBase
         $this->model = new FichaModel();
     }
 
-    // Retorna los instructores activos y los programas para cargar los selectores del formulario.
+    // Retorna los instructores activos, programas y jornadas para cargar los selectores del formulario.
     public function datosFormulario(): void
     {
         $this->requireRol('Administrador');
 
         $instructores = $this->model->listarInstructores();
         $programas = $this->model->listarProgramas();
+        $jornadas = $this->model->listarJornadas();
 
         $this->ok([
             'instructores' => $instructores,
-            'programas' => $programas
+            'programas' => $programas,
+            'jornadas' => $jornadas
         ]);
     }
 
@@ -32,8 +34,7 @@ class FichaController extends ControllerBase
         $codigo = trim($_POST['codigo'] ?? '');
         $programaIdRaw = trim($_POST['programa_id'] ?? '');
         $instructorIdRaw = trim($_POST['instructor_id'] ?? '');
-        $horaEntrada = trim($_POST['hora_entrada'] ?? '');
-        $horaSalida = trim($_POST['hora_salida'] ?? '');
+        $jornadaIdRaw = trim($_POST['jornada_id'] ?? '');
 
         if ($codigo === '' || $programaIdRaw === '' || $instructorIdRaw === '') {
             $this->fail('Todos los campos obligatorios deben estar llenos.');
@@ -41,6 +42,7 @@ class FichaController extends ControllerBase
 
         $programaId = (int)$programaIdRaw;
         $instructorId = (int)$instructorIdRaw;
+        $jornadaId = $jornadaIdRaw !== '' ? (int)$jornadaIdRaw : null;
 
         if ($programaId <= 0 || $instructorId <= 0) {
             $this->fail('El programa y el instructor seleccionados deben ser válidos.');
@@ -65,24 +67,18 @@ class FichaController extends ControllerBase
             $this->fail('El programa seleccionado no es válido.');
         }
 
-        $horaEntradaFinal = $horaEntrada !== '' ? $horaEntrada : null;
-        $horaSalidaFinal = $horaSalida !== '' ? $horaSalida : null;
-
-        if ($horaEntradaFinal !== null && $horaSalidaFinal !== null && $horaEntradaFinal >= $horaSalidaFinal) {
-            $this->fail('La hora de entrada debe ser menor que la hora de salida.');
-        }
+        $jornadaIdFinal = $jornadaId !== null && $jornadaId > 0 ? $jornadaId : null;
 
         try {
             $creado = $this->model->crear(
                 $codigo,
                 $programaId,
                 $instructorId,
-                $horaEntradaFinal,
-                $horaSalidaFinal
+                $jornadaIdFinal
             );
 
             if ($creado) {
-                $this->ok(['redirect' => 'listado.html'], 'Ficha creada correctamente.');
+                $this->ok([], 'Ficha creada correctamente.');
             } else {
                 $this->fail('No se pudo crear la ficha.');
             }
@@ -138,8 +134,7 @@ class FichaController extends ControllerBase
         $codigo = trim($_POST['codigo'] ?? '');
         $programaIdRaw = trim($_POST['programa_id'] ?? '');
         $instructorIdRaw = trim($_POST['instructor_id'] ?? '');
-        $horaEntrada = trim($_POST['hora_entrada'] ?? '');
-        $horaSalida = trim($_POST['hora_salida'] ?? '');
+        $jornadaIdRaw = trim($_POST['jornada_id'] ?? '');
         $estado = trim($_POST['estado'] ?? '');
 
         if ($id <= 0) {
@@ -152,6 +147,7 @@ class FichaController extends ControllerBase
 
         $programaId = (int)$programaIdRaw;
         $instructorId = (int)$instructorIdRaw;
+        $jornadaId = $jornadaIdRaw !== '' ? (int)$jornadaIdRaw : null;
 
         if ($programaId <= 0 || $instructorId <= 0) {
             $this->fail('El programa y el instructor seleccionados deben ser válidos.');
@@ -181,12 +177,7 @@ class FichaController extends ControllerBase
             $this->fail('El programa seleccionado no es válido.');
         }
 
-        $horaEntradaFinal = $horaEntrada !== '' ? $horaEntrada : null;
-        $horaSalidaFinal = $horaSalida !== '' ? $horaSalida : null;
-
-        if ($horaEntradaFinal !== null && $horaSalidaFinal !== null && $horaEntradaFinal >= $horaSalidaFinal) {
-            $this->fail('La hora de entrada debe ser menor que la hora de salida.');
-        }
+        $jornadaIdFinal = $jornadaId !== null && $jornadaId > 0 ? $jornadaId : null;
 
         try {
             $actualizado = $this->model->actualizar(
@@ -194,13 +185,12 @@ class FichaController extends ControllerBase
                 $codigo,
                 $programaId,
                 $instructorId,
-                $horaEntradaFinal,
-                $horaSalidaFinal,
+                $jornadaIdFinal,
                 $estado
             );
 
             if ($actualizado) {
-                $this->ok(['redirect' => 'listado.html'], 'Ficha actualizada correctamente.');
+                $this->ok([], 'Ficha actualizada correctamente.');
             } else {
                 $this->fail('No se pudo actualizar la ficha.');
             }

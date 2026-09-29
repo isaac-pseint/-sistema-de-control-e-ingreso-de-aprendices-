@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Sesiones</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+            <div class="page-header">
+                <h2>Sesiones de clase</h2>
+                <a href="crear.html" class="btn btn-primary btn-auto btn-a">Crear sesión</a>
+            </div>
+            <div class="filtro-inputs">
+                <div class="form-group">
+                    <label for="filtroFicha">Ficha</label>
+                    <select id="filtroFicha" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label for="filtroFecha">Fecha</label>
+                    <input type="date" id="filtroFecha" class="form-control">
+                </div>
+            </div>
+            <table class="table-admin">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Ficha</th>
+                        <th>Competencia</th>
+                        <th>Instructor</th>
+                        <th>Horario</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaSesiones"></tbody>
+            </table>
+            <div id="contenedorMensajes" class="mensaje-vacio"></div>
+        </main>
+    </div>
+    <div id="modalCancelarSesion" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header"><h3>Cancelar sesión</h3>
+                <button type="button" class="modal-close" id="btnCerrarModalCancelarSesion">×</button></div>
+            <div class="modal-body"><p class="modal-detalle" id="modalCancelarSesionDetalle"></p></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarModalCancelarSesion">No</button>
+                <button type="button" class="btn btn-danger btn-auto" id="btnConfirmarCancelarSesion">Sí, cancelar</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="../../../assets/js/pages/admin/sesiones/listado.js"></script>
+</body>
+</html>

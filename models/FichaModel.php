@@ -30,11 +30,25 @@ class FichaModel
     public function buscarPorCodigo(string $codigo): ?array
     {
         $stmt = Database::conn()->prepare("
-            SELECT id, codigo, Programa_id, instructor_id, hora_entrada, hora_salida, estado
+            SELECT id, codigo, Programa_id, instructor_id, jornada_id, estado
             FROM Ficha
             WHERE codigo = ?
         ");
         $stmt->execute([$codigo]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    // Busca la ficha (activa) liderada por un instructor.
+    public function buscarPorInstructor(int $instructorId): ?array
+    {
+        $stmt = Database::conn()->prepare("
+            SELECT id, codigo, Programa_id, instructor_id, jornada_id, estado
+            FROM Ficha
+            WHERE instructor_id = ? AND estado = 'Activo'
+            LIMIT 1
+        ");
+        $stmt->execute([$instructorId]);
         $row = $stmt->fetch();
         return $row ?: null;
     }
@@ -47,14 +61,15 @@ class FichaModel
                     f.codigo,
                     f.Programa_id,
                     f.instructor_id,
-                    f.hora_entrada,
-                    f.hora_salida,
+                    f.jornada_id,
                     f.estado,
                     p.nombre AS programa,
+                    j.nombre AS jornada,
                     u.nombre AS instructor_nombre,
                     u.apellido AS instructor_apellido
                 FROM Ficha f
                 INNER JOIN programa p ON f.Programa_id = p.id
+                LEFT JOIN jornada j ON f.jornada_id = j.id
                 LEFT JOIN usuario u ON f.instructor_id = u.id
                 WHERE f.id = ?";
 
@@ -69,19 +84,17 @@ class FichaModel
         string $codigo,
         int $programaId,
         int $instructorId,
-        ?string $horaEntrada,
-        ?string $horaSalida
+        ?int $jornadaId
     ): bool {
         $stmt = Database::conn()->prepare("
-            INSERT INTO Ficha (codigo, Programa_id, instructor_id, hora_entrada, hora_salida, estado)
-            VALUES (?, ?, ?, ?, ?, 'Activo')
+            INSERT INTO Ficha (codigo, Programa_id, instructor_id, jornada_id, estado)
+            VALUES (?, ?, ?, ?, 'Activo')
         ");
         return $stmt->execute([
             $codigo,
             $programaId,
             $instructorId,
-            $horaEntrada,
-            $horaSalida
+            $jornadaId
         ]);
     }
 
@@ -91,8 +104,7 @@ class FichaModel
         string $codigo,
         int $programaId,
         int $instructorId,
-        ?string $horaEntrada,
-        ?string $horaSalida,
+        ?int $jornadaId,
         string $estado
     ): bool {
         $stmt = Database::conn()->prepare("
@@ -100,8 +112,7 @@ class FichaModel
             SET codigo = ?,
                 Programa_id = ?,
                 instructor_id = ?,
-                hora_entrada = ?,
-                hora_salida = ?,
+                jornada_id = ?,
                 estado = ?
             WHERE id = ?
         ");
@@ -109,8 +120,7 @@ class FichaModel
             $codigo,
             $programaId,
             $instructorId,
-            $horaEntrada,
-            $horaSalida,
+            $jornadaId,
             $estado,
             $id
         ]);
@@ -140,13 +150,13 @@ class FichaModel
         $sql = "SELECT 
                     f.id, 
                     f.codigo, 
-                    f.hora_entrada, 
-                    f.hora_salida, 
                     f.estado, 
+                    j.nombre AS jornada, 
                     p.nombre AS programa, 
                     CONCAT(u.nombre, ' ', u.apellido) AS instructor
                 FROM Ficha f
                 INNER JOIN programa p ON f.Programa_id = p.id
+                LEFT JOIN jornada j ON f.jornada_id = j.id
                 LEFT JOIN usuario u ON f.instructor_id = u.id";
 
         $where = [];
@@ -170,6 +180,26 @@ class FichaModel
 
         $stmt = Database::conn()->prepare($sql);
         $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Consulta las jornadas disponibles para asignar a una ficha.
+    public function listarJornadas(): array
+    {
+        $stmt = Database::conn()->prepare(
+            "SELECT id, nombre, hora_inicio, hora_fin FROM jornada ORDER BY id ASC"
+        );
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Fichas activas para los selectores (id y código).
+    public function listarActivas(): array
+    {
+        $stmt = Database::conn()->prepare(
+            "SELECT id, codigo, Programa_id FROM Ficha WHERE estado = 'Activo' ORDER BY codigo ASC"
+        );
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

@@ -27,7 +27,8 @@ class UserModel
         ON u.Rol_id = r.id
     LEFT JOIN ficha f         -- LEFT: si no hay ficha, igual trae el usuario
         ON u.Ficha_id = f.id
-    WHERE u.email = :email    -- busca exactamente por email
+    WHERE u.email = :email
+        AND u.estado = 'Activo'
 ");
         // Conecta la variable $email al :email del SQL.
         $stmt->bindParam(':email', $email);
