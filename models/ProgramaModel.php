@@ -43,13 +43,32 @@ class ProgramaModel
         return $stmt->execute([$nombre, $descripcion, $id]);
     }
 
+    public function tieneFichasAsociadas(int $id): bool
+    {
+        $stmt = Database::conn()->prepare(
+            "SELECT 1 FROM ficha WHERE Programa_id = ? LIMIT 1"
+        );
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn() !== false;
+    }
+
+    public function tieneCompetenciasAsociadas(int $id): bool
+    {
+        $stmt = Database::conn()->prepare(
+            "SELECT 1 FROM competencia WHERE Programa_id = ? LIMIT 1"
+        );
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn() !== false;
+    }
+
     // Borrado físico de un programa.
     public function eliminar(int $id): bool
     {
         $stmt = Database::conn()->prepare(
             "DELETE FROM programa WHERE id = ?"
         );
-        return $stmt->execute([$id]);
+        $stmt->execute([$id]);
+        return $stmt->rowCount() > 0;
     }
 
     // Lista programas con búsqueda opcional por nombre.

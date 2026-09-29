@@ -52,10 +52,22 @@ class CompetenciaModel
         return $ok;
     }
 
+    public function tieneSesionesAsociadas(int $id): bool
+    {
+        $stmt = Database::conn()->prepare(
+            "SELECT 1 FROM sesion WHERE Competencia_id = ? LIMIT 1"
+        );
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn() !== false;
+    }
+
     public function eliminar(int $id): bool
     {
-        $stmt = Database::conn()->prepare("DELETE FROM competencia WHERE id = ?");
-        return $stmt->execute([$id]);
+        $db = Database::conn();
+        $db->prepare("DELETE FROM instructor_competencia WHERE Competencia_id = ?")->execute([$id]);
+        $stmt = $db->prepare("DELETE FROM competencia WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->rowCount() > 0;
     }
 
     public function listar(?int $programaFiltro = null, ?string $busqueda = null): array

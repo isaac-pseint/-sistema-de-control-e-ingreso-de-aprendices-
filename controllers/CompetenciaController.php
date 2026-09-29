@@ -126,13 +126,17 @@ class CompetenciaController extends ControllerBase
             $this->fail('ID de competencia no válido.');
         }
 
+        if ($this->model->tieneSesionesAsociadas($id)) {
+            $this->fail('No se puede eliminar: hay sesiones que usan esta competencia.');
+        }
+
         try {
             if ($this->model->eliminar($id)) {
                 $this->ok([], 'Competencia eliminada correctamente.');
             }
-            $this->fail('No se pudo eliminar la competencia.');
+            $this->fail('Competencia no encontrada.');
         } catch (PDOException $e) {
-            $this->fail('No se puede eliminar: hay sesiones que usan esta competencia.');
+            $this->fail('Error en la base de datos al eliminar la competencia.');
         }
     }
 }

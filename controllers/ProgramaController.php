@@ -101,7 +101,7 @@ class ProgramaController extends ControllerBase
         $this->fail('No se pudo actualizar el programa.');
     }
 
-    // Elimina un programa. Falla si tiene fichas asociadas (FK).
+    // Elimina un programa si no tiene fichas ni competencias asociadas.
     public function eliminar(): void
     {
         $this->requireRol('Administrador');
@@ -112,14 +112,22 @@ class ProgramaController extends ControllerBase
             $this->fail('ID de programa no válido.');
         }
 
+        if ($this->model->tieneFichasAsociadas($id)) {
+            $this->fail('No se puede eliminar: hay fichas asociadas a este programa.');
+        }
+
+        if ($this->model->tieneCompetenciasAsociadas($id)) {
+            $this->fail('No se puede eliminar: hay competencias asociadas a este programa.');
+        }
+
         try {
             if ($this->model->eliminar($id)) {
                 $this->ok([], 'Programa eliminado correctamente.');
             }
 
-            $this->fail('No se pudo eliminar el programa.');
+            $this->fail('Programa no encontrado.');
         } catch (PDOException $e) {
-            $this->fail('No se puede eliminar el programa porque tiene fichas asociadas.');
+            $this->fail('Error en la base de datos al eliminar el programa.');
         }
     }
 }
