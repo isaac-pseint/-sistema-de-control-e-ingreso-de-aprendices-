@@ -85,8 +85,7 @@ class UsuarioController extends ControllerBase
             );
 
             if ($creado) {
-                // Respondemos OK con un redirect, el admin solo puede crear usuarios, lo redirigimos a la vista de listado
-                $this->ok(["redirect" => "listado.html"], "Usuario creado correctamente.");
+                $this->ok([], "Usuario creado correctamente.");
             } else {
                 $this->fail("No se pudo crear el usuario.");
             }
@@ -167,7 +166,7 @@ class UsuarioController extends ControllerBase
             );
 
             if ($editado) {
-                $this->ok(["redirect" => "listado.html"], "Usuario actualizado correctamente.");
+                $this->ok([], "Usuario actualizado correctamente.");
             } else {
                 $this->fail("No se pudo actualizar el usuario.");
             }

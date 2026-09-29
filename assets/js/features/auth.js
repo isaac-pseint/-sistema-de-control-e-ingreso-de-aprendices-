@@ -35,7 +35,8 @@ export function conectarLogin() {
     conectarFormulario("loginForm", "login", {
         textoEnviando: "Ingresando...",
         textoRestaurar: "Ingresar",
-        validar: validarLogin
+        validar: validarLogin,
+        seguirRedirectServidor: true
     });
 }
 

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis sesiones</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+
+            <h2 class="titulo-seccion">Mis sesiones</h2>
+
+            <div class="filtro-inputs filtro-registros">
+                <div class="form-group">
+                    <label for="filtroDesde">Desde</label>
+                    <input type="date" id="filtroDesde" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="filtroHasta">Hasta</label>
+                    <input type="date" id="filtroHasta" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="filtroCompetencia">Competencia</label>
+                    <select id="filtroCompetencia" class="form-control">
+                        <option value="todas">Todas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filtroPresencia">Mostrar</label>
+                    <select id="filtroPresencia" class="form-control">
+                        <option value="todos">Todos</option>
+                        <option value="asistencias">Asistencias</option>
+                        <option value="inasistencias">Inasistencias</option>
+                    </select>
+                </div>
+                <div class="form-group" id="filtroAnomaliaGrupo">
+                    <label for="filtroAnomalia">Filtro</label>
+                    <select id="filtroAnomalia" class="form-control">
+                        <option value="todos">Ninguno</option>
+                        <option value="retardos">Entradas tarde</option>
+                        <option value="salidas_tempranas">Salida antes del fin</option>
+                    </select>
+                </div>
+            </div>
+            <div id="contenedorMensajes" class="mensaje-vacio"></div>
+
+            <table class="table-admin">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Competencia</th>
+                        <th>Horario programado</th>
+                        <th>Hora entrada</th>
+                        <th>Hora salida</th>
+                        <th>Estado</th>
+                        <th>Retardo (min)</th>
+                        <th>Min. antes del fin</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaAsistencias"></tbody>
+            </table>
+        </main>
+    </div>
+
+    <script type="module" src="../../../assets/js/pages/aprendiz/sesiones/listado.js?v=2"></script>
+</body>
+</html>

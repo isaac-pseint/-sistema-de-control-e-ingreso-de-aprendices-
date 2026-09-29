@@ -139,12 +139,72 @@ switch ($action) {
         (new ProgramaController())->eliminar();
         break;
 
-    case 'registrarAsistencia':
-        (new AsistenciaController)->registrarEntrada();
+    case 'datosFormularioCompetencia':
+        (new CompetenciaController())->datosFormulario();
         break;
 
-    case 'registrarSalida':
-        (new AsistenciaController)->registrarSalida();
+    case 'crearCompetencia':
+        (new CompetenciaController())->crear();
+        break;
+
+    case 'listarCompetencias':
+        (new CompetenciaController())->listar();
+        break;
+
+    case 'obtenerCompetencia':
+        (new CompetenciaController())->obtener();
+        break;
+
+    case 'actualizarCompetencia':
+        (new CompetenciaController())->actualizar();
+        break;
+
+    case 'eliminarCompetencia':
+        (new CompetenciaController())->eliminar();
+        break;
+
+    case 'datosFormularioSesion':
+        (new SesionController())->datosFormulario();
+        break;
+
+    case 'crearSesion':
+        (new SesionController())->crear();
+        break;
+
+    case 'listarSesiones':
+        (new SesionController())->listar();
+        break;
+
+    case 'obtenerSesion':
+        (new SesionController())->obtener();
+        break;
+
+    case 'actualizarSesion':
+        (new SesionController())->actualizar();
+        break;
+
+    case 'cancelarSesion':
+        (new SesionController())->cancelar();
+        break;
+
+    case 'activarSesion':
+        (new SesionController())->activar();
+        break;
+
+    case 'finalizarSesion':
+        (new SesionController())->finalizar();
+        break;
+
+    case 'marcarEntrada':
+        (new AsistenciaController())->marcarEntrada();
+        break;
+
+    case 'marcarSalida':
+        (new AsistenciaController())->marcarSalida();
+        break;
+
+    case 'listarSesionAsistencia':
+        (new AsistenciaController())->listarPorSesion();
         break;
 
     case 'listarAsistencias':

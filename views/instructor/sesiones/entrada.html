@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Entrada por Llavero</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+
+            <nav class="breadcrumb" aria-label="Migas de pan">
+                <a href="listado.html">Mis Sesiones</a>
+                <span class="breadcrumb-sep">/</span>
+                <a href="detalle.html" id="breadcrumbDetalle">Detalle</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-actual">Registrar Entrada</span>
+            </nav>
+
+            <h2>Registrar Entrada</h2>
+            <div id="detalleSesion"></div>
+
+            <div class="kiosco-wrap">
+                <div class="login-card">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" class="login-logo">
+
+                    <form id="formEntrada" novalidate>
+                        <input type="hidden" id="sesion_id" name="sesion_id">
+                        <div class="form-group">
+                            <label for="codigo_llavero">Código del llavero</label>
+                            <input type="text" id="codigo_llavero" name="codigo_llavero" class="form-control" placeholder="Ingrese el código de llavero">
+                            <span class="campo-error error-text" id="error-codigo_llavero"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="btnRegistrar">Registrar Entrada</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="../../../assets/js/pages/instructor/sesiones/entrada.js"></script>
+</body>
+</html>

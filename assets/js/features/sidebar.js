@@ -16,14 +16,17 @@ const ENLACES_POR_ROL = {
         { texto: "Inicio", ruta: "dashboard.html", seccion: "dashboard" },
         { texto: "Usuarios", ruta: "usuarios/listado.html", seccion: "usuarios" },
         { texto: "Fichas", ruta: "fichas/listado.html", seccion: "fichas" },
-        { texto: "Programas", ruta: "programas/listado.html", seccion: "programas" }
+        { texto: "Programas", ruta: "programas/listado.html", seccion: "programas" },
+        { texto: "Competencias", ruta: "competencias/listado.html", seccion: "competencias" },
+        { texto: "Sesiones", ruta: "sesiones/listado.html", seccion: "sesiones" }
     ],
     "Aprendiz": [
         { texto: "Inicio", ruta: "dashboard.html", seccion: "dashboard" },
-        { texto: "Asistencias", ruta: "asistencias/listado.html", seccion: "asistencias" }
+        { texto: "Sesiones", ruta: "sesiones/listado.html", seccion: "sesiones" }
     ],
     "Instructor": [
-        { texto: "Inicio", ruta: "dashboard.html", seccion: "dashboard" }
+        { texto: "Inicio", ruta: "dashboard.html", seccion: "dashboard" },
+        { texto: "Sesiones", ruta: "sesiones/listado.html", seccion: "sesiones" }
     ]
 };
 
@@ -39,7 +42,16 @@ const TITULO_POR_SECCION = {
     usuarios: "Gestión de Usuarios",
     fichas: "Gestión de Fichas",
     programas: "Gestión de Programas",
-    asistencias: "Gestión de Asistencias"
+    competencias: "Gestión de Competencias",
+    sesiones: "Sesiones"
+};
+
+const TITULO_SECCION_POR_ROL = {
+    sesiones: {
+        Administrador: "Gestión de Sesiones",
+        Instructor: "Mis sesiones",
+        Aprendiz: "Mis sesiones"
+    }
 };
 
 // Devuelve el prefijo "../" que sube desde la carpeta de la vista actual hasta
@@ -86,7 +98,12 @@ export function montarSidebar(rol, usuario = null) {
 
     // El header muestra el título de la sección en la que se está.
     const titulo = document.getElementById("tituloSeccion");
-    if (titulo) titulo.textContent = TITULO_POR_SECCION[seccion] || "";
+    if (titulo) {
+        titulo.textContent =
+            TITULO_SECCION_POR_ROL[seccion]?.[rol] ||
+            TITULO_POR_SECCION[seccion] ||
+            "";
+    }
 
     sidebar.innerHTML = `
         <div class="sidebar-marca">Sistema de Ingreso</div>

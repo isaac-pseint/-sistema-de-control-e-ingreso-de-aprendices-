@@ -65,6 +65,13 @@
     padding: 0 20px;
 }
 
+.kiosco-wrap {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 0;
+}
+
 .app-shell {
     display: flex;
     flex: 1;
@@ -154,7 +161,7 @@
     padding: 0;
 }
 
-/* Cierre de sesión: como un enlace del nav, con borde lateral rojo. */
+/* Cierre de sesión: fondo rojo suave en el pie del sidebar. */
 .sidebar-logout {
     display: flex;
     align-items: center;
@@ -162,9 +169,8 @@
     width: 100%;
     padding: 12px 20px;
     color: var(--color-danger);
-    background: none;
+    background-color: rgba(220, 53, 69, 0.08);
     border: none;
-    border-left: 3px solid var(--color-danger);
     cursor: pointer;
     font-family: inherit;
     font-size: 1rem;
@@ -174,7 +180,7 @@
 }
 
 .sidebar-logout:hover {
-    background-color: var(--color-fondo);
+    background-color: rgba(220, 53, 69, 0.14);
 }
 
 /* Botón hamburguesa: solo se muestra en pantallas pequeñas. */
@@ -302,6 +308,22 @@
     flex: 1;
 }
 
+.filtro-registros {
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.filtro-registros .form-group {
+    flex: 1 1 160px;
+    min-width: 140px;
+}
+
+.form-group.filtro-oculto,
+.form-group[hidden] {
+    display: none !important;
+    margin: 0 !important;
+}
+
 .btn-limpiar-filtro {
     margin-top: 8px;
     align-self: center;
@@ -314,4 +336,104 @@
 
 .btn-limpiar-filtro:hover {
     color: var(--color-texto-ligero);
+}
+
+.page-header--acciones {
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    align-items: center;
+}
+
+.page-header--acciones h2 {
+    flex: 1 1 auto;
+    min-width: min(100%, 12rem);
+}
+
+.sesion-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px 14px;
+    margin-left: auto;
+}
+
+.sesion-toolbar[hidden] {
+    display: none !important;
+}
+
+.sesion-toolbar__editar[hidden] {
+    display: none !important;
+}
+
+.sesion-toolbar__marcaje,
+.sesion-toolbar__gestion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.sesion-toolbar__sep {
+    width: 1px;
+    align-self: stretch;
+    min-height: 2rem;
+    background: var(--color-borde, #dee2e6);
+}
+
+@media (max-width: 640px) {
+    .sesion-toolbar {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
+    }
+
+    .sesion-toolbar__sep {
+        display: none;
+    }
+}
+
+.sesion-toolbar .btn {
+    width: auto;
+}
+
+.seccion-aprendices {
+    margin-top: 36px;
+    padding-top: 28px;
+    border-top: 1px solid var(--color-borde);
+}
+
+.titulo-seccion {
+    color: var(--color-sena-verde);
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0 0 20px;
+}
+
+.seccion-aprendices__filtros {
+    margin-bottom: 24px;
+}
+
+.sesion-resumen {
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid var(--color-borde, #dee2e6);
+    border-radius: var(--borde-radio, 8px);
+    background: var(--color-fondo-alt, #f8f9fa);
+}
+
+.sesion-resumen p {
+    margin: 0 0 8px;
+}
+
+.sesion-resumen p:last-child {
+    margin-bottom: 0;
+}
+
+.campo-lectura {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--color-borde, #dee2e6);
+    border-radius: var(--borde-radio, 8px);
+    background: var(--color-fondo-alt, #f8f9fa);
 }

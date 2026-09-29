@@ -4,8 +4,8 @@ import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
 import { conectarFormulario, mostrarErrorCampo } from "../../../core/forms.js";
 
-// Carga los programas e instructores activos en los selectores del formulario de fichas.
-export function cargarDatosFormularioFicha(programaSeleccionado = null, instructorSeleccionado = null) {
+// Carga los programas, instructores activos y jornadas en los selectores del formulario de fichas.
+export function cargarDatosFormularioFicha(programaSeleccionado = null, instructorSeleccionado = null, jornadaSeleccionada = null) {
     return api("datosFormularioFicha")
         .then(data => {
             if (!data.ok) {
@@ -15,6 +15,7 @@ export function cargarDatosFormularioFicha(programaSeleccionado = null, instruct
 
             const selectPrograma = document.getElementById("programa_id");
             const selectInstructor = document.getElementById("instructor_id");
+            const selectJornada = document.getElementById("jornada_id");
 
             if (selectPrograma && data.data?.programas) {
                 const programasHtml = data.data.programas
@@ -36,6 +37,16 @@ export function cargarDatosFormularioFicha(programaSeleccionado = null, instruct
                 }
             }
 
+            if (selectJornada && data.data?.jornadas) {
+                const jornadasHtml = data.data.jornadas
+                    .map(j => `<option value="${j.id}" ${String(j.id) === String(jornadaSeleccionada) ? "selected" : ""}>${esc(j.nombre)}</option>`)
+                    .join("");
+                selectJornada.innerHTML = `<option value="">Seleccione una jornada...</option>${jornadasHtml}`;
+                if (jornadaSeleccionada !== null && jornadaSeleccionada !== undefined) {
+                    selectJornada.value = String(jornadaSeleccionada);
+                }
+            }
+
             return data;
         })
         .catch(() => {
@@ -44,25 +55,11 @@ export function cargarDatosFormularioFicha(programaSeleccionado = null, instruct
         });
 }
 
-function validarHoras(form) {
-    const he = form.querySelector("#hora_entrada");
-    const hs = form.querySelector("#hora_salida");
-    let ok = true;
-    if (he && hs && he.value && hs.value && he.value >= hs.value) {
-        mostrarErrorCampo(he, "La hora de entrada debe ser menor que la hora de salida.");
-        ok = false;
-    } else {
-        if (he) mostrarErrorCampo(he, "");
-    }
-    return ok;
-}
-
 // Conecta el formulario de creación de ficha con la API.
 export function conectarFormularioCrearFicha() {
     conectarFormulario("formCrearFicha", "crearFicha", {
         textoEnviando: "Guardando ficha...",
-        textoRestaurar: "Guardar Ficha",
-        validar: validarHoras
+        textoRestaurar: "Guardar Ficha"
     });
 }
 
@@ -70,7 +67,6 @@ export function conectarFormularioCrearFicha() {
 export function cargarFichaPorId(id) {
     if (!id) {
         showToast("danger", "ID de ficha no proporcionado.");
-        window.location.href = "listado.html";
         return Promise.resolve(null);
     }
 
@@ -78,7 +74,6 @@ export function cargarFichaPorId(id) {
         .then(data => {
             if (!data.ok || !data.data?.ficha) {
                 showToast("danger", data.error || "Ficha no encontrada.");
-                window.location.href = "listado.html";
                 return null;
             }
 
@@ -86,24 +81,20 @@ export function cargarFichaPorId(id) {
 
             const inputId = document.getElementById("id");
             const inputCodigo = document.getElementById("codigo");
-            const inputHoraEntrada = document.getElementById("hora_entrada");
-            const inputHoraSalida = document.getElementById("hora_salida");
             const selectEstado = document.getElementById("estado");
 
             if (inputId) inputId.value = ficha.id;
             if (inputCodigo) inputCodigo.value = ficha.codigo || "";
-            if (inputHoraEntrada) inputHoraEntrada.value = ficha.hora_entrada || "";
-            if (inputHoraSalida) inputHoraSalida.value = ficha.hora_salida || "";
             if (selectEstado) selectEstado.value = ficha.estado || "Activo";
 
             const programaId = ficha.Programa_id ?? ficha.programa_id;
             const instructorId = ficha.instructor_id ?? ficha.Instructor_id;
+            const jornadaId = ficha.jornada_id ?? null;
 
-            return cargarDatosFormularioFicha(programaId, instructorId);
+            return cargarDatosFormularioFicha(programaId, instructorId, jornadaId);
         })
         .catch(() => {
             showToast("danger", "Error de conexión al cargar la ficha.");
-            window.location.href = "listado.html";
             return null;
         });
 }
@@ -112,7 +103,6 @@ export function cargarFichaPorId(id) {
 export function conectarFormularioEditarFicha() {
     conectarFormulario("formEditarFicha", "actualizarFicha", {
         textoEnviando: "Actualizando ficha...",
-        textoRestaurar: "Actualizar Ficha",
-        validar: validarHoras
+        textoRestaurar: "Actualizar Ficha"
     });
 }
