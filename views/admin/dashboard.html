@@ -17,9 +17,133 @@
         <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
         <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
         <main class="app-main">
-            <div class="dashboard-content">
-                <p>Has iniciado sesión correctamente. Aquí irá el contenido del sistema.</p>
-            </div>
+            <!-- ① Encabezado de la página -->
+            <header class="dashboard-header">
+                <h1 class="titulo-seccion">Panel de Control — Administrador</h1>
+                <p class="dashboard-subtitulo">Resumen general del centro de formación</p>
+            </header>
+
+            <!-- ② Grilla de KPIs -->
+            <section class="dashboard-kpis" aria-label="Indicadores clave">
+                <article class="kpi-card" id="kpi-aprendices">
+                    <span class="kpi-icono">🎓</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Aprendices Activos</span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-instructores">
+                    <span class="kpi-icono">👨‍🏫</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Instructores Activos</span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-fichas">
+                    <span class="kpi-icono">📋</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Fichas Activas</span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-programas">
+                    <span class="kpi-icono">📚</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Programas Registrados</span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-sesiones-hoy">
+                    <span class="kpi-icono">📅</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Sesiones Hoy</span>
+                        <span class="kpi-detalle">
+                            <span class="kpi-sub" id="kpi-sesiones-en-curso">— en curso</span>
+                            ·
+                            <span class="kpi-sub" id="kpi-sesiones-finalizadas">— finalizadas</span>
+                        </span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-asistencias-hoy">
+                    <span class="kpi-icono">✅</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Asistencias Registradas Hoy</span>
+                    </div>
+                </article>
+            </section>
+
+            <!-- ③ Gráfica de balance semanal -->
+            <section class="dashboard-seccion" aria-label="Balance semanal">
+                <div class="seccion-header">
+                    <h2 class="titulo-seccion">Balance Semanal de Puntualidad</h2>
+                    <p class="seccion-desc">Últimos 5 días de clase</p>
+                </div>
+                <div class="balance-leyenda">
+                    <span class="badge badge-success">A tiempo</span>
+                    <span class="badge badge-warning">Retardos</span>
+                    <span class="badge badge-danger">Inasistencias</span>
+                </div>
+                <div class="grafica-contenedor" id="grafica-balance-semanal">
+                    <p class="mensaje-vacio">Cargando gráfica…</p>
+                </div>
+            </section>
+
+            <!-- ④ Tabla de sesiones del día -->
+            <section class="dashboard-seccion" aria-label="Sesiones de hoy">
+                <div class="seccion-header">
+                    <h2 class="titulo-seccion">Sesiones Programadas para Hoy</h2>
+                    <span class="badge badge-info" id="badge-total-sesiones-hoy">0</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-admin">
+                        <thead>
+                            <tr>
+                                <th>Ficha</th>
+                                <th>Programa</th>
+                                <th>Competencia</th>
+                                <th>Instructor</th>
+                                <th>Horario</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-sesiones-hoy-body"></tbody>
+                    </table>
+                </div>
+                <div id="mensaje-sin-sesiones" class="mensaje-vacio" hidden>
+                    No hay sesiones programadas para hoy.
+                </div>
+            </section>
+
+            <!-- ⑤ Accesos rápidos -->
+            <section class="dashboard-seccion" aria-label="Accesos rápidos">
+                <h2 class="titulo-seccion">Accesos Rápidos</h2>
+                <div class="accesos-rapidos">
+                    <a href="sesiones/crear.html" class="acceso-card">
+                        <span class="acceso-icono">📅</span>
+                        <span class="acceso-texto">Programar Sesión</span>
+                    </a>
+                    <a href="fichas/listado.html" class="acceso-card">
+                        <span class="acceso-icono">📋</span>
+                        <span class="acceso-texto">Fichas</span>
+                    </a>
+                    <a href="competencias/listado.html" class="acceso-card">
+                        <span class="acceso-icono">🧩</span>
+                        <span class="acceso-texto">Competencias</span>
+                    </a>
+                    <a href="usuarios/listado.html" class="acceso-card">
+                        <span class="acceso-icono">👥</span>
+                        <span class="acceso-texto">Usuarios</span>
+                    </a>
+                </div>
+            </section>
         </main>
     </div>
 
