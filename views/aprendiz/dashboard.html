@@ -17,10 +17,93 @@
         <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
         <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
         <main class="app-main">
-            <div class="dashboard-content">
-                <p>Consulta tu historial de asistencia e inasistencias por sesión de clase.</p>
-                <a href="sesiones/listado.html" class="btn btn-primary btn-a">Ver mis sesiones</a>
+            <!-- ① Encabezado de la página -->
+            <header class="dashboard-header">
+                <h1 class="titulo-seccion">Panel de Control — Aprendiz</h1>
+                <p class="dashboard-subtitulo">Seguimiento a tu asistencia y actividades formativas</p>
+            </header>
+
+            <!-- ② Grilla de KPIs Personales -->
+            <section class="dashboard-kpis" aria-label="Indicadores personales">
+                <article class="kpi-card" id="kpi-a-tiempo">
+                    <span class="kpi-icono">✅</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Asistencias a Tiempo</span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-retardos">
+                    <span class="kpi-icono">⏱️</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Retardos Acumulados</span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-inasistencias">
+                    <span class="kpi-icono">❌</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Inasistencias</span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-porcentaje-asistencia">
+                    <span class="kpi-icono">📊</span>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—%</span>
+                        <span class="kpi-label">Porcentaje Global</span>
+                    </div>
+                </article>
+            </section>
+
+            <!-- ③ Tarjetas Informativas Clave -->
+            <div class="dashboard-kpis">
+                <!-- a) Tarjeta de Información Académica -->
+                <section class="dashboard-seccion" id="seccion-info-academica" aria-label="Información académica">
+                    <h2 class="titulo-seccion">Mi Información Académica</h2>
+                    <div id="info-academica-contenido" class="sesion-resumen" hidden>
+                        <!-- Dinámico: Ficha, Programa, Instructor -->
+                    </div>
+                    <div id="mensaje-sin-ficha" class="mensaje-vacio">
+                        No tienes una ficha formativa asignada actualmente.
+                    </div>
+                </section>
+
+                <!-- b) Tarjeta de Próxima Clase Programada -->
+                <section class="dashboard-seccion" id="seccion-proxima-clase" aria-label="Próxima clase">
+                    <h2 class="titulo-seccion">Mi Próxima Clase</h2>
+                    <div id="proxima-clase-contenido" class="sesion-resumen" hidden>
+                        <!-- Dinámico: Fecha, Horario AM/PM, Competencia, Instructor -->
+                    </div>
+                    <div id="mensaje-sin-proxima-clase" class="mensaje-vacio">
+                        No tienes clases próximas programadas en este momento.
+                    </div>
+                </section>
             </div>
+
+            <!-- ④ Sección de Última Asistencia Registrada -->
+            <section class="dashboard-seccion" aria-label="Última asistencia">
+                <h2 class="titulo-seccion">Último Registro de Asistencia</h2>
+                <div id="ultima-asistencia-contenido" class="sesion-resumen" hidden>
+                    <!-- Dinámico: badge de estado, fecha sesión, hora entrada, hora salida, minutos retardo -->
+                </div>
+                <div id="mensaje-sin-asistencias" class="mensaje-vacio">
+                    Aún no tienes registros de asistencia.
+                </div>
+            </section>
+
+            <!-- ⑤ Accesos Rápidos -->
+            <section class="dashboard-seccion" aria-label="Accesos rápidos">
+                <h2 class="titulo-seccion">Accesos Rápidos</h2>
+                <div class="accesos-rapidos">
+                    <a href="sesiones/listado.html" class="acceso-card">
+                        <span class="acceso-icono">📋</span>
+                        <span class="acceso-texto">Historial Completo de Asistencias</span>
+                    </a>
+                </div>
+            </section>
         </main>
     </div>
 
