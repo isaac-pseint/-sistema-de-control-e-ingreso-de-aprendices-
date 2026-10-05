@@ -1,6 +1,7 @@
 /* botones.css — Botones y grupos de acción.
    Clases: .btn, .btn-group, .btn-sm, .btn-primary, .btn-danger, .btn-info,
-           .btn-outline, .btn-a, .btn-auto, .btn:disabled */
+            .btn-warning, .btn-outline, .btn-outline-danger, .btn-a, .btn-auto,
+            .btn:disabled */
 
 .btn {
     display: inline-block;
@@ -84,18 +85,6 @@ form .btn-group > a.btn.btn-outline {
     border-color: var(--color-info-hover);
 }
 
-.btn-secondary {
-    color: var(--color-blanco);
-    background-color: #5c636a;
-    border-color: #5c636a;
-}
-
-.btn-secondary:hover {
-    color: var(--color-blanco);
-    background-color: #4a5056;
-    border-color: #4a5056;
-}
-
 .btn-warning {
     color: #212529;
     background-color: var(--color-warning);
@@ -135,10 +124,13 @@ form .btn-group > a.btn.btn-outline {
     border-color: var(--color-danger);
 }
 
+/* Los <a> con .btn necesitan justify-content porque display:flex ignora
+   text-align y el texto se pegaba a la izquierda. */
 .btn-a {
     text-decoration: none;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .btn-auto {

@@ -53,8 +53,8 @@ export async function cargarDashboardInstructor() {
         if (contSesion) {
             contSesion.hidden = false;
             
-            let badgeClass = "badge-info";
-            if (sesion_destacada.estado === "Finalizada") badgeClass = "badge-neutral";
+            let badgeClass = "badge-success";
+            if (sesion_destacada.estado === "Finalizada") badgeClass = "badge-info";
             if (sesion_destacada.estado === "Cancelado") badgeClass = "badge-danger";
 
             contSesion.innerHTML = `
@@ -69,9 +69,9 @@ export async function cargarDashboardInstructor() {
         if (contAcciones) {
             contAcciones.hidden = false;
             contAcciones.innerHTML = `
-                <a href="sesiones/entrada.html?id=${esc(sesion_destacada.id)}" class="btn btn-primary">Kiosco de Entrada</a>
-                <a href="sesiones/salida.html?id=${esc(sesion_destacada.id)}" class="btn btn-warning">Kiosco de Salida</a>
-                <a href="sesiones/detalle.html?id=${esc(sesion_destacada.id)}" class="btn btn-secondary">Ver Asistencia</a>
+                <a href="sesiones/entrada.html?sesion_id=${esc(sesion_destacada.id)}" class="btn btn-primary btn-a">Kiosco de Entrada</a>
+                <a href="sesiones/salida.html?sesion_id=${esc(sesion_destacada.id)}" class="btn btn-outline btn-a">Kiosco de Salida</a>
+                <a href="sesiones/detalle.html?sesion_id=${esc(sesion_destacada.id)}" class="btn btn-info btn-a">Ver Asistencia</a>
             `;
         }
     }
@@ -93,8 +93,8 @@ export async function cargarDashboardInstructor() {
         if (tablaBody) {
             let filas = "";
             sesiones_semana.forEach(s => {
-                let badgeClass = "badge-info";
-                if (s.estado === "Finalizada") badgeClass = "badge-neutral";
+                let badgeClass = "badge-success";
+                if (s.estado === "Finalizada") badgeClass = "badge-info";
                 if (s.estado === "Cancelado") badgeClass = "badge-danger";
 
                 filas += `
@@ -104,7 +104,7 @@ export async function cargarDashboardInstructor() {
                         <td>${esc(s.ficha)}</td>
                         <td>${esc(s.competencia)}</td>
                         <td><span class="badge ${badgeClass}">${esc(s.estado)}</span></td>
-                        <td><a href="sesiones/detalle.html?id=${esc(s.id)}" class="btn btn-sm btn-secondary">Detalle</a></td>
+                        <td class="col-acciones"><a href="sesiones/detalle.html?sesion_id=${esc(s.id)}" class="btn btn-sm btn-outline btn-a">Detalle</a></td>
                     </tr>
                 `;
             });

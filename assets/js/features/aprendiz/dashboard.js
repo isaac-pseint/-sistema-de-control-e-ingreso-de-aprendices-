@@ -48,8 +48,8 @@ export async function cargarDashboardAprendiz() {
         if (msjSinFicha) msjSinFicha.hidden = true;
         if (contInfo) {
             contInfo.hidden = false;
-            let badgeClass = "badge-info";
-            if (informacion_academica.ficha_estado !== "Activo") badgeClass = "badge-neutral";
+            let badgeClass = "badge-success";
+            if (informacion_academica.ficha_estado !== "Activo") badgeClass = "badge-danger";
 
             contInfo.innerHTML = `
                 <p><strong>Ficha:</strong> ${esc(informacion_academica.ficha_codigo)} <span class="badge ${badgeClass}">${esc(informacion_academica.ficha_estado)}</span></p>
@@ -88,22 +88,28 @@ export async function cargarDashboardAprendiz() {
         if (msjSinAsistencias) msjSinAsistencias.hidden = false;
     } else {
         if (msjSinAsistencias) msjSinAsistencias.hidden = true;
-        if (contUltima) {
+if (contUltima) {
             contUltima.hidden = false;
-            
-            let badgeHtml = "";
-            if (ultima_asistencia.minutos_retardo > 0) {
-                badgeHtml = `<span class="badge badge-warning">Retardo de ${esc(String(ultima_asistencia.minutos_retardo))} min</span>`;
-            } else {
-                badgeHtml = `<span class="badge badge-success">A tiempo</span>`;
+
+            // Retardo y salida anticipada son la misma categoría (anomalía de
+            // puntualidad), así que comparten insignia ámbar y pueden ir ambos.
+            const insignias = [];
+            if (Number(ultima_asistencia.minutos_retardo) > 0) {
+                insignias.push(`<span class="badge badge-warning">Retardo de ${esc(String(ultima_asistencia.minutos_retardo))} min</span>`);
+            }
+            if (Number(ultima_asistencia.minutos_anticipacion) > 0) {
+                insignias.push(`<span class="badge badge-warning">Salió ${esc(String(ultima_asistencia.minutos_anticipacion))} min antes</span>`);
+            }
+            if (insignias.length === 0) {
+                insignias.push(`<span class="badge badge-success">A tiempo</span>`);
             }
 
-            const horaSalidaText = ultima_asistencia.hora_salida 
-                ? formatearHora12h(ultima_asistencia.hora_salida) 
+            const horaSalidaText = ultima_asistencia.hora_salida
+                ? formatearHora12h(ultima_asistencia.hora_salida)
                 : "Pendiente";
 
             contUltima.innerHTML = `
-                <p><strong>Estado:</strong> ${badgeHtml}</p>
+                <p><strong>Estado:</strong> <span class="insignias">${insignias.join("")}</span></p>
                 <p><strong>Fecha:</strong> ${esc(ultima_asistencia.fecha)}</p>
                 <p><strong>Competencia:</strong> ${esc(ultima_asistencia.competencia)}</p>
                 <p><strong>Hora Entrada:</strong> ${formatearHora12h(ultima_asistencia.hora_entrada)}</p>

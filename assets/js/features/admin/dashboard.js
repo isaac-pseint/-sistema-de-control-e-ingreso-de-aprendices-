@@ -104,9 +104,6 @@ export async function cargarDashboardAdmin() {
         const kpiFichas = document.querySelector("#kpi-fichas .kpi-valor");
         if (kpiFichas) kpiFichas.textContent = kpis.total_fichas_activas;
         
-        const kpiProgramas = document.querySelector("#kpi-programas .kpi-valor");
-        if (kpiProgramas) kpiProgramas.textContent = kpis.total_programas_activos;
-        
         const kpiSesionesHoy = document.querySelector("#kpi-sesiones-hoy .kpi-valor");
         if (kpiSesionesHoy) kpiSesionesHoy.textContent = kpis.sesiones_hoy_total;
         
@@ -140,8 +137,8 @@ export async function cargarDashboardAdmin() {
         if (tablaBody) {
             let filas = "";
             sesiones_hoy.forEach(s => {
-                let badgeClass = "badge-info";
-                if (s.estado === "Finalizada") badgeClass = "badge-neutral";
+                let badgeClass = "badge-success";
+                if (s.estado === "Finalizada") badgeClass = "badge-info";
                 if (s.estado === "Cancelado") badgeClass = "badge-danger";
 
                 filas += `
@@ -152,7 +149,7 @@ export async function cargarDashboardAdmin() {
                         <td>${esc(s.instructor)}</td>
                         <td>${formatearHora12h(s.hora_inicio)} - ${formatearHora12h(s.hora_fin)}</td>
                         <td><span class="badge ${badgeClass}">${esc(s.estado)}</span></td>
-                        <td><a href="sesiones/editar.html?id=${esc(s.id)}" class="btn btn-sm btn-secondary">Gestionar</a></td>
+                        <td class="col-acciones"><a href="sesiones/editar.html?id=${esc(s.id)}" class="btn btn-sm btn-outline btn-a">Gestionar</a></td>
                     </tr>
                 `;
             });

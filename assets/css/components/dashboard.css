@@ -32,6 +32,22 @@
     gap: var(--space-4, 1rem);
     margin-bottom: var(--space-6, 1.5rem);
 }
+
+/* Las tarjetas informativas que comparten la grilla (panel del aprendiz) se
+   estiran a la misma altura, y su caja interna también, para que "Mi
+   Información Académica" y "Mi Próxima Clase" queden del mismo tamaño aunque
+   una tenga más filas que la otra. */
+.dashboard-kpis > .dashboard-seccion {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+
+.dashboard-kpis > .dashboard-seccion .sesion-resumen {
+    flex: 1;
+    margin-bottom: 0;
+}
+
 .kpi-card {
     background: var(--color-surface, #ffffff);
     border: 1px solid var(--color-border, #e2e8f0);
@@ -46,10 +62,6 @@
 .kpi-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.08));
-}
-.kpi-icono {
-    font-size: 2rem;
-    line-height: 1;
 }
 .kpi-info {
     display: flex;
@@ -97,6 +109,14 @@
     overflow: visible;
 }
 
+/* Los tres botones de la sesión destacada son el mismo tipo de acción para el
+   instructor: se muestran igual de anchos y con la misma altura. Hace falta
+   porque .btn-outline impone width: auto y un padding más corto. */
+#acciones-sesion-destacada .btn {
+    width: 100%;
+    padding: 12px 20px;
+}
+
 /* 4. Badges (si no estuvieran cubiertos) */
 .badge {
     display: inline-block;
@@ -111,6 +131,16 @@
 .badge-danger  { background: #fee2e2; color: #b91c1c; }
 .badge-info    { background: #e0f2fe; color: #0369a1; }
 .badge-neutral { background: #f1f5f9; color: #475569; }
+
+/* Fila de insignias de un mismo dato (p. ej. retardo + salida anticipada).
+   Es una clase propia y no un .badge + .badge para no ensuciar el gap de
+   .balance-leyenda, que ya separa sus insignias con flex gap. */
+.insignias {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    vertical-align: middle;
+}
 
 /* 5. Accesos Rápidos */
 .accesos-rapidos {
@@ -134,9 +164,6 @@
 .acceso-card:hover {
     background: var(--color-bg-hover, #f8fafc);
     border-color: var(--color-primary, #3b82f6);
-}
-.acceso-icono {
-    font-size: 1.5rem;
 }
 .acceso-texto {
     font-size: var(--text-sm, 0.875rem);

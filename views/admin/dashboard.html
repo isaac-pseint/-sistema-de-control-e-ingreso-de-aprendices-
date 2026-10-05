@@ -26,7 +26,7 @@
             <!-- ② Grilla de KPIs -->
             <section class="dashboard-kpis" aria-label="Indicadores clave">
                 <article class="kpi-card" id="kpi-aprendices">
-                    <span class="kpi-icono">🎓</span>
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#mortarboard"></use></svg>
                     <div class="kpi-info">
                         <span class="kpi-valor">—</span>
                         <span class="kpi-label">Aprendices Activos</span>
@@ -34,7 +34,7 @@
                 </article>
 
                 <article class="kpi-card" id="kpi-instructores">
-                    <span class="kpi-icono">👨‍🏫</span>
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#person-workspace"></use></svg>
                     <div class="kpi-info">
                         <span class="kpi-valor">—</span>
                         <span class="kpi-label">Instructores Activos</span>
@@ -42,23 +42,15 @@
                 </article>
 
                 <article class="kpi-card" id="kpi-fichas">
-                    <span class="kpi-icono">📋</span>
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#clipboard-check"></use></svg>
                     <div class="kpi-info">
                         <span class="kpi-valor">—</span>
                         <span class="kpi-label">Fichas Activas</span>
                     </div>
                 </article>
 
-                <article class="kpi-card" id="kpi-programas">
-                    <span class="kpi-icono">📚</span>
-                    <div class="kpi-info">
-                        <span class="kpi-valor">—</span>
-                        <span class="kpi-label">Programas Registrados</span>
-                    </div>
-                </article>
-
                 <article class="kpi-card" id="kpi-sesiones-hoy">
-                    <span class="kpi-icono">📅</span>
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#calendar-week"></use></svg>
                     <div class="kpi-info">
                         <span class="kpi-valor">—</span>
                         <span class="kpi-label">Sesiones Hoy</span>
@@ -71,7 +63,7 @@
                 </article>
 
                 <article class="kpi-card" id="kpi-asistencias-hoy">
-                    <span class="kpi-icono">✅</span>
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#check-circle"></use></svg>
                     <div class="kpi-info">
                         <span class="kpi-valor">—</span>
                         <span class="kpi-label">Asistencias Registradas Hoy</span>
@@ -111,7 +103,7 @@
                                 <th>Instructor</th>
                                 <th>Horario</th>
                                 <th>Estado</th>
-                                <th>Acciones</th>
+                                <th class="col-acciones">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-sesiones-hoy-body"></tbody>
@@ -127,19 +119,19 @@
                 <h2 class="titulo-seccion">Accesos Rápidos</h2>
                 <div class="accesos-rapidos">
                     <a href="sesiones/crear.html" class="acceso-card">
-                        <span class="acceso-icono">📅</span>
+                        <svg class="icono acceso-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#calendar-week"></use></svg>
                         <span class="acceso-texto">Programar Sesión</span>
                     </a>
                     <a href="fichas/listado.html" class="acceso-card">
-                        <span class="acceso-icono">📋</span>
+                        <svg class="icono acceso-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#clipboard-check"></use></svg>
                         <span class="acceso-texto">Fichas</span>
                     </a>
                     <a href="competencias/listado.html" class="acceso-card">
-                        <span class="acceso-icono">🧩</span>
+                        <svg class="icono acceso-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#puzzle"></use></svg>
                         <span class="acceso-texto">Competencias</span>
                     </a>
                     <a href="usuarios/listado.html" class="acceso-card">
-                        <span class="acceso-icono">👥</span>
+                        <svg class="icono acceso-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#people"></use></svg>
                         <span class="acceso-texto">Usuarios</span>
                     </a>
                 </div>

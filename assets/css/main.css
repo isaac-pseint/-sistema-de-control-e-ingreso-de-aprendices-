@@ -9,6 +9,7 @@
    - components/modales.css     → .modal-*
    - components/toasts.css      → .toast-*
    - components/utilidades.css  → .text-*
+   - components/iconos.css      → .icono, .kpi-icono, .acceso-icono
    - components/dashboard.css   → .dashboard-* */
 
 @import url("tokens.css");
@@ -20,4 +21,5 @@
 @import url("components/modales.css");
 @import url("components/toasts.css");
 @import url("components/utilidades.css");
+@import url("components/iconos.css");
 @import url("components/dashboard.css");
