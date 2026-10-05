@@ -54,7 +54,7 @@
 }
 
 /* En las vistas con sesión el título del header comparte estilo con el <h2>
-   de la sección (ver .page-header h2). */
+   de la sección (ver .page-header h1). */
 .app-layout .app-header .app-title {
     font-size: 1.3rem;
 }
@@ -245,7 +245,7 @@
 .page-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 20px;
 }
 
@@ -276,20 +276,43 @@
     font-weight: 600;
 }
 
-.app-main > h2 {
+/* Título suelto dentro de .app-main que todavía no usa .titulo-seccion.
+   El :not() evita que esta regla le pise el font-size a los títulos que sí la
+   llevan, que deben verse igual que los del dashboard. */
+.app-main > h1:not(.titulo-seccion),
+.app-main > h2:not(.titulo-seccion) {
     color: var(--color-sena-verde);
     font-size: 1.5rem;
     margin-bottom: 20px;
 }
 
-.page-header h2 {
+/* Título y subtítulo se apilan a la izquierda; el botón o toolbar de la
+   derecha sigue ocupando su lugar en el flex. */
+.page-header__titulo {
+    min-width: 0;
+}
+
+.page-header h1 {
     color: var(--color-sena-verde);
     margin-bottom: 0;
 }
 
-.page-header .filtro-fechas {
-    margin-bottom: 0;
-    max-width: 380px;
+/* Cuando el título lleva subtítulo, el espacio vertical entre el contenido y
+   el título lo aporta el subtítulo, no el margin-bottom del título. Sin esto
+   el dashboard abría 24px entre el h1 y su subtítulo, contra 8px en los
+   listados. */
+.dashboard-header > .titulo-seccion,
+.page-header__titulo > .titulo-seccion,
+.app-main > h1.titulo-seccion,
+.app-main > h2.titulo-seccion {
+    margin-bottom: 0.25rem;
+}
+
+/* En las páginas sin contenedor (.page-header / .dashboard-header) no hay
+   nadie que aporte el espacio bajo el subtítulo, así que lo aporta él. */
+.app-main > h1.titulo-seccion + .subtitulo-seccion,
+.app-main > h2.titulo-seccion + .subtitulo-seccion {
+    margin-bottom: 20px;
 }
 
 .filtro-fechas {
@@ -341,10 +364,11 @@
 .page-header--acciones {
     flex-wrap: wrap;
     gap: 12px 16px;
-    align-items: center;
 }
 
-.page-header--acciones h2 {
+/* El que crece es el bloque título+subtítulo, no el h1 suelto: así el toolbar
+   de la derecha se sigue empujando al borde. */
+.page-header--acciones .page-header__titulo {
     flex: 1 1 auto;
     min-width: min(100%, 12rem);
 }
@@ -408,6 +432,15 @@
     font-size: 1.35rem;
     font-weight: 600;
     margin: 0 0 20px;
+}
+
+/* Subtítulo opcional bajo el título de la página. Antes vivía en
+   dashboard.css como .dashboard-subtitulo; se mudó aquí para que cualquier
+   página pueda usarlo, no solo los dashboards. */
+.subtitulo-seccion {
+    color: var(--color-texto-muted, #6c757d);
+    font-size: var(--text-sm, 0.875rem);
+    margin-top: 0.25rem;
 }
 
 .seccion-aprendices__filtros {

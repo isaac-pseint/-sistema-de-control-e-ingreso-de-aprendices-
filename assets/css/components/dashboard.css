@@ -2,11 +2,6 @@
 .dashboard-header {
     margin-bottom: var(--space-6, 1.5rem);
 }
-.dashboard-subtitulo {
-    color: var(--color-texto-muted, #6c757d);
-    font-size: var(--text-sm, 0.875rem);
-    margin-top: 0.25rem;
-}
 .dashboard-seccion {
     background: var(--color-surface, #ffffff);
     border: 1px solid var(--color-border, #e2e8f0);
