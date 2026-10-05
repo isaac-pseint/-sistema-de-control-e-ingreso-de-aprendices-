@@ -117,21 +117,24 @@ function validarFormularioCrearUsuario(form) {
     return nombreOk && apellidoOk && identificacionOk && emailOk && passwordOk && rolOk && codigoLlaveroOk;
 }
 
-// validamos el rol del usuario y si requiere ficha
-export function validarRolConFicha(input, ficha) {
-    if (!input || !ficha) return;
-    const grupo = ficha.closest(".form-group");
-    if (!grupo) return;
-
-    const esCrear = input.form?.id === "formCrearUsuario";
+// Ajusta la visibilidad de ficha y llavero según el rol: solo el Aprendiz los
+// usa (asistencia). Administrador e Instructor los ocultan y limpian.
+export function ajustarCamposSegunRol(input) {
+    if (!input) return;
     const textoRol = input.options[input.selectedIndex]?.textContent ?? "";
+    const esAprendiz = textoRol === "Aprendiz";
 
-    // En crear la ficha sigue visible para asignarla después; en editar solo para Aprendiz.
-    if (esCrear || textoRol === "Aprendiz") {
-        grupo.style.display = "";
-    } else {
-        grupo.style.display = "none";
-        ficha.value = "";
+    for (const nombre of ["ficha_id", "codigo_llavero"]) {
+        const campo = input.form?.elements[nombre];
+        if (!campo) continue;
+        const grupo = campo.closest(".form-group");
+        if (!grupo) continue;
+        if (esAprendiz) {
+            grupo.style.display = "";
+        } else {
+            grupo.style.display = "none";
+            campo.value = "";
+        }
     }
 }
 
@@ -152,8 +155,8 @@ export function conectarFormularioCrearUsuario() {
     form.password.addEventListener("blur", () => validarPassword(form.password));
     form.rol_id.addEventListener("input", () => validarRol(form.rol_id));
     form.rol_id.addEventListener("blur", () => validarRol(form.rol_id));
-    form.rol_id.addEventListener("input", () => validarRolConFicha(form.rol_id, form.ficha_id));
-    form.rol_id.addEventListener("blur", () => validarRolConFicha(form.rol_id, form.ficha_id));
+    form.rol_id.addEventListener("input", () => ajustarCamposSegunRol(form.rol_id));
+    form.rol_id.addEventListener("blur", () => ajustarCamposSegunRol(form.rol_id));
     form.codigo_llavero.addEventListener("input", () => validarCodigoLlavero(form.codigo_llavero));
     form.codigo_llavero.addEventListener("blur", () => validarCodigoLlavero(form.codigo_llavero));
 
@@ -210,8 +213,8 @@ export function conectarFormularioEditarUsuario() {
     form.password.addEventListener("blur", () => validarPasswordOpcional(form.password));
     form.rol_id.addEventListener("input", () => validarRol(form.rol_id));
     form.rol_id.addEventListener("blur", () => validarRol(form.rol_id));
-    form.rol_id.addEventListener("input", () => validarRolConFicha(form.rol_id, form.ficha_id));
-    form.rol_id.addEventListener("blur", () => validarRolConFicha(form.rol_id, form.ficha_id));
+    form.rol_id.addEventListener("input", () => ajustarCamposSegunRol(form.rol_id));
+    form.rol_id.addEventListener("blur", () => ajustarCamposSegunRol(form.rol_id));
     form.codigo_llavero.addEventListener("input", () => validarCodigoLlavero(form.codigo_llavero));
     form.codigo_llavero.addEventListener("blur", () => validarCodigoLlavero(form.codigo_llavero));
 
@@ -252,8 +255,8 @@ export function cargarPorId(id) {
 
             // Llena y preselecciona los selects de rol y ficha con los del usuario.
             return cargarDatosFormulario(u.Rol_id, u.Ficha_id || null).then(() => {
-                // Si el rol no requiere ficha, la oculta (mismo comportamiento que crear).
-                validarRolConFicha(form.rol_id, form.ficha_id);
+                // Si el rol no usa ficha/llavero, los oculta (mismo comportamiento que crear).
+                ajustarCamposSegunRol(form.rol_id);
             });
         })
         .catch(() => showToast("danger", "Error de conexión al cargar el usuario."));

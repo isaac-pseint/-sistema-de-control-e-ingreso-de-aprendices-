@@ -43,6 +43,11 @@ form .btn-group > a.btn.btn-outline {
     padding: 12px 20px;
 }
 
+/* Botones parejos en headers de sección (ej. importar horario + crear sesión) */
+.page-header .btn-group > .btn-outline {
+    padding: 12px 20px;
+}
+
 .btn-sm {
     padding: 8px 16px;
     font-size: 0.85rem;

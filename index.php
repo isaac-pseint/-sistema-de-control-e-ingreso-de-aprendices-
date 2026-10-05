@@ -195,6 +195,10 @@ switch ($action) {
         (new SesionController())->finalizar();
         break;
 
+    case 'importarHorario':
+        (new HorarioController())->importar();
+        break;
+
     case 'marcarEntrada':
         (new AsistenciaController())->marcarEntrada();
         break;

@@ -161,6 +161,59 @@ class SesionController extends ControllerBase
         }
     }
 
+    // Fechas pasadas: solo admisibles cuando el importador de horario lo pide
+    // explícitamente (permitir_pasadas=1); el resto de la app lo bloquea.
+    private function validarFechaFutura(string $fecha): void
+    {
+        $permitirPasadas = ($_POST['permitir_pasadas'] ?? '') === '1';
+        if (!$permitirPasadas && $fecha < date('Y-m-d')) {
+            $this->fail('No se puede programar una sesión en una fecha pasada.');
+        }
+    }
+
+    private function validarFichaActiva(int $fichaId): void
+    {
+        $ficha = $this->fichaModel->buscarPorId($fichaId);
+        if (!$ficha) {
+            $this->fail('La ficha no existe.');
+        }
+        if (($ficha['estado'] ?? '') !== 'Activo') {
+            $this->fail('No se pueden programar sesiones para una ficha inactiva.');
+        }
+    }
+
+    private function validarInstructorActivo(int $instructorId): void
+    {
+        foreach ($this->fichaModel->listarInstructores() as $instructor) {
+            if ((int)$instructor['id'] === $instructorId) {
+                return;
+            }
+        }
+        $this->fail('El instructor seleccionado no es un instructor activo.');
+    }
+
+    // Devuelve el bloque de la jornada de la ficha que contiene las horas; si
+    // la sesión no cabe completa en un único bloque, falla (noche 1h45/1h30).
+    private function bloqueParaHoras(int $fichaId, string $horaInicio, string $horaFin): ?int
+    {
+        $ficha = $this->fichaModel->buscarPorId($fichaId);
+        if (!$ficha || empty($ficha['jornada_id'])) {
+            return null;
+        }
+
+        $hI = $this->normalizarHora($horaInicio);
+        $hF = $this->normalizarHora($horaFin);
+
+        foreach ($this->model->bloquesDeJornada((int)$ficha['jornada_id']) as $bloque) {
+            if ($hI >= $bloque['hora_inicio'] && $hF <= $bloque['hora_fin']) {
+                return (int)$bloque['id'];
+            }
+        }
+
+        $this->fail('El horario de la sesión debe caber completo dentro de un único bloque de la jornada de la ficha.');
+        return null;
+    }
+
     private function cerrarSesionConInasistencias(int $sesionId, string $generadoPor): void
     {
         $sesion = $this->model->buscarPorId($sesionId);
@@ -186,7 +239,7 @@ class SesionController extends ControllerBase
 
     private function procesarCierresAutomaticos(): void
     {
-        foreach ($this->model->listarIdsVencidasHoy() as $sesionId) {
+        foreach ($this->model->listarIdsVencidas() as $sesionId) {
             $this->cerrarSesionConInasistencias((int)$sesionId, 'cierre_automatico');
         }
     }
@@ -202,7 +255,8 @@ class SesionController extends ControllerBase
 
         $this->ok([
             'fichas' => $this->fichaModel->listarActivas(),
-            'competencias' => $this->competenciaModel->listar()
+            'competencias' => $this->competenciaModel->listar(),
+            'instructores' => $this->fichaModel->listarInstructores()
         ]);
     }
 
@@ -212,13 +266,12 @@ class SesionController extends ControllerBase
 
         $fichaId = (int)($_POST['ficha_id'] ?? 0);
         $competenciaId = (int)($_POST['competencia_id'] ?? 0);
+        $instructorId = (int)($_POST['instructor_id'] ?? 0);
         $fecha = trim($_POST['fecha'] ?? '');
         $horaInicio = trim($_POST['hora_inicio'] ?? '');
         $horaFin = trim($_POST['hora_fin'] ?? '');
 
-        $instructorId = (int)($this->competenciaModel->instructorDeCompetencia($competenciaId) ?? 0);
-
-        if ($fichaId <= 0 || $competenciaId <= 0 || $instructorId <= 0 || $fecha === '' || $horaInicio === '' || $horaFin === '') {
+        if ($fichaId <= 0 || $fecha === '' || $horaInicio === '' || $horaFin === '') {
             $this->fail('Todos los campos obligatorios deben estar llenos.');
         }
 
@@ -226,16 +279,32 @@ class SesionController extends ControllerBase
             $this->fail('La hora de inicio debe ser menor que la hora de fin.');
         }
 
-        $this->validarCoherenciaFichaCompetencia($fichaId, $competenciaId);
+        $this->validarFechaFutura($fecha);
+        $this->validarFichaActiva($fichaId);
 
-        if (!$this->competenciaModel->instructorDicta($instructorId, $competenciaId)) {
-            $this->fail('El instructor no está asignado a esa competencia.');
+        if ($competenciaId > 0) {
+            $this->validarCoherenciaFichaCompetencia($fichaId, $competenciaId);
+            $instructorId = (int)($this->competenciaModel->instructorDeCompetencia($competenciaId) ?? 0);
+            if ($instructorId <= 0) {
+                $this->fail('La competencia seleccionada no tiene un instructor asignado.');
+            }
+            if (!$this->competenciaModel->instructorDicta($instructorId, $competenciaId)) {
+                $this->fail('El instructor no está asignado a esa competencia.');
+            }
+            $this->validarInstructorActivo($instructorId);
+        } else {
+            if ($instructorId <= 0) {
+                $this->fail('Debe elegir una competencia o un instructor para la sesión.');
+            }
+            $this->validarInstructorActivo($instructorId);
         }
 
+        $bloqueId = $this->bloqueParaHoras($fichaId, $horaInicio, $horaFin);
         $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin);
 
         try {
-            if ($this->model->crear($fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin)) {
+            $competencia = $competenciaId > 0 ? $competenciaId : null;
+            if ($this->model->crear($fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId)) {
                 $this->ok([], 'Sesión creada correctamente.');
             }
             $this->fail('No se pudo crear la sesión.');
@@ -287,6 +356,7 @@ class SesionController extends ControllerBase
     public function obtener(): void
     {
         $this->requireAuth();
+        $this->procesarCierresAutomaticos();
 
         $id = (int)($_GET['id'] ?? 0);
 
@@ -354,10 +424,15 @@ class SesionController extends ControllerBase
             $competenciaId = (int)$sesion['Competencia_id'];
             $instructorId = (int)$sesion['Instructor_id'];
 
+            $this->validarFichaActiva($fichaId);
+            $this->validarInstructorActivo($instructorId);
+
+            $bloqueId = $this->bloqueParaHoras($fichaId, $horaInicio, $horaFin);
             $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
 
             try {
-                if ($this->model->actualizar($id, $fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin)) {
+                $competencia = $competenciaId > 0 ? $competenciaId : null;
+                if ($this->model->actualizar($id, $fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId)) {
                     $this->ok([], 'Sesión actualizada correctamente.');
                 }
                 $this->fail('No se pudo actualizar la sesión.');
@@ -381,19 +456,38 @@ class SesionController extends ControllerBase
         if ($antes) {
             $fichaId = (int)($_POST['ficha_id'] ?? 0);
             $competenciaId = (int)($_POST['competencia_id'] ?? 0);
-            $instructorId = (int)($this->competenciaModel->instructorDeCompetencia($competenciaId) ?? 0);
+            $instructorId = (int)($_POST['instructor_id'] ?? 0);
             $fecha = trim($_POST['fecha'] ?? '');
             $horaInicio = trim($_POST['hora_inicio'] ?? '');
             $horaFin = trim($_POST['hora_fin'] ?? '');
 
-            if ($fichaId <= 0 || $competenciaId <= 0 || $instructorId <= 0 || $fecha === '' || $horaInicio === '' || $horaFin === '') {
+            if ($fichaId <= 0 || $fecha === '' || $horaInicio === '' || $horaFin === '') {
                 $this->fail('Todos los campos obligatorios deben estar llenos.');
             }
             if ($horaInicio >= $horaFin) {
                 $this->fail('La hora de inicio debe ser menor que la hora de fin.');
             }
+            $this->validarFechaFutura($fecha);
+            $this->validarFichaActiva($fichaId);
 
-            $this->validarCoherenciaFichaCompetencia($fichaId, $competenciaId);
+            if ($competenciaId > 0) {
+                $this->validarCoherenciaFichaCompetencia($fichaId, $competenciaId);
+                $instructorId = (int)($this->competenciaModel->instructorDeCompetencia($competenciaId) ?? 0);
+                if ($instructorId <= 0) {
+                    $this->fail('La competencia seleccionada no tiene un instructor asignado.');
+                }
+                if (!$this->competenciaModel->instructorDicta($instructorId, $competenciaId)) {
+                    $this->fail('El instructor no está asignado a esa competencia.');
+                }
+                $this->validarInstructorActivo($instructorId);
+            } else {
+                if ($instructorId <= 0) {
+                    $this->fail('Debe elegir una competencia o un instructor para la sesión.');
+                }
+                $this->validarInstructorActivo($instructorId);
+            }
+
+            $bloqueId = $this->bloqueParaHoras($fichaId, $horaInicio, $horaFin);
 
             $this->validarCambioEstadoAdmin($sesion, $estadoNuevo, true);
 
@@ -402,7 +496,8 @@ class SesionController extends ControllerBase
             }
 
             try {
-                if ($this->model->actualizar($id, $fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $estadoNuevo)) {
+                $competencia = $competenciaId > 0 ? $competenciaId : null;
+                if ($this->model->actualizar($id, $fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId, $estadoNuevo)) {
                     $this->ok([], 'Sesión actualizada correctamente.');
                 }
                 $this->fail('No se pudo actualizar la sesión.');

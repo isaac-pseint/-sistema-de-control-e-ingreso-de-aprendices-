@@ -18,7 +18,10 @@
         <main class="app-main">
             <div class="page-header">
                 <h2>Sesiones de clase</h2>
-                <a href="crear.html" class="btn btn-primary btn-auto btn-a">Crear sesión</a>
+                <div class="btn-group">
+                    <button type="button" id="btnAbrirModalImportar" class="btn btn-outline btn-auto btn-a">Importar horario</button>
+                    <a href="crear.html" class="btn btn-primary btn-auto btn-a">Crear sesión</a>
+                </div>
             </div>
             <div class="filtro-inputs">
                 <div class="form-group">
@@ -46,6 +49,23 @@
             </table>
             <div id="contenedorMensajes" class="mensaje-vacio"></div>
         </main>
+    </div>
+    <div id="modalImportarHorario" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header"><h3>Importar horario</h3>
+                <button type="button" class="modal-close" id="btnCerrarModalImportarHorario">×</button></div>
+            <form id="formImportarHorario" class="modal-body">
+                <p class="modal-detalle">Sube el archivo .xlsx del horario. Si ficha e instructores están en la base de datos, se crean las sesiones automáticamente.</p>
+                <div class="form-group">
+                    <label for="archivoHorario">Archivo .xlsx</label>
+                    <input type="file" id="archivoHorario" name="horario" accept=".xlsx" class="form-control" required>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarModalImportarHorario">Cancelar</button>
+                <button type="submit" form="formImportarHorario" class="btn btn-primary btn-auto" id="btnSubirHorario">Subir Excel</button>
+            </div>
+        </div>
     </div>
     <div id="modalCancelarSesion" class="modal-overlay" aria-hidden="true">
         <div class="modal-card">
