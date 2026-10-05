@@ -211,6 +211,19 @@ switch ($action) {
         (new AsistenciaController())->listar();
         break;
 
+    // ── Dashboard (métricas por rol) ──────────────────────────────────
+    case 'metricasDashboardAdmin':
+        (new DashboardController())->metricasAdmin();
+        break;
+
+    case 'metricasDashboardInstructor':
+        (new DashboardController())->metricasInstructor();
+        break;
+
+    case 'metricasDashboardAprendiz':
+        (new DashboardController())->metricasAprendiz();
+        break;
+
     default:
         // Acción no reconocida → 404, siempre en JSON.
         http_response_code(404);

@@ -17,10 +17,96 @@
         <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
         <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
         <main class="app-main">
-            <div class="dashboard-content">
-                <p>Gestiona tus clases programadas y el registro de asistencia por sesión.</p>
-                <a href="sesiones/listado.html" class="btn btn-primary btn-a">Ver mis sesiones de hoy</a>
-            </div>
+            <!-- ① Encabezado de la página -->
+            <header class="dashboard-header">
+                <h1 class="titulo-seccion">Panel de Control — Instructor</h1>
+                <p class="dashboard-subtitulo">Resumen de gestión pedagógica y sesiones de clase</p>
+            </header>
+
+            <!-- ② Grilla de KPIs -->
+            <section class="dashboard-kpis" aria-label="Indicadores clave">
+                <article class="kpi-card" id="kpi-sesiones-hoy">
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#calendar-week"></use></svg>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Sesiones Hoy</span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-aprendices">
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#people"></use></svg>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Aprendices a Cargo</span>
+                    </div>
+                </article>
+
+                <article class="kpi-card" id="kpi-puntualidad">
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#stopwatch"></use></svg>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—%</span>
+                        <span class="kpi-label">Puntualidad Promedio</span>
+                    </div>
+                </article>
+            </section>
+
+            <!-- ③ Tarjeta Destacada de Acción Inmediata -->
+            <section class="dashboard-seccion" id="seccion-sesion-destacada" aria-label="Sesión destacada">
+                <h2 class="titulo-seccion">Sesión Actual o Próxima de Hoy</h2>
+                
+                <div id="contenedor-sesion-destacada" class="sesion-resumen" hidden>
+                    <!-- Dinámico: Ficha, Competencia, Programa, Horario, Badge -->
+                </div>
+                
+                <div id="acciones-sesion-destacada" class="btn-group" hidden>
+                    <!-- Dinámico: enlaces directos al kiosco o detalle -->
+                </div>
+
+                <div id="mensaje-sin-sesion-destacada" class="mensaje-vacio">
+                    No tienes sesiones en curso ni próximas programadas para hoy.
+                </div>
+            </section>
+
+            <!-- ④ Sección Cronograma Semanal -->
+            <section class="dashboard-seccion" aria-label="Mis sesiones de la semana">
+                <div class="seccion-header">
+                    <h2 class="titulo-seccion">Mis Sesiones de la Semana</h2>
+                    <span class="badge badge-info" id="badge-total-sesiones-semana">0</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-admin">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Horario</th>
+                                <th>Ficha</th>
+                                <th>Competencia</th>
+                                <th>Estado</th>
+                                <th class="col-acciones">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-sesiones-semana-body"></tbody>
+                    </table>
+                </div>
+                <div id="mensaje-sin-sesiones-semana" class="mensaje-vacio" hidden>
+                    No tienes sesiones programadas para esta semana.
+                </div>
+            </section>
+
+            <!-- ⑤ Accesos Rápidos -->
+            <section class="dashboard-seccion" aria-label="Accesos rápidos">
+                <h2 class="titulo-seccion">Accesos Rápidos</h2>
+                <div class="accesos-rapidos">
+                    <a href="sesiones/listado.html" class="acceso-card">
+                        <svg class="icono acceso-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#calendar-week"></use></svg>
+                        <span class="acceso-texto">Todas mis sesiones</span>
+                    </a>
+                    <a href="#" class="acceso-card">
+                        <svg class="icono acceso-icono" aria-hidden="true"><use href="../../assets/img/iconos.svg#check-circle"></use></svg>
+                        <span class="acceso-texto">Historial de asistencias</span>
+                    </a>
+                </div>
+            </section>
         </main>
     </div>
 
