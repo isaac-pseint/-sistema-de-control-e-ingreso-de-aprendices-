@@ -1,5 +1,5 @@
 /* utilidades.css — Clases utilitarias de texto y estados.
-   Clases: .text-success, .text-info, .text-danger */
+   Clases: .text-success, .text-info, .text-warning, .text-danger */
 
 .text-success {
     color: var(--color-success);
@@ -7,6 +7,10 @@
 
 .text-info {
     color: var(--color-info);
+}
+
+.text-warning {
+    color: #b45309;
 }
 
 .text-danger {

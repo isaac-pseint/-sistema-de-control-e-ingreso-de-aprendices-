@@ -1,0 +1,27 @@
+/* iconos.css — Iconografía de los dashboards (sprite SVG).
+   Marcado: <svg class="icono kpi-icono"><use href="../../assets/img/iconos.svg#mortarboard"></use></svg>
+   El color sale de `color` porque .icono usa fill: currentColor.
+   Clases: .icono, .kpi-icono, .acceso-icono */
+
+/* 1. Base: el SVG mide 1em y se tiñe del color del texto que lo contiene. */
+.icono {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* 2. Icono de los indicadores KPI. */
+.kpi-icono {
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--color-sena-verde);
+}
+
+/* 3. Icono de las tarjetas de acceso rápido. */
+.acceso-icono {
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--color-sena-verde);
+}

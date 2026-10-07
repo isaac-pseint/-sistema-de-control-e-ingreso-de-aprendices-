@@ -1,5 +1,5 @@
 /* tablas.css — Tablas de los listados.
-   Clases: .table-admin, .mensaje-vacio */
+   Clases: .table-admin, .col-acciones, .mensaje-vacio */
 
 .table-admin {
     width: 100%;
@@ -16,6 +16,12 @@
 .table-admin thead th {
     color: var(--color-texto-ligero);
     font-size: 0.9rem;
+}
+
+/* Columna de acciones: el botón queda centrado bajo su encabezado. */
+.table-admin th.col-acciones,
+.table-admin td.col-acciones {
+    text-align: center;
 }
 
 .mensaje-vacio {

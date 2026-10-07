@@ -15,7 +15,7 @@ function etiquetaEstado(a) {
     if (!tieneAsistencia(a)) {
         const pendiente = sesionPermiteAcciones(sesionActual?.estado);
         return pendiente
-            ? { texto: "Pendiente", clase: "text-danger" }
+            ? { texto: "Pendiente", clase: "text-warning" }
             : { texto: "Inasistencia", clase: "text-danger" };
     }
     if (a.asistencia_estado === "Completado") {
