@@ -215,6 +215,11 @@ switch ($action) {
         (new AsistenciaController())->listar();
         break;
 
+    // ── Reportes ───────────────────────────────────────────────────────
+    case 'consultarReporte':
+        (new ReporteController())->consultarReporte();
+        break;
+
     // ── Dashboard (métricas por rol) ──────────────────────────────────
     case 'metricasDashboardAdmin':
         (new DashboardController())->metricasAdmin();
