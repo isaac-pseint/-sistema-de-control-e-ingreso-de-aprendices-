@@ -20,6 +20,64 @@ class ReporteController extends ControllerBase
      */
     public function consultarReporte(): void
     {
+        $datos = $this->procesarConsultaReporte();
+
+        $this->ok([
+            'fichas'        => $datos['fichas'],
+            'totales'       => $datos['totales'],
+            'resumen'       => $datos['resumen'],
+            'inasistencias' => $datos['inasistencias'],
+        ], 'Reporte generado correctamente.');
+    }
+
+    /**
+     * Endpoint: action=exportarReporte (GET)
+     * Formatos soportados: excel, pdf.
+     */
+    public function exportarReporte(): void
+    {
+        $formato = strtolower(trim($_GET['formato'] ?? ''));
+        if ($formato !== 'excel' && $formato !== 'pdf') {
+            $this->fail('El formato de exportación debe ser excel o pdf.');
+        }
+
+        $datos = $this->procesarConsultaReporte();
+        $exportador = new ExportadorReporte();
+
+        if ($formato === 'excel') {
+            $binario = $exportador->generarXlsx(
+                $datos['totales'],
+                $datos['resumen'],
+                $datos['inasistencias'],
+                $datos['filtros']
+            );
+            $nombreArchivo = 'reporte_asistencia_' . date('Ymd_His') . '.xlsx';
+            $mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        } else {
+            $binario = $exportador->generarPdf(
+                $datos['totales'],
+                $datos['resumen'],
+                $datos['inasistencias'],
+                $datos['filtros']
+            );
+            $nombreArchivo = 'reporte_asistencia_' . date('Ymd_His') . '.pdf';
+            $mimeType = 'application/pdf';
+        }
+
+        $this->ok([
+            'archivo_base64' => base64_encode($binario),
+            'nombre_archivo' => $nombreArchivo,
+            'mime_type'      => $mimeType,
+        ], 'Archivo exportado correctamente.');
+    }
+
+    /**
+     * Procesa la autorización, validación de filtros y consulta del reporte.
+     *
+     * @return array{fichas: array, filtros: array, totales: array, resumen: array, inasistencias: array}
+     */
+    private function procesarConsultaReporte(): array
+    {
         // ── a) Autorización ─────────────────────────────────────────────
         $this->requireAuth();
 
@@ -103,12 +161,12 @@ class ReporteController extends ControllerBase
             $totales['total_inasistencias']       += $r['total_inasistencias'];
         }
 
-        // ── f) Respuesta JSON ───────────────────────────────────────────
-        $this->ok([
+        return [
             'fichas'        => $fichas,
+            'filtros'       => $filtros,
             'totales'       => $totales,
             'resumen'       => $resumen,
             'inasistencias' => $inasistencias,
-        ], 'Reporte generado correctamente.');
+        ];
     }
 }
