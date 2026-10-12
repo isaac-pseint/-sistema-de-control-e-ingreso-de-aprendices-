@@ -2,7 +2,7 @@ import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
 import { conectarFormulario } from "../../../core/forms.js";
 
-let catalogo = { fichas: [], competencias: [] };
+let catalogo = { fichas: [], competencias: [], instructores: [] };
 
 function llenarSelect(select, opciones, placeholder) {
     if (!select) return;
@@ -26,12 +26,30 @@ function programaDeFicha(fichaId) {
     return f ? f.Programa_id : null;
 }
 
+// El select de instructor se puede bloquear por dos motivos distintos:
+//  1) fija la competencia elegida (el instructor viene del catálogo), o
+//  2) permisos: la sesión ya no es editable desde el formulario.
+// Solo en el caso (1) hay que limpiar el valor cuando no hay competencia;
+// con la bandera se evita borrar el instructor de sesiones ya bloqueadas
+// (p. ej. las creadas por el importador de horario, sin competencia).
+let instructorFijadoPorCompetencia = false;
+
 function mostrarInstructorCompetencia() {
     const compId = document.getElementById("competencia_id")?.value;
-    const el = document.getElementById("instructorSesionTexto");
-    if (!el) return;
+    const selectInst = document.getElementById("instructor_id");
+    if (!selectInst) return;
     const comp = catalogo.competencias.find(c => String(c.id) === String(compId));
-    el.textContent = comp?.instructor ? comp.instructor : "Seleccione una competencia";
+    if (comp && comp.Instructor_id) {
+        selectInst.value = String(comp.Instructor_id);
+        instructorFijadoPorCompetencia = true;
+        selectInst.disabled = true;
+    } else {
+        if (instructorFijadoPorCompetencia) {
+            selectInst.value = "";
+            instructorFijadoPorCompetencia = false;
+        }
+        selectInst.disabled = false;
+    }
 }
 
 function actualizarCompetencias() {
@@ -39,11 +57,11 @@ function actualizarCompetencias() {
     const selectComp = document.getElementById("competencia_id");
     const programaId = programaDeFicha(fichaId);
     if (!programaId) {
-        llenarSelect(selectComp, [], "Seleccione ficha primero...");
+        llenarSelect(selectComp, [], "Sin competencia (solo horario)");
         mostrarInstructorCompetencia();
         return;
     }
-    llenarSelect(selectComp, competenciasDelPrograma(programaId), "Seleccione competencia...");
+    llenarSelect(selectComp, competenciasDelPrograma(programaId), "Sin competencia (solo horario)");
     mostrarInstructorCompetencia();
 }
 
@@ -60,9 +78,17 @@ export function cargarCatalogoSesion() {
             label: String(f.codigo)
         }));
         catalogo.competencias = data.data.competencias || [];
+        catalogo.instructores = data.data.instructores || [];
 
         const selectFicha = document.getElementById("ficha_id");
         llenarSelect(selectFicha, catalogo.fichas.map(f => ({ id: f.id, label: f.label })), "Seleccione ficha...");
+
+        const selectInst = document.getElementById("instructor_id");
+        llenarSelect(selectInst, catalogo.instructores.map(u => ({
+            id: u.id,
+            label: `${u.nombre} ${u.apellido}`
+        })), "Seleccione instructor...");
+
         selectFicha?.addEventListener("change", actualizarCompetencias);
         document.getElementById("competencia_id")?.addEventListener("change", mostrarInstructorCompetencia);
         return data;
@@ -112,8 +138,10 @@ export async function prellenarFormularioSesion(sesion, permisos = {}) {
     document.getElementById("id").value = sesion.id;
     document.getElementById("ficha_id").value = sesion.Ficha_id;
     actualizarCompetencias();
-    document.getElementById("competencia_id").value = sesion.Competencia_id;
+    document.getElementById("competencia_id").value = sesion.Competencia_id || "";
     mostrarInstructorCompetencia();
+    const selectInst = document.getElementById("instructor_id");
+    if (selectInst) selectInst.value = String(sesion.Instructor_id);
     document.getElementById("fecha").value = sesion.fecha;
     document.getElementById("hora_inicio").value = String(sesion.hora_inicio).slice(0, 5);
     document.getElementById("hora_fin").value = String(sesion.hora_fin).slice(0, 5);
@@ -123,9 +151,12 @@ export async function prellenarFormularioSesion(sesion, permisos = {}) {
     const prog = Boolean(permisos.editar_programacion);
     bloquearCampo(document.getElementById("ficha_id"), !prog);
     bloquearCampo(document.getElementById("competencia_id"), !prog);
+    bloquearCampo(selectInst, !prog);
     bloquearCampo(document.getElementById("fecha"), !prog);
     bloquearCampo(document.getElementById("hora_inicio"), !prog);
     bloquearCampo(document.getElementById("hora_fin"), !prog);
+    // Nota: no se vuelve a llamar mostrarInstructorCompetencia() aquí; el
+    // bloqueo por permisos debe quedar como último estado del select.
 
     if (estado) {
         estado.disabled = !permisos.editar_estado;

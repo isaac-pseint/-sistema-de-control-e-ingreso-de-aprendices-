@@ -84,7 +84,7 @@ class FichaModel
         string $codigo,
         int $programaId,
         int $instructorId,
-        ?int $jornadaId
+        int $jornadaId
     ): bool {
         $stmt = Database::conn()->prepare("
             INSERT INTO Ficha (codigo, Programa_id, instructor_id, jornada_id, estado)
@@ -104,7 +104,7 @@ class FichaModel
         string $codigo,
         int $programaId,
         int $instructorId,
-        ?int $jornadaId,
+        int $jornadaId,
         string $estado
     ): bool {
         $stmt = Database::conn()->prepare("

@@ -21,7 +21,7 @@ export function renderResumenSesion(contenedor, sesion) {
 
     contenedor.innerHTML = `
         <div class="sesion-resumen">
-            <p><strong>Competencia:</strong> ${esc(sesion.competencia)}</p>
+            <p><strong>Competencia:</strong> ${sesion.competencia ? esc(sesion.competencia) : "Sin competencia"}</p>
             <p><strong>Ficha:</strong> ${esc(sesion.ficha)}</p>
             <p><strong>Fecha:</strong> ${esc(sesion.fecha)}</p>
             <p><strong>Horario:</strong> ${esc(formatearHora(sesion.hora_inicio))} - ${esc(formatearHora(sesion.hora_fin))}</p>

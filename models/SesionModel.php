@@ -3,26 +3,28 @@
 // SesionModel — Acceso a datos de sesiones de clase (horario por fechas) con PDO.
 class SesionModel
 {
-    public function crear(int $fichaId, int $competenciaId, int $instructorId, string $fecha, string $horaInicio, string $horaFin): bool
+    public function crear(int $fichaId, ?int $competenciaId, int $instructorId, string $fecha, string $horaInicio, string $horaFin, ?int $bloqueId = null): bool
     {
         $stmt = Database::conn()->prepare("
-            INSERT INTO sesion (Ficha_id, Competencia_id, Instructor_id, fecha, hora_inicio, hora_fin, estado)
-            VALUES (?, ?, ?, ?, ?, ?, 'Activo')
+            INSERT INTO sesion (Ficha_id, Competencia_id, Instructor_id, bloque_id, fecha, hora_inicio, hora_fin, estado)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Activo')
         ");
-        return $stmt->execute([$fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin]);
+        return $stmt->execute([$fichaId, $competenciaId, $instructorId, $bloqueId, $fecha, $horaInicio, $horaFin]);
     }
 
     public function buscarPorId(int $id): ?array
     {
-        $sql = "SELECT s.id, s.Ficha_id, s.Competencia_id, s.Instructor_id,
+        $sql = "SELECT s.id, s.Ficha_id, s.Competencia_id, s.Instructor_id, s.bloque_id,
                        s.fecha, s.hora_inicio, s.hora_fin, s.estado,
                        f.codigo AS ficha,
                        c.nombre AS competencia,
-                       CONCAT(u.nombre, ' ', u.apellido) AS instructor
+                       CONCAT(u.nombre, ' ', u.apellido) AS instructor,
+                       b.nombre AS bloque
                 FROM sesion s
                 INNER JOIN ficha f ON s.Ficha_id = f.id
-                INNER JOIN competencia c ON s.Competencia_id = c.id
+                LEFT JOIN competencia c ON s.Competencia_id = c.id
                 INNER JOIN usuario u ON s.Instructor_id = u.id
+                LEFT JOIN bloque b ON s.bloque_id = b.id
                 WHERE s.id = ?";
         $stmt = Database::conn()->prepare($sql);
         $stmt->execute([$id]);
@@ -33,28 +35,29 @@ class SesionModel
     public function actualizar(
         int $id,
         int $fichaId,
-        int $competenciaId,
+        ?int $competenciaId,
         int $instructorId,
         string $fecha,
         string $horaInicio,
         string $horaFin,
+        ?int $bloqueId = null,
         ?string $estado = null
     ): bool {
         if ($estado !== null) {
             $stmt = Database::conn()->prepare("
                 UPDATE sesion
-                SET Ficha_id = ?, Competencia_id = ?, Instructor_id = ?, fecha = ?, hora_inicio = ?, hora_fin = ?, estado = ?
+                SET Ficha_id = ?, Competencia_id = ?, Instructor_id = ?, fecha = ?, hora_inicio = ?, hora_fin = ?, bloque_id = ?, estado = ?
                 WHERE id = ?
             ");
-            return $stmt->execute([$fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $estado, $id]);
+            return $stmt->execute([$fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId, $estado, $id]);
         }
 
         $stmt = Database::conn()->prepare("
             UPDATE sesion
-            SET Ficha_id = ?, Competencia_id = ?, Instructor_id = ?, fecha = ?, hora_inicio = ?, hora_fin = ?
+            SET Ficha_id = ?, Competencia_id = ?, Instructor_id = ?, fecha = ?, hora_inicio = ?, hora_fin = ?, bloque_id = ?
             WHERE id = ?
         ");
-        return $stmt->execute([$fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $id]);
+        return $stmt->execute([$fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId, $id]);
     }
 
     // Cancelar sesión = estado 'Cancelado' (no se borra el registro).
@@ -82,30 +85,33 @@ class SesionModel
         return $stmt->execute([$id]);
     }
 
-    // Sesiones activas de hoy cuya hora de fin ya pasó (cierre automático).
-    public function listarIdsVencidasHoy(): array
+    // Sesiones activas cuya hora de fin ya pasó (cierre automático): incluye
+    // las de días anteriores, para que toda sesión vencida quede 'Finalizada'.
+    public function listarIdsVencidas(): array
     {
         $stmt = Database::conn()->prepare("
             SELECT id FROM sesion
             WHERE estado = 'Activo'
-              AND fecha = CURDATE()
-              AND hora_fin < CURTIME()
+              AND (fecha < CURDATE()
+                   OR (fecha = CURDATE() AND hora_fin < CURTIME()))
         ");
         $stmt->execute();
         return array_column($stmt->fetchAll(), 'id');
     }
 
-    public function listar(?int $fichaId = null, ?string $fecha = null, ?int $instructorId = null, ?int $competenciaId = null): array
+    public function listar(?int $fichaId = null, ?string $desde = null, ?string $hasta = null, ?int $instructorId = null, ?int $competenciaId = null): array
     {
-        $sql = "SELECT s.id, s.Ficha_id, s.Competencia_id, s.Instructor_id,
+        $sql = "SELECT s.id, s.Ficha_id, s.Competencia_id, s.Instructor_id, s.bloque_id,
                        s.fecha, s.hora_inicio, s.hora_fin, s.estado,
                        f.codigo AS ficha,
                        c.nombre AS competencia,
-                       CONCAT(u.nombre, ' ', u.apellido) AS instructor
+                       CONCAT(u.nombre, ' ', u.apellido) AS instructor,
+                       b.nombre AS bloque
                 FROM sesion s
                 INNER JOIN ficha f ON s.Ficha_id = f.id
-                INNER JOIN competencia c ON s.Competencia_id = c.id
-                INNER JOIN usuario u ON s.Instructor_id = u.id";
+                LEFT JOIN competencia c ON s.Competencia_id = c.id
+                INNER JOIN usuario u ON s.Instructor_id = u.id
+                LEFT JOIN bloque b ON s.bloque_id = b.id";
 
         $where = [];
         $params = [];
@@ -115,9 +121,14 @@ class SesionModel
             $params[] = $fichaId;
         }
 
-        if ($fecha !== null && trim($fecha) !== '') {
-            $where[] = "s.fecha = ?";
-            $params[] = trim($fecha);
+        if ($desde !== null && trim($desde) !== '') {
+            $where[] = "s.fecha >= ?";
+            $params[] = trim($desde);
+        }
+
+        if ($hasta !== null && trim($hasta) !== '') {
+            $where[] = "s.fecha <= ?";
+            $params[] = trim($hasta);
         }
 
         if ($instructorId !== null && $instructorId > 0) {
@@ -155,6 +166,10 @@ class SesionModel
     }
 
     // Evita solapamientos: misma ficha o mismo instructor con dos clases a la misma hora y fecha.
+    // FOR UPDATE: bloquea el rango leído hasta que la transacción termine. Sin esto dos
+    // peticiones simultáneas pasan ambas la comprobación y ambas insertan (la SELECT
+    // normal no bloquea). Fuera de una transacción MySQL lo trata como SELECT simple,
+    // así que no rompe a los llamadores que no abren transacción.
     public function existeSuperposicion(int $fichaId, int $instructorId, string $fecha, string $horaInicio, string $horaFin, ?int $excluirId = null): bool
     {
         $sql = "SELECT id FROM sesion
@@ -169,8 +184,35 @@ class SesionModel
             $params[] = $excluirId;
         }
 
+        $sql .= " FOR UPDATE";
+
         $stmt = Database::conn()->prepare($sql);
         $stmt->execute($params);
+        return $stmt->fetch() !== false;
+    }
+
+    // Bloques horarios de una jornada (ventanas de 2h45/2h30, noche 1h45/1h30).
+    public function bloquesDeJornada(int $jornadaId): array
+    {
+        $stmt = Database::conn()->prepare("
+            SELECT id, Jornada_id, nombre, orden, hora_inicio, hora_fin
+            FROM bloque
+            WHERE Jornada_id = ?
+            ORDER BY orden ASC
+        ");
+        $stmt->execute([$jornadaId]);
+        return $stmt->fetchAll();
+    }
+
+    // Ya existe una sesión de la ficha en esa fecha y hora (para re-importaciones).
+    public function existeSesion(int $fichaId, string $fecha, string $horaInicio): bool
+    {
+        $stmt = Database::conn()->prepare("
+            SELECT id FROM sesion
+            WHERE Ficha_id = ? AND fecha = ? AND hora_inicio = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$fichaId, $fecha, $horaInicio]);
         return $stmt->fetch() !== false;
     }
 }

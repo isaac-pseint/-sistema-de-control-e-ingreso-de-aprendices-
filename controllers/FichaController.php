@@ -36,16 +36,16 @@ class FichaController extends ControllerBase
         $instructorIdRaw = trim($_POST['instructor_id'] ?? '');
         $jornadaIdRaw = trim($_POST['jornada_id'] ?? '');
 
-        if ($codigo === '' || $programaIdRaw === '' || $instructorIdRaw === '') {
+        if ($codigo === '' || $programaIdRaw === '' || $instructorIdRaw === '' || $jornadaIdRaw === '') {
             $this->fail('Todos los campos obligatorios deben estar llenos.');
         }
 
         $programaId = (int)$programaIdRaw;
         $instructorId = (int)$instructorIdRaw;
-        $jornadaId = $jornadaIdRaw !== '' ? (int)$jornadaIdRaw : null;
+        $jornadaId = (int)$jornadaIdRaw;
 
-        if ($programaId <= 0 || $instructorId <= 0) {
-            $this->fail('El programa y el instructor seleccionados deben ser válidos.');
+        if ($programaId <= 0 || $instructorId <= 0 || $jornadaId <= 0) {
+            $this->fail('El programa, el instructor y la jornada seleccionados deben ser válidos.');
         }
 
         // Valida que el código de la ficha sea único
@@ -67,14 +67,17 @@ class FichaController extends ControllerBase
             $this->fail('El programa seleccionado no es válido.');
         }
 
-        $jornadaIdFinal = $jornadaId !== null && $jornadaId > 0 ? $jornadaId : null;
+        $jornadaIds = array_map('intval', array_column($this->model->listarJornadas(), 'id'));
+        if (!in_array($jornadaId, $jornadaIds, true)) {
+            $this->fail('La jornada seleccionada no es válida.');
+        }
 
         try {
             $creado = $this->model->crear(
                 $codigo,
                 $programaId,
                 $instructorId,
-                $jornadaIdFinal
+                $jornadaId
             );
 
             if ($creado) {
@@ -141,16 +144,16 @@ class FichaController extends ControllerBase
             $this->fail('ID de ficha no válido.');
         }
 
-        if ($codigo === '' || $programaIdRaw === '' || $instructorIdRaw === '' || $estado === '') {
+        if ($codigo === '' || $programaIdRaw === '' || $instructorIdRaw === '' || $jornadaIdRaw === '' || $estado === '') {
             $this->fail('Todos los campos obligatorios deben estar llenos.');
         }
 
         $programaId = (int)$programaIdRaw;
         $instructorId = (int)$instructorIdRaw;
-        $jornadaId = $jornadaIdRaw !== '' ? (int)$jornadaIdRaw : null;
+        $jornadaId = (int)$jornadaIdRaw;
 
-        if ($programaId <= 0 || $instructorId <= 0) {
-            $this->fail('El programa y el instructor seleccionados deben ser válidos.');
+        if ($programaId <= 0 || $instructorId <= 0 || $jornadaId <= 0) {
+            $this->fail('El programa, el instructor y la jornada seleccionados deben ser válidos.');
         }
 
         if (!in_array($estado, ['Activo', 'Inactivo'], true)) {
@@ -177,7 +180,10 @@ class FichaController extends ControllerBase
             $this->fail('El programa seleccionado no es válido.');
         }
 
-        $jornadaIdFinal = $jornadaId !== null && $jornadaId > 0 ? $jornadaId : null;
+        $jornadaIds = array_map('intval', array_column($this->model->listarJornadas(), 'id'));
+        if (!in_array($jornadaId, $jornadaIds, true)) {
+            $this->fail('La jornada seleccionada no es válida.');
+        }
 
         try {
             $actualizado = $this->model->actualizar(
@@ -185,7 +191,7 @@ class FichaController extends ControllerBase
                 $codigo,
                 $programaId,
                 $instructorId,
-                $jornadaIdFinal,
+                $jornadaId,
                 $estado
             );
 

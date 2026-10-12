@@ -3,6 +3,7 @@ import { montarSidebar } from "../../../features/sidebar.js";
 import { api } from "../../../core/api.js";
 import { cargarListadoSesiones, configurarFiltrosSesiones, configurarAccionesAdminSesiones } from "../../../features/admin/sesiones/listado.js";
 import { configurarModalCancelarSesionAdmin } from "../../../features/admin/sesiones/acciones.js";
+import { conectarImportacionHorario } from "../../../features/admin/sesiones/importar.js";
 
 requerirRol("Administrador").then(usuario => montarSidebar("Administrador", usuario));
 api("datosFormularioSesion").then(data => {
@@ -11,3 +12,4 @@ api("datosFormularioSesion").then(data => {
 });
 configurarAccionesAdminSesiones();
 configurarModalCancelarSesionAdmin();
+conectarImportacionHorario();

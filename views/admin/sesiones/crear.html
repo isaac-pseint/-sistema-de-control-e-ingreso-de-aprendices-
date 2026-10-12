@@ -30,11 +30,13 @@
                 </div>
                 <div class="form-group">
                     <label for="competencia_id">Competencia</label>
-                    <select id="competencia_id" name="competencia_id" class="form-control" required></select>
+                    <select id="competencia_id" name="competencia_id" class="form-control">
+                        <option value="">Sin competencia (solo horario)</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>Instructor (según competencia)</label>
-                    <p id="instructorSesionTexto" class="campo-lectura">Seleccione una competencia</p>
+                    <label for="instructor_id">Instructor</label>
+                    <select id="instructor_id" name="instructor_id" class="form-control" required></select>
                 </div>
                 <div class="form-group">
                     <label for="fecha">Fecha</label>
