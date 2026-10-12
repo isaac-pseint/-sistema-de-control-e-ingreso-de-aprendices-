@@ -8,6 +8,11 @@ class SesionController extends ControllerBase
     private FichaModel $fichaModel;
     private AsistenciaModel $asistenciaModel;
 
+    // Ponga esto en true para poder programar sesiones los domingos (p. ej. al
+    // probar). No afecta al importador de horario: el lector solo genera de
+    // lunes a sábado (COLUMNAS_DIAS = D,F,H,J,L,N).
+    private const PERMITIR_DOMINGOS = false;
+
     public function __construct()
     {
         $this->model = new SesionModel();
@@ -161,13 +166,63 @@ class SesionController extends ControllerBase
         }
     }
 
-    // Fechas pasadas: solo admisibles cuando el importador de horario lo pide
-    // explícitamente (permitir_pasadas=1); el resto de la app lo bloquea.
+    // Fechas pasadas: bloqueadas en toda la app. El importador de horario no
+    // pasa por aquí (usa HorarioController), que es quien puede reimportar
+    // histórico.
     private function validarFechaFutura(string $fecha): void
     {
-        $permitirPasadas = ($_POST['permitir_pasadas'] ?? '') === '1';
-        if (!$permitirPasadas && $fecha < date('Y-m-d')) {
+        if ($fecha < date('Y-m-d')) {
             $this->fail('No se puede programar una sesión en una fecha pasada.');
+        }
+    }
+
+    // Formato real de fecha. Sin esto, "2026-13-45" o "basura" superan la
+    // comparación lexicográfica de validarFechaFutura y llegan a MySQL.
+    private function validarFormatoFecha(string $fecha): void
+    {
+        $parseada = DateTime::createFromFormat('Y-m-d', $fecha);
+        if (!$parseada || $parseada->format('Y-m-d') !== $fecha) {
+            $this->fail('La fecha debe ser una fecha real en formato AAAA-MM-DD.');
+        }
+    }
+
+    // Formato real de hora (HH:MM o HH:MM:SS, 00:00–23:59). "06:00:99" pasa la
+    // comparación de cadena del bloque y se colaría hasta la base de datos.
+    private function validarFormatoHora(string $hora): void
+    {
+        if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', $hora)) {
+            $this->fail('Las horas deben tener formato HH:MM y ser válidas (00:00–23:59).');
+        }
+    }
+
+    // Domingos bloqueados salvo que PERMITIR_DOMINGOS esté en true. Ir después
+    // de validarFormatoFecha: strtotime sobre una fecha inválida engaña.
+    private function validarDiaNoDominical(string $fecha): void
+    {
+        if (self::PERMITIR_DOMINGOS) {
+            return;
+        }
+        if ((int)date('w', strtotime($fecha)) === 0) {
+            $this->fail('No se pueden programar sesiones los domingos.');
+        }
+    }
+
+    // El FOR UPDATE de existeSuperposicion() solo protege mientras dure la
+    // transacción: esto abre, corre la comprobación y la escritura, y confirma.
+    // Si algo dentro aborta con fail() el script termina sin commit y MySQL
+    // revierte sola al cerrar la conexión; si falla el PDO, se revierte aquí.
+    private function conTransaccion(callable $operacion): void
+    {
+        $pdo = Database::conn();
+        $pdo->beginTransaction();
+        try {
+            $operacion();
+            $pdo->commit();
+        } catch (PDOException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
         }
     }
 
@@ -198,6 +253,7 @@ class SesionController extends ControllerBase
     {
         $ficha = $this->fichaModel->buscarPorId($fichaId);
         if (!$ficha || empty($ficha['jornada_id'])) {
+            $this->fail('La ficha no tiene una jornada asignada. Asigne una jornada antes de crear o editar sesiones.');
             return null;
         }
 
@@ -275,11 +331,16 @@ class SesionController extends ControllerBase
             $this->fail('Todos los campos obligatorios deben estar llenos.');
         }
 
-        if ($horaInicio >= $horaFin) {
+        $this->validarFormatoFecha($fecha);
+        $this->validarFormatoHora($horaInicio);
+        $this->validarFormatoHora($horaFin);
+
+        if ($this->normalizarHora($horaInicio) >= $this->normalizarHora($horaFin)) {
             $this->fail('La hora de inicio debe ser menor que la hora de fin.');
         }
 
         $this->validarFechaFutura($fecha);
+        $this->validarDiaNoDominical($fecha);
         $this->validarFichaActiva($fichaId);
 
         if ($competenciaId > 0) {
@@ -300,17 +361,20 @@ class SesionController extends ControllerBase
         }
 
         $bloqueId = $this->bloqueParaHoras($fichaId, $horaInicio, $horaFin);
-        $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin);
 
         try {
-            $competencia = $competenciaId > 0 ? $competenciaId : null;
-            if ($this->model->crear($fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId)) {
-                $this->ok([], 'Sesión creada correctamente.');
-            }
-            $this->fail('No se pudo crear la sesión.');
+            $this->conTransaccion(function () use ($fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId) {
+                $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin);
+                $competencia = $competenciaId > 0 ? $competenciaId : null;
+                if (!$this->model->crear($fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId)) {
+                    $this->fail('No se pudo crear la sesión.');
+                }
+            });
         } catch (PDOException $e) {
             $this->fail('Error en la base de datos al crear la sesión.');
         }
+
+        $this->ok([], 'Sesión creada correctamente.');
     }
 
     public function listar(): void
@@ -334,15 +398,29 @@ class SesionController extends ControllerBase
                 : null;
         }
 
-        $fecha = isset($_GET['fecha']) && trim($_GET['fecha']) !== ''
-            ? trim($_GET['fecha'])
+        $desde = isset($_GET['desde']) && trim($_GET['desde']) !== ''
+            ? trim($_GET['desde'])
             : null;
+
+        $hasta = isset($_GET['hasta']) && trim($_GET['hasta']) !== ''
+            ? trim($_GET['hasta'])
+            : null;
+
+        if ($desde !== null) {
+            $this->validarFormatoFecha($desde);
+        }
+        if ($hasta !== null) {
+            $this->validarFormatoFecha($hasta);
+        }
+        if ($desde !== null && $hasta !== null && $desde > $hasta) {
+            $this->fail("La fecha 'Desde' no puede ser mayor que 'Hasta'.");
+        }
 
         $competenciaId = isset($_GET['competencia_id']) && trim($_GET['competencia_id']) !== ''
             ? (int)$_GET['competencia_id']
             : null;
 
-        $sesiones = $this->model->listar($filtroFicha, $fecha, $filtroInstructor, $competenciaId);
+        $sesiones = $this->model->listar($filtroFicha, $desde, $hasta, $filtroInstructor, $competenciaId);
 
         if ($rol === 'Administrador') {
             foreach ($sesiones as $i => $s) {
@@ -416,7 +494,9 @@ class SesionController extends ControllerBase
             if ($horaInicio === '' || $horaFin === '') {
                 $this->fail('Las horas de inicio y fin son obligatorias.');
             }
-            if ($horaInicio >= $horaFin) {
+            $this->validarFormatoHora($horaInicio);
+            $this->validarFormatoHora($horaFin);
+            if ($this->normalizarHora($horaInicio) >= $this->normalizarHora($horaFin)) {
                 $this->fail('La hora de inicio debe ser menor que la hora de fin.');
             }
 
@@ -428,17 +508,20 @@ class SesionController extends ControllerBase
             $this->validarInstructorActivo($instructorId);
 
             $bloqueId = $this->bloqueParaHoras($fichaId, $horaInicio, $horaFin);
-            $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
 
             try {
-                $competencia = $competenciaId > 0 ? $competenciaId : null;
-                if ($this->model->actualizar($id, $fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId)) {
-                    $this->ok([], 'Sesión actualizada correctamente.');
-                }
-                $this->fail('No se pudo actualizar la sesión.');
+                $this->conTransaccion(function () use ($id, $fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId) {
+                    $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
+                    $competencia = $competenciaId > 0 ? $competenciaId : null;
+                    if (!$this->model->actualizar($id, $fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId)) {
+                        $this->fail('No se pudo actualizar la sesión.');
+                    }
+                });
             } catch (PDOException $e) {
                 $this->fail('Error en la base de datos al actualizar la sesión.');
             }
+
+            $this->ok([], 'Sesión actualizada correctamente.');
             return;
         }
 
@@ -464,10 +547,18 @@ class SesionController extends ControllerBase
             if ($fichaId <= 0 || $fecha === '' || $horaInicio === '' || $horaFin === '') {
                 $this->fail('Todos los campos obligatorios deben estar llenos.');
             }
-            if ($horaInicio >= $horaFin) {
+            $this->validarFormatoFecha($fecha);
+            $this->validarFormatoHora($horaInicio);
+            $this->validarFormatoHora($horaFin);
+            if ($this->normalizarHora($horaInicio) >= $this->normalizarHora($horaFin)) {
                 $this->fail('La hora de inicio debe ser menor que la hora de fin.');
             }
             $this->validarFechaFutura($fecha);
+            // Solo si la fecha cambia: hay 53 sesiones existentes en domingo y
+            // rechazarla aquí dejaría imposible editarlas sin tocar la constante.
+            if ($fecha !== substr((string)$sesion['fecha'], 0, 10)) {
+                $this->validarDiaNoDominical($fecha);
+            }
             $this->validarFichaActiva($fichaId);
 
             if ($competenciaId > 0) {
@@ -491,37 +582,42 @@ class SesionController extends ControllerBase
 
             $this->validarCambioEstadoAdmin($sesion, $estadoNuevo, true);
 
-            if ($estadoNuevo === 'Activo') {
-                $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
-            }
-
             try {
-                $competencia = $competenciaId > 0 ? $competenciaId : null;
-                if ($this->model->actualizar($id, $fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId, $estadoNuevo)) {
-                    $this->ok([], 'Sesión actualizada correctamente.');
-                }
-                $this->fail('No se pudo actualizar la sesión.');
+                $this->conTransaccion(function () use ($id, $fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId, $estadoNuevo) {
+                    if ($estadoNuevo === 'Activo') {
+                        $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
+                    }
+                    $competencia = $competenciaId > 0 ? $competenciaId : null;
+                    if (!$this->model->actualizar($id, $fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId, $estadoNuevo)) {
+                        $this->fail('No se pudo actualizar la sesión.');
+                    }
+                });
             } catch (PDOException $e) {
                 $this->fail('Error en la base de datos al actualizar la sesión.');
             }
+
+            $this->ok([], 'Sesión actualizada correctamente.');
             return;
         }
 
-        // Después de la hora de inicio: solo estado (programación bloqueada).
-        $this->validarCambioEstadoAdmin($sesion, $estadoNuevo, false);
-
-        if ($estadoNuevo === 'Activo' && (string)$sesion['estado'] !== 'Cancelado') {
-            $this->fail('No se puede activar una sesión en curso salvo reactivar una cancelada.');
-        }
-
         try {
-            if ($this->model->actualizarEstado($id, $estadoNuevo)) {
-                $this->ok([], 'Estado de la sesión actualizado.');
-            }
-            $this->fail('No se pudo actualizar el estado.');
+            $this->conTransaccion(function () use ($id, $sesion, $estadoNuevo) {
+                // Después de la hora de inicio: solo estado (programación bloqueada).
+                $this->validarCambioEstadoAdmin($sesion, $estadoNuevo, false);
+
+                if ($estadoNuevo === 'Activo' && (string)$sesion['estado'] !== 'Cancelado') {
+                    $this->fail('No se puede activar una sesión en curso salvo reactivar una cancelada.');
+                }
+
+                if (!$this->model->actualizarEstado($id, $estadoNuevo)) {
+                    $this->fail('No se pudo actualizar el estado.');
+                }
+            });
         } catch (PDOException $e) {
             $this->fail('Error en la base de datos al actualizar la sesión.');
         }
+
+        $this->ok([], 'Estado de la sesión actualizado.');
     }
 
     public function cancelar(): void
@@ -591,12 +687,18 @@ class SesionController extends ControllerBase
         $horaInicio = substr($this->normalizarHora((string)$sesion['hora_inicio']), 0, 5);
         $horaFin = substr($this->normalizarHora((string)$sesion['hora_fin']), 0, 5);
 
-        $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
-
-        if ($this->model->activar($id)) {
-            $this->ok([], 'Sesión reactivada correctamente.');
+        try {
+            $this->conTransaccion(function () use ($id, $fichaId, $instructorId, $fecha, $horaInicio, $horaFin) {
+                $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
+                if (!$this->model->activar($id)) {
+                    $this->fail('No se pudo reactivar la sesión.');
+                }
+            });
+        } catch (PDOException $e) {
+            $this->fail('Error en la base de datos al reactivar la sesión.');
         }
-        $this->fail('No se pudo reactivar la sesión.');
+
+        $this->ok([], 'Sesión reactivada correctamente.');
     }
 
     public function finalizar(): void

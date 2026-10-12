@@ -142,6 +142,15 @@ class HorarioController extends ControllerBase
             $pdo->beginTransaction();
 
             foreach ($aCrear as $clase) {
+                // 7a. Se vuelve a comprobar YA DENTRO de la transacción: aquí el
+                //     FOR UPDATE de existeSuperposicion() sí bloquea, así que dos
+                //     importaciones simultáneas no pueden insertar ambas. También
+                //     cubre el duplicado exacto, que se solapa consigo mismo.
+                if ($this->sesionModel->existeSuperposicion($fichaId, $clase['instructor_id'], $clase['fecha'], $clase['hora_inicio'], $clase['hora_fin'])) {
+                    $pdo->rollBack();
+                    $this->fail("La sesión del {$clase['fecha']} de {$clase['hora_inicio']} a {$clase['hora_fin']} se superpone con una sesión activa creada mientras se importaba. No se importó nada.");
+                }
+
                 $this->sesionModel->crear(
                     $fichaId,
                     null,

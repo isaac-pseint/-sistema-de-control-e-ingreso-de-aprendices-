@@ -2,13 +2,22 @@ import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
 import { formatearHora, claseEstadoSesion } from "../../instructor/sesiones/sesion-ui.js";
 
+function hoyLocal() {
+    const d = new Date();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${m}-${day}`;
+}
+
 export function cargarListadoSesiones() {
     const fichaId = document.getElementById("filtroFicha")?.value || "";
-    const fecha = document.getElementById("filtroFecha")?.value || "";
+    const desde = document.getElementById("filtroDesde")?.value || "";
+    const hasta = document.getElementById("filtroHasta")?.value || "";
 
     let action = "listarSesiones";
     if (fichaId) action += `&ficha_id=${encodeURIComponent(fichaId)}`;
-    if (fecha) action += `&fecha=${encodeURIComponent(fecha)}`;
+    if (desde) action += `&desde=${encodeURIComponent(desde)}`;
+    if (hasta) action += `&hasta=${encodeURIComponent(hasta)}`;
 
     return api(action).then(data => {
         const tbody = document.getElementById("cuerpoTablaSesiones");
@@ -64,8 +73,25 @@ export function configurarFiltrosSesiones(fichas) {
         select.innerHTML = `<option value="">Todas las fichas</option>` +
             fichas.map(f => `<option value="${f.id}">${esc(f.codigo)}</option>`).join("");
     }
-    document.getElementById("filtroFicha")?.addEventListener("change", () => cargarListadoSesiones());
-    document.getElementById("filtroFecha")?.addEventListener("change", () => cargarListadoSesiones());
+
+    const desde = document.getElementById("filtroDesde");
+    const hasta = document.getElementById("filtroHasta");
+
+    if (desde && !desde.value) {
+        desde.value = hoyLocal();
+    }
+
+    const onChange = () => {
+        if (desde && hasta && desde.value && hasta.value && desde.value > hasta.value) {
+            showToast("danger", "La fecha 'Desde' no puede ser mayor que 'Hasta'.");
+            return;
+        }
+        cargarListadoSesiones();
+    };
+
+    select?.addEventListener("change", () => cargarListadoSesiones());
+    desde?.addEventListener("change", onChange);
+    hasta?.addEventListener("change", onChange);
 }
 
 export function configurarAccionesAdminSesiones() {

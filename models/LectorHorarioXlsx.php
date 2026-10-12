@@ -194,9 +194,12 @@ class LectorHorarioXlsx
             }
             $filaDias = $filas[$rDias];
 
-            // Semana 0 arranca el último lunes de junio. Ese día puede ser 29 o
-            // 30 según el calendario, así que se lee del archivo en lugar de
-            // fijarlo: la plantilla usa "LUNES" como encabezado de la columna D.
+            // Semana 0 arranca el último lunes de junio. El día concreto se
+            // lee del archivo y luego se ajusta al lunes de esa misma semana:
+            // la plantilla etiqueta la columna D como "LUNES", y algunos
+            // archivos traen esa fecha corridida un día (p. ej. 30 de junio,
+            // que es martes), lo que desplazaría todo el horario y pondría
+            // clases el domingo.
             if ($semana === 0) {
                 $primerDia = (int)$this->valorFila($filaDias, 'D');
                 if ($primerDia < 24 || $primerDia > 30) {
@@ -207,6 +210,21 @@ class LectorHorarioXlsx
                 // uso horario del servidor al sumar semanas enteras.
                 $baseInicio = (new DateTimeImmutable($this->anio . '-06-01 00:00:00', new DateTimeZone('UTC')))
                     ->modify('+' . ($primerDia - 1) . ' days');
+
+                // Corrige al lunes de esa semana (format('w'): 0 = domingo).
+                $diaSemana = (int)$baseInicio->format('w');
+                if ($diaSemana !== 1) {
+                    $baseInicio = $baseInicio->modify('-' . ($diaSemana === 0 ? 6 : $diaSemana - 1) . ' days');
+                }
+
+                // El ajuste retrocede hasta 6 días: si sale de la última
+                // semana de junio, el archivo trae la fecha mal puesta y se
+                // rechaza en lugar de generar todo el horario corridido.
+                $limite = new DateTimeImmutable($this->anio . '-06-24 00:00:00', new DateTimeZone('UTC'));
+                if ($baseInicio < $limite) {
+                    $this->errores[] = 'La primera semana del horario no inicia en la última semana de junio.';
+                    return;
+                }
             }
 
             // 6 filas de datos: 3 Bloque 1 + 3 Bloque 2.

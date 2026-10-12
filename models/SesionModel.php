@@ -99,7 +99,7 @@ class SesionModel
         return array_column($stmt->fetchAll(), 'id');
     }
 
-    public function listar(?int $fichaId = null, ?string $fecha = null, ?int $instructorId = null, ?int $competenciaId = null): array
+    public function listar(?int $fichaId = null, ?string $desde = null, ?string $hasta = null, ?int $instructorId = null, ?int $competenciaId = null): array
     {
         $sql = "SELECT s.id, s.Ficha_id, s.Competencia_id, s.Instructor_id, s.bloque_id,
                        s.fecha, s.hora_inicio, s.hora_fin, s.estado,
@@ -121,9 +121,14 @@ class SesionModel
             $params[] = $fichaId;
         }
 
-        if ($fecha !== null && trim($fecha) !== '') {
-            $where[] = "s.fecha = ?";
-            $params[] = trim($fecha);
+        if ($desde !== null && trim($desde) !== '') {
+            $where[] = "s.fecha >= ?";
+            $params[] = trim($desde);
+        }
+
+        if ($hasta !== null && trim($hasta) !== '') {
+            $where[] = "s.fecha <= ?";
+            $params[] = trim($hasta);
         }
 
         if ($instructorId !== null && $instructorId > 0) {
@@ -161,6 +166,10 @@ class SesionModel
     }
 
     // Evita solapamientos: misma ficha o mismo instructor con dos clases a la misma hora y fecha.
+    // FOR UPDATE: bloquea el rango leído hasta que la transacción termine. Sin esto dos
+    // peticiones simultáneas pasan ambas la comprobación y ambas insertan (la SELECT
+    // normal no bloquea). Fuera de una transacción MySQL lo trata como SELECT simple,
+    // así que no rompe a los llamadores que no abren transacción.
     public function existeSuperposicion(int $fichaId, int $instructorId, string $fecha, string $horaInicio, string $horaFin, ?int $excluirId = null): bool
     {
         $sql = "SELECT id FROM sesion
@@ -174,6 +183,8 @@ class SesionModel
             $sql .= " AND id != ?";
             $params[] = $excluirId;
         }
+
+        $sql .= " FOR UPDATE";
 
         $stmt = Database::conn()->prepare($sql);
         $stmt->execute($params);

@@ -20,7 +20,7 @@ INSERT INTO usuario (nombre, apellido, identificacion, email, password, Rol_id, 
 ('Carlos Eduardo', 'Duque Valderruten', 3000000008, 'carlos.duque@sena.edu.co', '$2y$10$SUB1iHXNmc24ZOecRXEPaOA8N1gxdhEjLdVD0Eoth8dt8rbn1r7Eu', 2, NULL, NULL, 'Activo'),
 ('Kevin Alejandro', 'Holguín Marttínez', 3000000009, 'kevin.holguin@sena.edu.co', '$2y$10$SUB1iHXNmc24ZOecRXEPaOA8N1gxdhEjLdVD0Eoth8dt8rbn1r7Eu', 2, NULL, NULL, 'Activo'),
 ('María Isbeire', 'Ospina Zapata', 3000000010, 'maria.ospina@sena.edu.co', '$2y$10$SUB1iHXNmc24ZOecRXEPaOA8N1gxdhEjLdVD0Eoth8dt8rbn1r7Eu', 2, NULL, NULL, 'Activo'),
-('Edgar Enreique', 'Melo Díaz', 3000000011, 'edgar.melo@sena.edu.co', '$2y$10$SUB1iHXNmc24ZOecRXEPaOA8N1gxdhEjLdVD0Eoth8dt8rbn1r7Eu', 2, NULL, NULL, 'Activo'),
+('Edgar Enrique', 'Melo Díaz', 3000000011, 'edgar.melo@sena.edu.co', '$2y$10$SUB1iHXNmc24ZOecRXEPaOA8N1gxdhEjLdVD0Eoth8dt8rbn1r7Eu', 2, NULL, NULL, 'Activo'),
 ('Luz Miraim', 'Hernández Muñoz', 3000000012, 'luz.hernandez@sena.edu.co', '$2y$10$SUB1iHXNmc24ZOecRXEPaOA8N1gxdhEjLdVD0Eoth8dt8rbn1r7Eu', 2, NULL, NULL, 'Activo')
 ON DUPLICATE KEY UPDATE
   nombre = VALUES(nombre),
