@@ -150,10 +150,10 @@ class ReporteModel
         $sqlAsis = "
             SELECT a.Usuario_id AS usuario_id,
                    COUNT(a.id) AS total_asistencias,
-                   SUM(CASE WHEN a.estado = 'A tiempo' THEN 1 ELSE 0 END) AS total_a_tiempo,
-                   SUM(CASE WHEN a.estado = 'Tarde' THEN 1 ELSE 0 END) AS total_retardos,
-                   COALESCE(SUM(CASE WHEN a.estado = 'Tarde' THEN GREATEST(0, TIMESTAMPDIFF(MINUTE, s.hora_inicio, a.hora_entrada)) ELSE 0 END), 0) AS minutos_retardo,
-                   SUM(CASE WHEN a.salida_anticipada = 1 THEN 1 ELSE 0 END) AS total_salidas_anticipadas
+                   COALESCE(SUM(CASE WHEN a.minutos_retardo = 0 THEN 1 ELSE 0 END), 0) AS total_a_tiempo,
+                   COALESCE(SUM(CASE WHEN a.minutos_retardo > 0 THEN 1 ELSE 0 END), 0) AS total_retardos,
+                   COALESCE(SUM(a.minutos_retardo), 0) AS minutos_retardo,
+                   COALESCE(SUM(CASE WHEN a.minutos_anticipacion > 0 THEN 1 ELSE 0 END), 0) AS total_salidas_anticipadas
             FROM asistencia a
             INNER JOIN sesion s ON s.id = a.Sesion_id
             WHERE s.estado != 'Cancelado'
