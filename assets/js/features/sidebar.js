@@ -18,7 +18,8 @@ const ENLACES_POR_ROL = {
         { texto: "Fichas", ruta: "fichas/listado.html", seccion: "fichas" },
         { texto: "Programas", ruta: "programas/listado.html", seccion: "programas" },
         { texto: "Competencias", ruta: "competencias/listado.html", seccion: "competencias" },
-        { texto: "Sesiones", ruta: "sesiones/listado.html", seccion: "sesiones" }
+        { texto: "Sesiones", ruta: "sesiones/listado.html", seccion: "sesiones" },
+        { texto: "Reportes", ruta: "reportes/listado.html", seccion: "reportes" }
     ],
     "Aprendiz": [
         { texto: "Inicio", ruta: "dashboard.html", seccion: "dashboard" },
@@ -26,7 +27,8 @@ const ENLACES_POR_ROL = {
     ],
     "Instructor": [
         { texto: "Inicio", ruta: "dashboard.html", seccion: "dashboard" },
-        { texto: "Sesiones", ruta: "sesiones/listado.html", seccion: "sesiones" }
+        { texto: "Sesiones", ruta: "sesiones/listado.html", seccion: "sesiones" },
+        { texto: "Reportes", ruta: "reportes/listado.html", seccion: "reportes" }
     ]
 };
 
@@ -43,7 +45,8 @@ const TITULO_POR_SECCION = {
     fichas: "Gestión de Fichas",
     programas: "Gestión de Programas",
     competencias: "Gestión de Competencias",
-    sesiones: "Sesiones"
+    sesiones: "Sesiones",
+    reportes: "Reportes de Asistencia"
 };
 
 const TITULO_SECCION_POR_ROL = {
@@ -51,6 +54,10 @@ const TITULO_SECCION_POR_ROL = {
         Administrador: "Gestión de Sesiones",
         Instructor: "Mis sesiones",
         Aprendiz: "Mis sesiones"
+    },
+    reportes: {
+        Administrador: "Reportes de Asistencia",
+        Instructor: "Reportes de Asistencia"
     }
 };
 
