@@ -25,26 +25,102 @@ class ExportadorReporte
         array $inasistencias,
         array $filtros = []
     ): string {
-        $tmp = tempnam(sys_get_temp_dir(), 'rep_xlsx_');
+        $archivos = [
+            '[Content_Types].xml'        => $this->xlsxContentTypes(),
+            '_rels/.rels'                => $this->xlsxRels(),
+            'xl/workbook.xml'            => $this->xlsxWorkbook(),
+            'xl/_rels/workbook.xml.rels' => $this->xlsxWorkbookRels(),
+            'xl/styles.xml'              => $this->xlsxStyles(),
+            'xl/worksheets/sheet1.xml'   => $this->xlsxSheet1($resumen, $filtros),
+            'xl/worksheets/sheet2.xml'   => $this->xlsxSheet2($inasistencias),
+        ];
 
-        $zip = new ZipArchive();
-        $zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        return $this->crearZipEnMemoria($archivos);
+    }
 
-        // ── Entradas estándar del paquete OpenXML ───────────────────────
-        $zip->addFromString('[Content_Types].xml', $this->xlsxContentTypes());
-        $zip->addFromString('_rels/.rels', $this->xlsxRels());
-        $zip->addFromString('xl/workbook.xml', $this->xlsxWorkbook());
-        $zip->addFromString('xl/_rels/workbook.xml.rels', $this->xlsxWorkbookRels());
-        $zip->addFromString('xl/styles.xml', $this->xlsxStyles());
-        $zip->addFromString('xl/worksheets/sheet1.xml', $this->xlsxSheet1($resumen, $filtros));
-        $zip->addFromString('xl/worksheets/sheet2.xml', $this->xlsxSheet2($inasistencias));
+    /**
+     * Construye un contenedor ZIP estándar en memoria sin librerías externas ni acceso a disco.
+     *
+     * @param array<string,string> $archivos  Mapa de 'ruta/archivo' => 'contenido'
+     * @return string  Contenido binario del archivo ZIP.
+     */
+    private function crearZipEnMemoria(array $archivos): string
+    {
+        $tieneGz = function_exists('gzdeflate');
+        $localHeaders = '';
+        $centralDir = '';
+        $offset = 0;
 
-        $zip->close();
+        foreach ($archivos as $nombre => $contenido) {
+            $uSize = strlen($contenido);
+            $crc   = crc32($contenido);
 
-        $bytes = file_get_contents($tmp);
-        @unlink($tmp);
+            if ($tieneGz) {
+                $cData  = gzdeflate($contenido, 6);
+                $metodo = 8;
+            } else {
+                $cData  = $contenido;
+                $metodo = 0;
+            }
+            $cSize = strlen($cData);
 
-        return $bytes;
+            // Encabezado local de archivo (PK\x03\x04)
+            $lh = pack(
+                'VvvvvvVVVvv',
+                0x04034b50,
+                20,
+                0,
+                $metodo,
+                0,
+                0x21,
+                $crc,
+                $cSize,
+                $uSize,
+                strlen($nombre),
+                0
+            ) . $nombre . $cData;
+
+            // Entrada del directorio central (PK\x01\x02)
+            $centralDir .= pack(
+                'VvvvvvvVVVvvvvvVV',
+                0x02014b50,
+                20,
+                20,
+                0,
+                $metodo,
+                0,
+                0x21,
+                $crc,
+                $cSize,
+                $uSize,
+                strlen($nombre),
+                0,
+                0,
+                0,
+                0,
+                0x20,
+                $offset
+            ) . $nombre;
+
+            $localHeaders .= $lh;
+            $offset += strlen($lh);
+        }
+
+        // Fin de directorio central (PK\x05\x06)
+        $numArchivos = count($archivos);
+        $eocd = pack(
+            'VvvvvVVv',
+            0x06054b50,
+            0,
+            0,
+            $numArchivos,
+            $numArchivos,
+            strlen($centralDir),
+            $offset,
+            0
+        );
+
+        return $localHeaders . $centralDir . $eocd;
     }
 
     // ── Helpers XLSX ────────────────────────────────────────────────────
@@ -400,7 +476,7 @@ class ExportadorReporte
 
                 $fila = [
                     (string) $ap['identificacion'],
-                    mb_substr($ap['nombre'] . ' ' . $ap['apellido'], 0, 28),
+                    $this->recortarTexto($ap['nombre'] . ' ' . $ap['apellido'], 28),
                     (string) $ap['ficha_codigo'],
                     (string) $ap['total_asistencias'],
                     (string) $ap['total_retardos'],
@@ -459,10 +535,10 @@ class ExportadorReporte
                     (string) $ina['fecha'],
                     $horario,
                     (string) $ina['aprendiz_identificacion'],
-                    mb_substr($ina['aprendiz_nombre'] . ' ' . $ina['aprendiz_apellido'], 0, 28),
+                    $this->recortarTexto($ina['aprendiz_nombre'] . ' ' . $ina['aprendiz_apellido'], 28),
                     (string) $ina['ficha_codigo'],
-                    mb_substr((string) $ina['competencia_nombre'], 0, 30),
-                    mb_substr($ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], 0, 28),
+                    $this->recortarTexto((string) $ina['competencia_nombre'], 30),
+                    $this->recortarTexto($ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], 28),
                 ];
                 foreach ($fila as $i => $val) {
                     $this->pdfText($col2[$i], $this->pdfY, $val);
@@ -478,14 +554,33 @@ class ExportadorReporte
     // ── Helpers PDF ─────────────────────────────────────────────────────
 
     /**
+     * Recorta texto de forma segura considerando UTF-8 si mbstring está disponible.
+     */
+    private function recortarTexto(string $texto, int $max): string
+    {
+        return function_exists('mb_substr')
+            ? mb_substr($texto, 0, $max, 'UTF-8')
+            : substr($texto, 0, $max);
+    }
+
+    /**
      * Convierte UTF-8 a Windows-1252 y escapa paréntesis/backslash para
      * literales de cadena PDF.
      */
     private function pdfEscape(string $text): string
     {
-        $conv = @iconv('UTF-8', 'Windows-1252//TRANSLIT//IGNORE', $text);
+        $conv = false;
+        if (function_exists('iconv')) {
+            $conv = @iconv('UTF-8', 'Windows-1252//TRANSLIT//IGNORE', $text);
+        }
         if ($conv === false) {
-            $conv = $text;
+            $map = [
+                'á' => "\xE1", 'é' => "\xE9", 'í' => "\xED", 'ó' => "\xF3", 'ú' => "\xFA",
+                'Á' => "\xC1", 'É' => "\xC9", 'Í' => "\xCD", 'Ó' => "\xD3", 'Ú' => "\xDA",
+                'ñ' => "\xF1", 'Ñ' => "\xD1", 'ü' => "\xFC", 'Ü' => "\xDC",
+                '¿' => "\xBF", '¡' => "\xA1",
+            ];
+            $conv = strtr($text, $map);
         }
         return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $conv);
     }
