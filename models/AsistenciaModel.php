@@ -66,15 +66,31 @@ class AsistenciaModel
                        a.hora_entrada,
                        a.hora_salida,
                        a.minutos_retardo,
-                       a.minutos_anticipacion
+                       a.minutos_anticipacion,
+                       i.id AS inasistencia_id,
+                       e.id AS excusa_id,
+                       CASE
+                         WHEN e.id IS NULL THEN NULL
+                         WHEN NOT EXISTS (SELECT 1 FROM estado_excusa ee WHERE ee.Excusa_id = e.id) THEN 'pendiente'
+                         ELSE (
+                           SELECT LOWER(ee2.estado)
+                           FROM estado_excusa ee2
+                           WHERE ee2.Excusa_id = e.id
+                           ORDER BY ee2.id DESC
+                           LIMIT 1
+                         )
+                       END AS excusa_estado
                 FROM usuario u
                 INNER JOIN rol r ON u.Rol_id = r.id AND r.nombre = 'Aprendiz'
                 INNER JOIN ficha f ON u.Ficha_id = f.id
                 LEFT JOIN asistencia a ON a.Usuario_id = u.id AND a.Sesion_id = ?
+                LEFT JOIN inasistencia i ON i.Usuario_id = u.id AND i.Sesion_id = ?
+                LEFT JOIN excusa e ON e.Inasistencia_id = i.id
+                    OR (a.id IS NOT NULL AND e.Asistencia_id = a.id)
                 WHERE f.id = (SELECT Ficha_id FROM sesion WHERE id = ?)
                 ORDER BY u.apellido ASC, u.nombre ASC";
         $stmt = Database::conn()->prepare($sql);
-        $stmt->execute([$sesionId, $sesionId]);
+        $stmt->execute([$sesionId, $sesionId, $sesionId]);
         return $stmt->fetchAll();
     }
 
@@ -94,10 +110,25 @@ class AsistenciaModel
                    DATE_FORMAT(s.hora_inicio, '%H:%i') AS sesion_inicio,
                    DATE_FORMAT(s.hora_fin, '%H:%i') AS sesion_fin,
                    s.estado AS sesion_estado,
+                   s.id AS sesion_id,
+                   NULL AS inasistencia_id,
+                   e.id AS excusa_id,
+                   CASE
+                     WHEN e.id IS NULL THEN NULL
+                     WHEN NOT EXISTS (SELECT 1 FROM estado_excusa ee WHERE ee.Excusa_id = e.id) THEN 'pendiente'
+                     ELSE (
+                       SELECT LOWER(ee2.estado)
+                       FROM estado_excusa ee2
+                       WHERE ee2.Excusa_id = e.id
+                       ORDER BY ee2.id DESC
+                       LIMIT 1
+                     )
+                   END AS excusa_estado,
                    'asistencia' AS tipo_registro
             FROM asistencia a
             INNER JOIN sesion s ON a.Sesion_id = s.id
             LEFT JOIN competencia c ON s.Competencia_id = c.id
+            LEFT JOIN excusa e ON e.Asistencia_id = a.id
             WHERE a.Usuario_id = ?
 
             UNION ALL
@@ -114,10 +145,25 @@ class AsistenciaModel
                    DATE_FORMAT(s.hora_inicio, '%H:%i') AS sesion_inicio,
                    DATE_FORMAT(s.hora_fin, '%H:%i') AS sesion_fin,
                    s.estado AS sesion_estado,
+                   s.id AS sesion_id,
+                   i.id AS inasistencia_id,
+                   e.id AS excusa_id,
+                   CASE
+                     WHEN e.id IS NULL THEN NULL
+                     WHEN NOT EXISTS (SELECT 1 FROM estado_excusa ee WHERE ee.Excusa_id = e.id) THEN 'pendiente'
+                     ELSE (
+                       SELECT LOWER(ee2.estado)
+                       FROM estado_excusa ee2
+                       WHERE ee2.Excusa_id = e.id
+                       ORDER BY ee2.id DESC
+                       LIMIT 1
+                     )
+                   END AS excusa_estado,
                    'inasistencia' AS tipo_registro
             FROM inasistencia i
             INNER JOIN sesion s ON i.Sesion_id = s.id
             LEFT JOIN competencia c ON s.Competencia_id = c.id
+            LEFT JOIN excusa e ON e.Inasistencia_id = i.id
             WHERE i.Usuario_id = ?
               AND NOT EXISTS (
                   SELECT 1 FROM asistencia a2
@@ -139,5 +185,41 @@ class AsistenciaModel
             ON DUPLICATE KEY UPDATE generado_por = VALUES(generado_por)
         ");
         return $stmt->execute([$usuarioId, $fichaId, $sesionId, $fecha, $generadoPor]);
+    }
+
+    public function crearAsistenciaPorExcusa(
+        int $usuarioId,
+        int $sesionId,
+        int $registradoPor,
+        string $fecha,
+        string $horaInicio,
+        string $horaFin,
+        ?string $codigoLlavero
+    ): ?int {
+        $stmt = Database::conn()->prepare("
+            INSERT INTO asistencia (
+                fecha, hora_entrada, hora_salida, Usuario_id, Sesion_id, registrado_por,
+                estado, codigo_llavero, minutos_retardo, minutos_anticipacion
+            ) VALUES (?, ?, ?, ?, ?, ?, 'Completado', ?, 0, 0)
+        ");
+        if (!$stmt->execute([
+            $fecha,
+            $horaInicio,
+            $horaFin,
+            $usuarioId,
+            $sesionId,
+            $registradoPor,
+            $codigoLlavero,
+        ])) {
+            return null;
+        }
+        return (int) Database::conn()->lastInsertId();
+    }
+
+    public function eliminarInasistencia(int $inasistenciaId): bool
+    {
+        $stmt = Database::conn()->prepare('DELETE FROM inasistencia WHERE id = ?');
+        $stmt->execute([$inasistenciaId]);
+        return $stmt->rowCount() > 0;
     }
 }

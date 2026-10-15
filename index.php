@@ -24,6 +24,22 @@ session_start();
 // entorno, sin depender de la config de php.ini de cada máquina.
 date_default_timezone_set('America/Bogota');
 
+$action = $_GET['action'] ?? null;
+
+if ($action === 'descargarEvidenciaExcusa') {
+    spl_autoload_register(function ($className) {
+        foreach (['Controllers', 'Models', 'controllers', 'models'] as $directory) {
+            $filePath = __DIR__ . "/$directory/$className.php";
+            if (file_exists($filePath)) {
+                require_once $filePath;
+                return;
+            }
+        }
+    });
+    (new ExcusaController())->descargarEvidencia();
+    exit;
+}
+
 // Toda mutación desde el navegador debe venir de una petición AJAX del frontend.
 header("Content-Type: application/json; charset=UTF-8");
 if (
@@ -40,8 +56,6 @@ if (
 
 // Acceso directo a la aplicación sin ?action=: redirige a login o dashboard
 // según haya una sesión activa. Nunca devuelve HTML desde aquí.
-$action = $_GET['action'] ?? null;
-
 if ($action === null) {
     $rol = $_SESSION['user_rol'] ?? null;
     $vista = match (isset($_SESSION['user_id']) ? $rol : null) {
@@ -234,6 +248,22 @@ switch ($action) {
 
     case 'listarAsistencias':
         (new AsistenciaController())->listar();
+        break;
+
+    case 'crearExcusa':
+        (new ExcusaController())->crear();
+        break;
+
+    case 'obtenerExcusa':
+        (new ExcusaController())->obtener();
+        break;
+
+    case 'listarExcusasSesion':
+        (new ExcusaController())->listarPorSesion();
+        break;
+
+    case 'resolverExcusa':
+        (new ExcusaController())->resolver();
         break;
 
     // ── Reportes ───────────────────────────────────────────────────────

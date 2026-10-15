@@ -189,5 +189,4 @@ Los aprendices se gestionan como **usuarios** con rol Aprendiz (`UsuarioControll
   asociado a una competencia (`competencia.Instructor_id`). El instructor líder
   sigue siendo un dato vigente de la ficha; no debe confundirse con quien dicta
   una sesión concreta.
-- Las tablas de **excusas** (`excusa` y `estado_excusa`) existen en el esquema,
-  pero su funcionalidad está pendiente. No se usan actualmente desde la aplicación.
+- **Excusas:** el aprendiz solicita excusa desde `aprendiz/excusas/detalle.html` (vinculada a una `inasistencia` por sesión). El instructor de la sesión resuelve en `instructor/excusas/revisar.html`. Al aprobar se crea `asistencia` y se elimina la `inasistencia`. Evidencia opcional en `uploads/excusas/` (descarga vía `descargarEvidenciaExcusa`). API: `crearExcusa`, `obtenerExcusa`, `resolverExcusa`, `listarExcusasSesion`.

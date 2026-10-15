@@ -13,6 +13,18 @@ import {
 let todosLosRegistros = [];
 let filtrosListos = false;
 
+function celdaAccionesExcusa(registro) {
+    if (registro.excusa_id) {
+        const href = `../excusas/detalle.html?excusa_id=${encodeURIComponent(registro.excusa_id)}`;
+        return `<a href="${href}" class="btn btn-outline btn-sm btn-a">Ver excusa</a>`;
+    }
+    if (registro.tipo_registro !== "inasistencia" || !registro.inasistencia_id) {
+        return "—";
+    }
+    const base = `../excusas/detalle.html?inasistencia_id=${encodeURIComponent(registro.inasistencia_id)}`;
+    return `<a href="${base}" class="btn btn-outline btn-sm btn-a">Solicitar excusa</a>`;
+}
+
 function leerFiltros() {
     return {
         desde: document.getElementById("filtroDesde")?.value || "",
@@ -78,6 +90,7 @@ function renderizarListado() {
         else if (a.estado === "Inasistencia") claseEstado = "text-danger";
         const retardo = Number(a.minutos_retardo);
         const anticipacion = Number(a.minutos_anticipacion);
+        const acciones = celdaAccionesExcusa(a);
         return `
         <tr>
             <td>${esc(normalizarFecha(a.fecha))}</td>
@@ -88,6 +101,7 @@ function renderizarListado() {
             <td class="${claseEstado}">${esc(a.estado)}</td>
             <td>${retardo > 0 ? esc(retardo) : "—"}</td>
             <td>${anticipacion > 0 ? esc(anticipacion) : "—"}</td>
+            <td>${acciones}</td>
         </tr>`;
     }).join("");
 }

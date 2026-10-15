@@ -6,3 +6,6 @@
 tmp_cookies.txt
 .env
 migrar.php
+
+# Evidencias de excusas (generadas en servidor)
+uploads/

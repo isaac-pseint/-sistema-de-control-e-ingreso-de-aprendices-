@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excusa</title>
+    <link rel="icon" type="image/png" href="../../../assets/img/sena-colombia-logo-green39a900png-20250120.png">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+
+            <nav class="breadcrumb" aria-label="Migas de pan">
+                <a href="../sesiones/listado.html">Mis sesiones</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-actual" id="breadcrumbExcusa">Excusa</span>
+            </nav>
+
+            <div class="page-header">
+                <div class="page-header__titulo">
+                    <h1 class="titulo-seccion" id="tituloExcusaPagina">Excusa</h1>
+                    <p class="subtitulo-seccion">Justificación de inasistencia a una sesión de clase</p>
+                </div>
+            </div>
+
+            <div id="contenedorExcusa" class="contenedor-excusa"></div>
+        </main>
+    </div>
+
+    <script type="module" src="../../../assets/js/pages/aprendiz/excusas/detalle.js"></script>
+</body>
+</html>

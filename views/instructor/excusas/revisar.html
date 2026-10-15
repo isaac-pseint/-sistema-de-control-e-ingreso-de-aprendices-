@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revisar excusa</title>
+    <link rel="icon" type="image/png" href="../../../assets/img/sena-colombia-logo-green39a900png-20250120.png">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+
+            <nav class="breadcrumb" aria-label="Migas de pan">
+                <a href="../sesiones/listado.html">Mis sesiones</a>
+                <span class="breadcrumb-sep">/</span>
+                <a href="#" id="linkDetalleSesion">Detalle de sesión</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-actual">Revisar excusa</span>
+            </nav>
+
+            <div class="page-header">
+                <div class="page-header__titulo">
+                    <h1 class="titulo-seccion">Revisar excusa</h1>
+                    <p class="subtitulo-seccion">Aprueba o rechaza la solicitud del aprendiz para esta sesión</p>
+                </div>
+            </div>
+
+            <div id="contenedorRevision" class="contenedor-excusa"></div>
+        </main>
+    </div>
+
+    <div id="modalResolverExcusa" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalResolverTitulo">
+            <div class="modal-header">
+                <h3 id="modalResolverTitulo">Confirmar decisión</h3>
+                <button type="button" class="modal-close" id="btnCerrarModalResolver" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="modalResolverIntro"></p>
+                <p class="modal-detalle" id="modalResolverDetalle"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarResolver">No, volver</button>
+                <button type="button" class="btn btn-primary btn-auto" id="btnConfirmarResolver">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../../../assets/js/pages/instructor/excusas/revisar.js"></script>
+</body>
+</html>

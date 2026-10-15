@@ -34,6 +34,7 @@ eso ya lo hace el frontend con JavaScript.
 | `HorarioController.php` | Importación Excel de horarios |
 | `ReporteController.php` | Consulta y exportación de reportes |
 | `DashboardController.php` | Métricas por rol |
+| `ExcusaController.php` | Excusas por inasistencia (crear, obtener, resolver, descarga evidencia) |
 
 ---
 

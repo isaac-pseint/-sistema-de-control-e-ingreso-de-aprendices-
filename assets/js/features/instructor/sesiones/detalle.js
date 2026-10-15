@@ -42,6 +42,21 @@ function onFiltrosChange() {
     renderTablaAprendices();
 }
 
+function celdaExcusa(a) {
+    if (a.excusa_id) {
+        const href = `../excusas/revisar.html?excusa_id=${encodeURIComponent(a.excusa_id)}`;
+        const texto = a.excusa_estado === "pendiente" ? "Revisar" : "Ver excusa";
+        return `<a href="${href}" class="btn btn-outline btn-sm btn-a">${texto}</a>`;
+    }
+    if (tieneAsistencia(a)) {
+        return "—";
+    }
+    if (sesionPermiteAcciones(sesionActual?.estado)) {
+        return "—";
+    }
+    return "<span class=\"text-muted\">Sin solicitud</span>";
+}
+
 function renderTablaAprendices() {
     const tbody = document.getElementById("tablaAprendices");
     const contenedor = document.getElementById("contenedorMensajes");
@@ -71,6 +86,7 @@ function renderTablaAprendices() {
             <td>${a.hora_salida ? esc(formatearHora(a.hora_salida)) : "—"}</td>
             <td>${Number(a.minutos_retardo) > 0 ? esc(a.minutos_retardo) : "—"}</td>
             <td>${Number(a.minutos_anticipacion) > 0 ? esc(a.minutos_anticipacion) : "—"}</td>
+            <td>${celdaExcusa(a)}</td>
         </tr>`;
     }).join("");
 }
