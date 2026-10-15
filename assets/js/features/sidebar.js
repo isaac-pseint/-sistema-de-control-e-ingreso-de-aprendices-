@@ -23,7 +23,8 @@ const ENLACES_POR_ROL = {
     ],
     "Aprendiz": [
         { texto: "Inicio", ruta: "dashboard.html", seccion: "dashboard" },
-        { texto: "Sesiones", ruta: "sesiones/listado.html", seccion: "sesiones" }
+        { texto: "Sesiones", ruta: "sesiones/listado.html", seccion: "sesiones" },
+        { texto: "Reportes", ruta: "reportes/listado.html", seccion: "reportes" }
     ],
     "Instructor": [
         { texto: "Inicio", ruta: "dashboard.html", seccion: "dashboard" },
@@ -57,7 +58,8 @@ const TITULO_SECCION_POR_ROL = {
     },
     reportes: {
         Administrador: "Reportes de Asistencia",
-        Instructor: "Reportes de Asistencia"
+        Instructor: "Reportes de Asistencia",
+        Aprendiz: "Mi reporte de asistencia"
     }
 };
 

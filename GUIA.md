@@ -190,3 +190,4 @@ Los aprendices se gestionan como **usuarios** con rol Aprendiz (`UsuarioControll
   sigue siendo un dato vigente de la ficha; no debe confundirse con quien dicta
   una sesión concreta.
 - **Excusas:** el aprendiz solicita excusa desde `aprendiz/excusas/detalle.html` (vinculada a una `inasistencia` por sesión). El instructor de la sesión resuelve en `instructor/excusas/revisar.html`. Al aprobar se crea `asistencia` y se elimina la `inasistencia`. Evidencia opcional en `uploads/excusas/` (descarga vía `descargarEvidenciaExcusa`). API: `crearExcusa`, `obtenerExcusa`, `resolverExcusa`, `listarExcusasSesion`.
+- **Reportes aprendiz:** vista `aprendiz/reportes/listado.html` (mismos endpoints `consultarReporte` y `exportarReporte` que admin/instructor). El backend fuerza `aprendiz_id` a la sesión; la respuesta incluye `excusas` y la exportación PDF/Excel añade hoja o sección de excusas.

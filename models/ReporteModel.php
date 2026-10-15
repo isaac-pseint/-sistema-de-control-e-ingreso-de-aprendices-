@@ -95,6 +95,7 @@ class ReporteModel
         $hasta         = !empty($filtros['hasta'])         ? (string) $filtros['hasta']         : null;
         $fichaId       = !empty($filtros['ficha_id'])      ? (int) $filtros['ficha_id']         : null;
         $instructorId  = !empty($filtros['instructor_id']) ? (int) $filtros['instructor_id']    : null;
+        $aprendizId    = !empty($filtros['aprendiz_id'])   ? (int) $filtros['aprendiz_id']      : null;
 
         // ── 1) Aprendices base ──────────────────────────────────────────
         $sqlBase = "
@@ -134,6 +135,11 @@ class ReporteModel
             ";
             $paramsBase[] = (int) $instructorId;
             $paramsBase[] = (int) $instructorId;
+        }
+
+        if ($aprendizId !== null) {
+            $sqlBase .= " AND u.id = ?";
+            $paramsBase[] = (int) $aprendizId;
         }
 
         $sqlBase .= " ORDER BY f.codigo ASC, u.apellido ASC, u.nombre ASC";
@@ -176,6 +182,10 @@ class ReporteModel
             $sqlAsis .= " AND s.Instructor_id = ?";
             $paramsAsis[] = (int) $instructorId;
         }
+        if ($aprendizId !== null) {
+            $sqlAsis .= " AND a.Usuario_id = ?";
+            $paramsAsis[] = (int) $aprendizId;
+        }
 
         $sqlAsis .= " GROUP BY a.Usuario_id";
 
@@ -215,6 +225,10 @@ class ReporteModel
         if ($instructorId !== null) {
             $sqlIna .= " AND s.Instructor_id = ?";
             $paramsIna[] = (int) $instructorId;
+        }
+        if ($aprendizId !== null) {
+            $sqlIna .= " AND i.Usuario_id = ?";
+            $paramsIna[] = (int) $aprendizId;
         }
 
         $sqlIna .= " GROUP BY i.Usuario_id";
@@ -345,6 +359,79 @@ class ReporteModel
         $sql .= " ORDER BY s.fecha DESC, s.hora_inicio DESC, u.apellido ASC, u.nombre ASC";
 
         $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    // ========================================================================
+    // =====================  DETALLE DE EXCUSAS  =============================
+    // ========================================================================
+
+    /**
+     * Excusas del aprendiz en el periodo (fecha de sesión).
+     *
+     * @param array $filtros  Requiere aprendiz_id; opcional desde, hasta.
+     * @return array<int, array<string, mixed>>
+     */
+    public function obtenerDetalleExcusas(array $filtros = []): array
+    {
+        $aprendizId = !empty($filtros['aprendiz_id']) ? (int) $filtros['aprendiz_id'] : null;
+        if ($aprendizId === null) {
+            return [];
+        }
+
+        $desde = !empty($filtros['desde']) ? (string) $filtros['desde'] : null;
+        $hasta = !empty($filtros['hasta']) ? (string) $filtros['hasta'] : null;
+
+        $sql = "
+            SELECT e.id AS excusa_id,
+                   e.fecha AS fecha_solicitud,
+                   s.fecha AS fecha_sesion,
+                   s.hora_inicio,
+                   s.hora_fin,
+                   COALESCE(c.nombre, 'Sin competencia') AS competencia_nombre,
+                   ins.nombre AS instructor_nombre,
+                   ins.apellido AS instructor_apellido,
+                   CASE
+                     WHEN NOT EXISTS (SELECT 1 FROM estado_excusa ee WHERE ee.Excusa_id = e.id) THEN 'pendiente'
+                     ELSE (
+                       SELECT LOWER(ee2.estado)
+                       FROM estado_excusa ee2
+                       WHERE ee2.Excusa_id = e.id
+                       ORDER BY ee2.id DESC
+                       LIMIT 1
+                     )
+                   END AS excusa_estado,
+                   (
+                     SELECT ee3.respuesta
+                     FROM estado_excusa ee3
+                     WHERE ee3.Excusa_id = e.id
+                     ORDER BY ee3.id DESC
+                     LIMIT 1
+                   ) AS respuesta_instructor
+            FROM excusa e
+            LEFT JOIN inasistencia i ON e.Inasistencia_id = i.id
+            LEFT JOIN asistencia a ON e.Asistencia_id = a.id
+            INNER JOIN sesion s ON s.id = COALESCE(i.Sesion_id, a.Sesion_id)
+            INNER JOIN usuario ins ON ins.id = s.Instructor_id
+            LEFT JOIN competencia c ON c.id = s.Competencia_id
+            WHERE e.Usuario_id = ?
+              AND s.estado != 'Cancelado'
+        ";
+        $params = [$aprendizId];
+
+        if ($desde !== null) {
+            $sql .= " AND s.fecha >= ?";
+            $params[] = $desde;
+        }
+        if ($hasta !== null) {
+            $sql .= " AND s.fecha <= ?";
+            $params[] = $hasta;
+        }
+
+        $sql .= " ORDER BY s.fecha DESC, s.hora_inicio DESC";
+
+        $stmt = Database::conn()->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll();
     }

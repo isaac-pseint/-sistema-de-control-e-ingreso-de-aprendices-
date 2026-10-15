@@ -16,18 +16,23 @@ class ReporteController extends ControllerBase
 
     /**
      * Endpoint: action=consultarReporte (GET)
-     * Roles permitidos: Administrador, Instructor.
+     * Roles permitidos: Administrador, Instructor, Aprendiz.
      */
     public function consultarReporte(): void
     {
         $datos = $this->procesarConsultaReporte();
 
-        $this->ok([
+        $payload = [
             'fichas'        => $datos['fichas'],
             'totales'       => $datos['totales'],
             'resumen'       => $datos['resumen'],
             'inasistencias' => $datos['inasistencias'],
-        ], 'Reporte generado correctamente.');
+        ];
+        if ($datos['es_aprendiz']) {
+            $payload['excusas'] = $datos['excusas'];
+        }
+
+        $this->ok($payload, 'Reporte generado correctamente.');
     }
 
     /**
@@ -43,24 +48,29 @@ class ReporteController extends ControllerBase
 
         $datos = $this->procesarConsultaReporte();
         $exportador = new ExportadorReporte();
+        $excusas = $datos['excusas'] ?? [];
 
         if ($formato === 'excel') {
             $binario = $exportador->generarXlsx(
                 $datos['totales'],
                 $datos['resumen'],
                 $datos['inasistencias'],
-                $datos['filtros']
+                $datos['filtros'],
+                $excusas
             );
-            $nombreArchivo = 'reporte_asistencia_' . date('Ymd_His') . '.xlsx';
+            $prefijo = $datos['es_aprendiz'] ? 'reporte_aprendiz_' : 'reporte_asistencia_';
+            $nombreArchivo = $prefijo . date('Ymd_His') . '.xlsx';
             $mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
         } else {
             $binario = $exportador->generarPdf(
                 $datos['totales'],
                 $datos['resumen'],
                 $datos['inasistencias'],
-                $datos['filtros']
+                $datos['filtros'],
+                $excusas
             );
-            $nombreArchivo = 'reporte_asistencia_' . date('Ymd_His') . '.pdf';
+            $prefijo = $datos['es_aprendiz'] ? 'reporte_aprendiz_' : 'reporte_asistencia_';
+            $nombreArchivo = $prefijo . date('Ymd_His') . '.pdf';
             $mimeType = 'application/pdf';
         }
 
@@ -74,19 +84,26 @@ class ReporteController extends ControllerBase
     /**
      * Procesa la autorización, validación de filtros y consulta del reporte.
      *
-     * @return array{fichas: array, filtros: array, totales: array, resumen: array, inasistencias: array}
+     * @return array{
+     *   fichas: array,
+     *   filtros: array,
+     *   totales: array,
+     *   resumen: array,
+     *   inasistencias: array,
+     *   excusas: array,
+     *   es_aprendiz: bool
+     * }
      */
     private function procesarConsultaReporte(): array
     {
-        // ── a) Autorización ─────────────────────────────────────────────
         $this->requireAuth();
 
         $rol = $_SESSION['user_rol'] ?? '';
-        if ($rol !== 'Administrador' && $rol !== 'Instructor') {
+        $esAprendiz = $rol === 'Aprendiz';
+        if ($rol !== 'Administrador' && $rol !== 'Instructor' && !$esAprendiz) {
             $this->fail('No tienes permisos para consultar reportes.', 403);
         }
 
-        // ── b) Lectura y validación de filtros ──────────────────────────
         $desde = trim($_GET['desde'] ?? '');
         $hasta = trim($_GET['hasta'] ?? '');
 
@@ -100,27 +117,35 @@ class ReporteController extends ControllerBase
             $this->fail('La fecha inicial no puede ser mayor que la fecha final.');
         }
 
-        $fichaId = isset($_GET['ficha_id']) && $_GET['ficha_id'] !== ''
-            ? (int) $_GET['ficha_id']
-            : null;
-        if ($fichaId !== null && $fichaId <= 0) {
-            $this->fail('La ficha seleccionada no es válida.');
+        $fichaId = null;
+        $aprendizId = null;
+        $instructorId = null;
+
+        if ($esAprendiz) {
+            $aprendizId = (int) $_SESSION['user_id'];
+        } else {
+            $fichaId = isset($_GET['ficha_id']) && $_GET['ficha_id'] !== ''
+                ? (int) $_GET['ficha_id']
+                : null;
+            if ($fichaId !== null && $fichaId <= 0) {
+                $this->fail('La ficha seleccionada no es válida.');
+            }
+
+            $aprendizId = isset($_GET['aprendiz_id']) && $_GET['aprendiz_id'] !== ''
+                ? (int) $_GET['aprendiz_id']
+                : null;
+            if ($aprendizId !== null && $aprendizId <= 0) {
+                $this->fail('El aprendiz seleccionado no es válido.');
+            }
+
+            $instructorId = $rol === 'Instructor'
+                ? (int) $_SESSION['user_id']
+                : null;
         }
 
-        $aprendizId = isset($_GET['aprendiz_id']) && $_GET['aprendiz_id'] !== ''
-            ? (int) $_GET['aprendiz_id']
-            : null;
-        if ($aprendizId !== null && $aprendizId <= 0) {
-            $this->fail('El aprendiz seleccionado no es válido.');
-        }
-
-        // ── c) Alcance por rol ──────────────────────────────────────────
-        $instructorId = $rol === 'Instructor'
-            ? (int) $_SESSION['user_id']
-            : null;
-
-        // ── d) Consultas al modelo ──────────────────────────────────────
-        $fichas = $this->model->obtenerFichasParaFiltro($instructorId);
+        $fichas = $esAprendiz
+            ? []
+            : $this->model->obtenerFichasParaFiltro($instructorId);
 
         $filtros = [
             'desde'         => $desde !== '' ? $desde : null,
@@ -128,11 +153,12 @@ class ReporteController extends ControllerBase
             'ficha_id'      => $fichaId,
             'instructor_id' => $instructorId,
             'aprendiz_id'   => $aprendizId,
+            'es_aprendiz'   => $esAprendiz,
         ];
 
         $resumen = $this->model->obtenerResumenPorAprendiz($filtros);
 
-        if ($aprendizId !== null) {
+        if (!$esAprendiz && $aprendizId !== null) {
             $resumen = array_values(array_filter(
                 $resumen,
                 fn(array $r): bool => $r['usuario_id'] === $aprendizId
@@ -140,8 +166,8 @@ class ReporteController extends ControllerBase
         }
 
         $inasistencias = $this->model->obtenerDetalleInasistencias($filtros);
+        $excusas = $esAprendiz ? $this->model->obtenerDetalleExcusas($filtros) : [];
 
-        // ── e) Totales generales ────────────────────────────────────────
         $totales = [
             'total_aprendices'          => count($resumen),
             'total_asistencias'         => 0,
@@ -150,6 +176,10 @@ class ReporteController extends ControllerBase
             'minutos_retardo'           => 0,
             'total_salidas_anticipadas' => 0,
             'total_inasistencias'       => 0,
+            'total_excusas'             => count($excusas),
+            'excusas_pendientes'        => 0,
+            'excusas_aprobadas'         => 0,
+            'excusas_rechazadas'        => 0,
         ];
 
         foreach ($resumen as $r) {
@@ -161,12 +191,25 @@ class ReporteController extends ControllerBase
             $totales['total_inasistencias']       += $r['total_inasistencias'];
         }
 
+        foreach ($excusas as $ex) {
+            $est = (string) ($ex['excusa_estado'] ?? '');
+            if ($est === 'pendiente') {
+                $totales['excusas_pendientes']++;
+            } elseif ($est === 'aprobada') {
+                $totales['excusas_aprobadas']++;
+            } elseif ($est === 'rechazada') {
+                $totales['excusas_rechazadas']++;
+            }
+        }
+
         return [
             'fichas'        => $fichas,
             'filtros'       => $filtros,
             'totales'       => $totales,
             'resumen'       => $resumen,
             'inasistencias' => $inasistencias,
+            'excusas'       => $excusas,
+            'es_aprendiz'   => $esAprendiz,
         ];
     }
 }

@@ -32,7 +32,7 @@ eso ya lo hace el frontend con JavaScript.
 | `SesionController.php` | Sesiones, estados, permisos por horario |
 | `AsistenciaController.php` | Marcaje por sesión, historial aprendiz |
 | `HorarioController.php` | Importación Excel de horarios |
-| `ReporteController.php` | Consulta y exportación de reportes |
+| `ReporteController.php` | Consulta y exportación de reportes (`consultarReporte`, `exportarReporte`). Roles: Administrador, Instructor, Aprendiz (alcance propio + excusas en JSON/export) |
 | `DashboardController.php` | Métricas por rol |
 | `ExcusaController.php` | Excusas por inasistencia (crear, obtener, resolver, descarga evidencia) |
 

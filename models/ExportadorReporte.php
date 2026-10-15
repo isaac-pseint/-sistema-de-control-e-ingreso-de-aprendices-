@@ -23,17 +23,22 @@ class ExportadorReporte
         array $totales,
         array $resumen,
         array $inasistencias,
-        array $filtros = []
+        array $filtros = [],
+        array $excusas = []
     ): string {
+        $conExcusas = !empty($filtros['es_aprendiz']);
         $archivos = [
-            '[Content_Types].xml'        => $this->xlsxContentTypes(),
+            '[Content_Types].xml'        => $this->xlsxContentTypes($conExcusas),
             '_rels/.rels'                => $this->xlsxRels(),
-            'xl/workbook.xml'            => $this->xlsxWorkbook(),
-            'xl/_rels/workbook.xml.rels' => $this->xlsxWorkbookRels(),
+            'xl/workbook.xml'            => $this->xlsxWorkbook($conExcusas),
+            'xl/_rels/workbook.xml.rels' => $this->xlsxWorkbookRels($conExcusas),
             'xl/styles.xml'              => $this->xlsxStyles(),
             'xl/worksheets/sheet1.xml'   => $this->xlsxSheet1($resumen, $filtros),
-            'xl/worksheets/sheet2.xml'   => $this->xlsxSheet2($inasistencias),
+            'xl/worksheets/sheet2.xml'   => $this->xlsxSheet2($inasistencias, $conExcusas),
         ];
+        if ($conExcusas) {
+            $archivos['xl/worksheets/sheet3.xml'] = $this->xlsxSheet3($excusas);
+        }
 
         return $this->crearZipEnMemoria($archivos);
     }
@@ -125,17 +130,21 @@ class ExportadorReporte
 
     // ── Helpers XLSX ────────────────────────────────────────────────────
 
-    private function xlsxContentTypes(): string
+    private function xlsxContentTypes(bool $conExcusas = false): string
     {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             . '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
             . '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
             . '<Default Extension="xml" ContentType="application/xml"/>'
             . '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
             . '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
-            . '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
-            . '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+            . '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+        if ($conExcusas) {
+            $xml .= '<Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+        }
+        $xml .= '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
             . '</Types>';
+        return $xml;
     }
 
     private function xlsxRels(): string
@@ -146,24 +155,32 @@ class ExportadorReporte
             . '</Relationships>';
     }
 
-    private function xlsxWorkbook(): string
+    private function xlsxWorkbook(bool $conExcusas = false): string
     {
+        $sheets = '<sheet name="Resumen Aprendices" sheetId="1" r:id="rId1"/>'
+            . '<sheet name="Detalle Inasistencias" sheetId="2" r:id="rId2"/>';
+        if ($conExcusas) {
+            $sheets .= '<sheet name="Excusas" sheetId="3" r:id="rId3"/>';
+        }
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             . '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-            . '<sheets>'
-            . '<sheet name="Resumen Aprendices" sheetId="1" r:id="rId1"/>'
-            . '<sheet name="Detalle Inasistencias" sheetId="2" r:id="rId2"/>'
-            . '</sheets>'
+            . '<sheets>' . $sheets . '</sheets>'
             . '</workbook>';
     }
 
-    private function xlsxWorkbookRels(): string
+    private function xlsxWorkbookRels(bool $conExcusas = false): string
     {
+        $rels = '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+            . '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>';
+        if ($conExcusas) {
+            $rels .= '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/>'
+                . '<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>';
+        } else {
+            $rels .= '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>';
+        }
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             . '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-            . '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
-            . '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>'
-            . '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+            . $rels
             . '</Relationships>';
     }
 
@@ -281,21 +298,29 @@ class ExportadorReporte
         return $this->xlsxSheetWrap($rows);
     }
 
-    private function xlsxSheet2(array $inasistencias): string
+    private function xlsxSheet2(array $inasistencias, bool $reporteAprendiz = false): string
     {
         $rows = '';
 
         // Fila 1: Título (s=1 verde oscuro negrita)
+        $titulo = $reporteAprendiz
+            ? 'DETALLE DE INASISTENCIAS'
+            : 'DETALLE DE DÍAS DE INASISTENCIA E INSTRUCTOR';
         $rows .= '<row r="1">'
-            . $this->xlsxCellStr('A1', 'DETALLE DE DÍAS DE INASISTENCIA E INSTRUCTOR', 1)
+            . $this->xlsxCellStr('A1', $titulo, 1)
             . '</row>';
 
         // Fila 3: Encabezados (s=2 fondo verde SENA, fuente blanca)
-        $headers = [
-            'A' => 'Fecha', 'B' => 'Horario', 'C' => 'Identificación',
-            'D' => 'Aprendiz', 'E' => 'Ficha', 'F' => 'Competencia',
-            'G' => 'Instructor Encargado',
-        ];
+        $headers = $reporteAprendiz
+            ? [
+                'A' => 'Fecha', 'B' => 'Horario', 'C' => 'Competencia',
+                'D' => 'Instructor Encargado',
+            ]
+            : [
+                'A' => 'Fecha', 'B' => 'Horario', 'C' => 'Identificación',
+                'D' => 'Aprendiz', 'E' => 'Ficha', 'F' => 'Competencia',
+                'G' => 'Instructor Encargado',
+            ];
         $headerCells = '';
         foreach ($headers as $col => $label) {
             $headerCells .= $this->xlsxCellStr($col . '3', $label, 2);
@@ -307,14 +332,62 @@ class ExportadorReporte
         foreach ($inasistencias as $ina) {
             $horario = substr((string) $ina['hora_inicio'], 0, 5) . ' - ' . substr((string) $ina['hora_fin'], 0, 5);
             $base = ($r % 2 === 0) ? 4 : 3;
+            if ($reporteAprendiz) {
+                $rows .= '<row r="' . $r . '">'
+                    . $this->xlsxCellStr('A' . $r, (string) $ina['fecha'], 5)
+                    . $this->xlsxCellStr('B' . $r, $horario, $base)
+                    . $this->xlsxCellStr('C' . $r, (string) $ina['competencia_nombre'], $base)
+                    . $this->xlsxCellStr('D' . $r, $ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], $base)
+                    . '</row>';
+            } else {
+                $rows .= '<row r="' . $r . '">'
+                    . $this->xlsxCellStr('A' . $r, (string) $ina['fecha'], 5)
+                    . $this->xlsxCellStr('B' . $r, $horario, $base)
+                    . $this->xlsxCellStr('C' . $r, (string) $ina['aprendiz_identificacion'], $base)
+                    . $this->xlsxCellStr('D' . $r, $ina['aprendiz_nombre'] . ' ' . $ina['aprendiz_apellido'], $base)
+                    . $this->xlsxCellStr('E' . $r, (string) $ina['ficha_codigo'], $base)
+                    . $this->xlsxCellStr('F' . $r, (string) $ina['competencia_nombre'], $base)
+                    . $this->xlsxCellStr('G' . $r, $ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], $base)
+                    . '</row>';
+            }
+            $r++;
+        }
+
+        return $this->xlsxSheetWrap($rows);
+    }
+
+    private function xlsxSheet3(array $excusas): string
+    {
+        $rows = '';
+        $rows .= '<row r="1">'
+            . $this->xlsxCellStr('A1', 'DETALLE DE EXCUSAS', 1)
+            . '</row>';
+
+        $headers = [
+            'A' => 'Fecha sesión', 'B' => 'Horario', 'C' => 'Competencia',
+            'D' => 'Instructor', 'E' => 'Fecha solicitud', 'F' => 'Estado',
+            'G' => 'Respuesta instructor',
+        ];
+        $headerCells = '';
+        foreach ($headers as $col => $label) {
+            $headerCells .= $this->xlsxCellStr($col . '3', $label, 2);
+        }
+        $rows .= '<row r="3">' . $headerCells . '</row>';
+
+        $r = 4;
+        foreach ($excusas as $ex) {
+            $horario = substr((string) $ex['hora_inicio'], 0, 5) . ' - ' . substr((string) $ex['hora_fin'], 0, 5);
+            $base = ($r % 2 === 0) ? 4 : 3;
+            $estado = (string) ($ex['excusa_estado'] ?? '');
+            $resp = (string) ($ex['respuesta_instructor'] ?? '');
             $rows .= '<row r="' . $r . '">'
-                . $this->xlsxCellStr('A' . $r, (string) $ina['fecha'], 5)
+                . $this->xlsxCellStr('A' . $r, (string) $ex['fecha_sesion'], $base)
                 . $this->xlsxCellStr('B' . $r, $horario, $base)
-                . $this->xlsxCellStr('C' . $r, (string) $ina['aprendiz_identificacion'], $base)
-                . $this->xlsxCellStr('D' . $r, $ina['aprendiz_nombre'] . ' ' . $ina['aprendiz_apellido'], $base)
-                . $this->xlsxCellStr('E' . $r, (string) $ina['ficha_codigo'], $base)
-                . $this->xlsxCellStr('F' . $r, (string) $ina['competencia_nombre'], $base)
-                . $this->xlsxCellStr('G' . $r, $ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], $base)
+                . $this->xlsxCellStr('C' . $r, (string) $ex['competencia_nombre'], $base)
+                . $this->xlsxCellStr('D' . $r, $ex['instructor_nombre'] . ' ' . $ex['instructor_apellido'], $base)
+                . $this->xlsxCellStr('E' . $r, (string) $ex['fecha_solicitud'], $base)
+                . $this->xlsxCellStr('F' . $r, $estado, $base)
+                . $this->xlsxCellStr('G' . $r, $resp !== '' ? $resp : '—', $base)
                 . '</row>';
             $r++;
         }
@@ -379,8 +452,10 @@ class ExportadorReporte
         array $totales,
         array $resumen,
         array $inasistencias,
-        array $filtros = []
+        array $filtros = [],
+        array $excusas = []
     ): string {
+        $esAprendiz = !empty($filtros['es_aprendiz']);
         // Reiniciar estado
         $this->pdfObjects = [];
         $this->pdfObjCount = 0;
@@ -422,7 +497,10 @@ class ExportadorReporte
 
         // Subtítulo en blanco suave
         $this->pdfSetFont('F1', 10);
-        $this->pdfText(self::MARGIN_LEFT + 14, $bannerY + 8, 'Reporte de Asistencias, Retardos e Inasistencias', 0.92, 0.98, 0.90);
+        $subtituloPdf = $esAprendiz
+            ? 'Mi reporte de asistencias, inasistencias y excusas'
+            : 'Reporte de Asistencias, Retardos e Inasistencias';
+        $this->pdfText(self::MARGIN_LEFT + 14, $bannerY + 8, $subtituloPdf, 0.92, 0.98, 0.90);
 
         $this->pdfY = $bannerY - 16;
 
@@ -466,14 +544,23 @@ class ExportadorReporte
             self::MARGIN_LEFT + 260,
             self::MARGIN_LEFT + 520,
         ];
-        $totLabels = [
-            'Aprendices: ' . ($totales['total_aprendices'] ?? 0),
-            'Retardos: ' . ($totales['total_retardos'] ?? 0),
-            'Salidas Anticipadas: ' . ($totales['total_salidas_anticipadas'] ?? 0),
-            'Asistencias: ' . ($totales['total_asistencias'] ?? 0),
-            'Min. Retardo acumulados: ' . ($totales['minutos_retardo'] ?? 0),
-            'Inasistencias: ' . ($totales['total_inasistencias'] ?? 0),
-        ];
+        $totLabels = $esAprendiz
+            ? [
+                'Excusas: ' . ($totales['total_excusas'] ?? 0),
+                'Retardos: ' . ($totales['total_retardos'] ?? 0),
+                'Salidas Anticipadas: ' . ($totales['total_salidas_anticipadas'] ?? 0),
+                'Asistencias: ' . ($totales['total_asistencias'] ?? 0),
+                'Min. Retardo acumulados: ' . ($totales['minutos_retardo'] ?? 0),
+                'Inasistencias: ' . ($totales['total_inasistencias'] ?? 0),
+            ]
+            : [
+                'Aprendices: ' . ($totales['total_aprendices'] ?? 0),
+                'Retardos: ' . ($totales['total_retardos'] ?? 0),
+                'Salidas Anticipadas: ' . ($totales['total_salidas_anticipadas'] ?? 0),
+                'Asistencias: ' . ($totales['total_asistencias'] ?? 0),
+                'Min. Retardo acumulados: ' . ($totales['minutos_retardo'] ?? 0),
+                'Inasistencias: ' . ($totales['total_inasistencias'] ?? 0),
+            ];
         // Fila 1 (índices 0,1,2)
         $row1Y = $boxY + $boxH - 26;
         for ($t = 0; $t < 3; $t++) {
@@ -490,7 +577,8 @@ class ExportadorReporte
         // ── 3) Sección 1: Resumen por Aprendiz ─────────────────────────
         $this->pdfCheckPage();
         $this->pdfSetFont('F2', 11);
-        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, '1. Resumen por Aprendiz', 0.14, 0.52, 0.04);
+        $tituloResumen = $esAprendiz ? '1. Mi resumen' : '1. Resumen por Aprendiz';
+        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, $tituloResumen, 0.14, 0.52, 0.04);
         $this->pdfY -= self::LINE_HEIGHT * 1.5;
 
         // Encabezados de tabla
@@ -572,19 +660,32 @@ class ExportadorReporte
         // ── 4) Sección 2: Detalle de Inasistencias ──────────────────────
         $this->pdfCheckPage();
         $this->pdfSetFont('F2', 11);
-        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, '2. Días Específicos de Inasistencia con Instructor', 0.14, 0.52, 0.04);
+        $tituloIna = $esAprendiz
+            ? '2. Inasistencias en el periodo'
+            : '2. Días Específicos de Inasistencia con Instructor';
+        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, $tituloIna, 0.14, 0.52, 0.04);
         $this->pdfY -= self::LINE_HEIGHT * 1.5;
 
-        $col2 = [
-            self::MARGIN_LEFT,        // Fecha
-            self::MARGIN_LEFT + 75,   // Horario
-            self::MARGIN_LEFT + 165,  // Identificación
-            self::MARGIN_LEFT + 260,  // Aprendiz
-            self::MARGIN_LEFT + 400,  // Ficha
-            self::MARGIN_LEFT + 460,  // Competencia
-            self::MARGIN_LEFT + 610,  // Instructor
-        ];
-        $hdr2 = ['Fecha', 'Horario', 'Identificación', 'Aprendiz', 'Ficha', 'Competencia', 'Instructor'];
+        if ($esAprendiz) {
+            $col2 = [
+                self::MARGIN_LEFT,
+                self::MARGIN_LEFT + 75,
+                self::MARGIN_LEFT + 200,
+                self::MARGIN_LEFT + 480,
+            ];
+            $hdr2 = ['Fecha', 'Horario', 'Competencia', 'Instructor'];
+        } else {
+            $col2 = [
+                self::MARGIN_LEFT,
+                self::MARGIN_LEFT + 75,
+                self::MARGIN_LEFT + 165,
+                self::MARGIN_LEFT + 260,
+                self::MARGIN_LEFT + 400,
+                self::MARGIN_LEFT + 460,
+                self::MARGIN_LEFT + 610,
+            ];
+            $hdr2 = ['Fecha', 'Horario', 'Identificación', 'Aprendiz', 'Ficha', 'Competencia', 'Instructor'];
+        }
 
         // Franja de fondo verde SENA para encabezado
         $this->pdfCheckPage();
@@ -611,15 +712,22 @@ class ExportadorReporte
                 }
 
                 $horario = substr((string) $ina['hora_inicio'], 0, 5) . ' - ' . substr((string) $ina['hora_fin'], 0, 5);
-                $fila = [
-                    (string) $ina['fecha'],
-                    $horario,
-                    (string) $ina['aprendiz_identificacion'],
-                    $this->recortarTexto($ina['aprendiz_nombre'] . ' ' . $ina['aprendiz_apellido'], 28),
-                    (string) $ina['ficha_codigo'],
-                    $this->recortarTexto((string) $ina['competencia_nombre'], 30),
-                    $this->recortarTexto($ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], 28),
-                ];
+                $fila = $esAprendiz
+                    ? [
+                        (string) $ina['fecha'],
+                        $horario,
+                        $this->recortarTexto((string) $ina['competencia_nombre'], 40),
+                        $this->recortarTexto($ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], 35),
+                    ]
+                    : [
+                        (string) $ina['fecha'],
+                        $horario,
+                        (string) $ina['aprendiz_identificacion'],
+                        $this->recortarTexto($ina['aprendiz_nombre'] . ' ' . $ina['aprendiz_apellido'], 28),
+                        (string) $ina['ficha_codigo'],
+                        $this->recortarTexto((string) $ina['competencia_nombre'], 30),
+                        $this->recortarTexto($ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], 28),
+                    ];
                 foreach ($fila as $i => $val) {
                     // Semántica: columna Fecha en rojo oscuro
                     if ($i === 0) {
@@ -627,6 +735,62 @@ class ExportadorReporte
                     } else {
                         $this->pdfText($col2[$i], $this->pdfY, $val);
                     }
+                }
+                $this->pdfY -= self::LINE_HEIGHT;
+            }
+        }
+
+        if ($esAprendiz) {
+            $this->pdfY -= self::LINE_HEIGHT;
+            $this->pdfCheckPage();
+            $this->pdfSetFont('F2', 11);
+            $this->pdfText(self::MARGIN_LEFT, $this->pdfY, '3. Excusas en el periodo', 0.14, 0.52, 0.04);
+            $this->pdfY -= self::LINE_HEIGHT * 1.5;
+
+            $col3 = [
+                self::MARGIN_LEFT,
+                self::MARGIN_LEFT + 70,
+                self::MARGIN_LEFT + 150,
+                self::MARGIN_LEFT + 320,
+                self::MARGIN_LEFT + 450,
+                self::MARGIN_LEFT + 530,
+                self::MARGIN_LEFT + 600,
+            ];
+            $hdr3 = ['F. sesión', 'Horario', 'Competencia', 'Instructor', 'F. solicitud', 'Estado', 'Respuesta'];
+
+            $this->pdfCheckPage();
+            $this->pdfRect(self::MARGIN_LEFT, $this->pdfY - 4, $contentW, 16, 0.16, 0.59, 0.05);
+            $this->pdfSetFont('F2', 7);
+            foreach ($hdr3 as $i => $h) {
+                $this->pdfText($col3[$i], $this->pdfY, $h, 1.0, 1.0, 1.0);
+            }
+            $this->pdfY -= self::LINE_HEIGHT + 4;
+
+            $this->pdfSetFont('F1', 7);
+            if (empty($excusas)) {
+                $this->pdfCheckPage();
+                $this->pdfSetFont('F1', 9);
+                $this->pdfText(self::MARGIN_LEFT, $this->pdfY, 'Sin excusas registradas en el periodo seleccionado.');
+                $this->pdfY -= self::LINE_HEIGHT;
+            }
+            foreach ($excusas as $idx => $ex) {
+                $this->pdfCheckPage();
+                if ($idx % 2 === 1) {
+                    $this->pdfRect(self::MARGIN_LEFT, $this->pdfY - 3.5, $contentW, 14, 0.95, 0.98, 0.95);
+                }
+                $horario = substr((string) $ex['hora_inicio'], 0, 5) . ' - ' . substr((string) $ex['hora_fin'], 0, 5);
+                $resp = (string) ($ex['respuesta_instructor'] ?? '');
+                $filaEx = [
+                    (string) $ex['fecha_sesion'],
+                    $horario,
+                    $this->recortarTexto((string) $ex['competencia_nombre'], 28),
+                    $this->recortarTexto($ex['instructor_nombre'] . ' ' . $ex['instructor_apellido'], 22),
+                    (string) $ex['fecha_solicitud'],
+                    (string) ($ex['excusa_estado'] ?? ''),
+                    $this->recortarTexto($resp !== '' ? $resp : '—', 20),
+                ];
+                foreach ($filaEx as $i => $val) {
+                    $this->pdfText($col3[$i], $this->pdfY, $val);
                 }
                 $this->pdfY -= self::LINE_HEIGHT;
             }

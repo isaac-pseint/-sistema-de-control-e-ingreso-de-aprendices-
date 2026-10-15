@@ -338,6 +338,7 @@
 .filtro-registros {
     flex-wrap: wrap;
     margin-bottom: 8px;
+    align-items: flex-end;
 }
 
 .filtro-registros .form-group {
@@ -346,7 +347,18 @@
 }
 
 .filtro-registros .form-group.btn-group {
-    align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+    flex: 0 1 160px;
+}
+
+.filtro-registros .form-group.btn-group::before {
+    content: "";
+    display: block;
+    height: 0.9rem;
+    margin-bottom: 8px;
 }
 
 .filtro-registros .form-group.btn-group > .btn {
