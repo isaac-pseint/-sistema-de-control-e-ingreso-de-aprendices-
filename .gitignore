@@ -1,0 +1,8 @@
+# Office / datos locales (no versionar)
+~$*
+*.xlsx
+
+# Pruebas y secretos
+tmp_cookies.txt
+.env
+migrar.php

@@ -19,9 +19,14 @@ class AuthController extends ControllerBase
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
 
-        // auth() busca el usuario por email y verifica el hash de la contraseña.
-        // Devuelve el array del usuario si es válido, o false si no.
-        if ($user = $this->userModel->auth($email, $password)) {
+        $auth = $this->userModel->auth($email, $password);
+
+        if ($auth === UserModel::AUTH_INACTIVO) {
+            $this->fail('El usuario está inactivo. Contacte al administrador.', 403);
+        }
+
+        if (is_array($auth)) {
+            $user = $auth;
             session_regenerate_id(true);
 
             // Guarda los datos del usuario en la sesión para las próximas peticiones.
@@ -42,10 +47,10 @@ class AuthController extends ControllerBase
                 default => '../public/login.html'
             };
             $this->ok(['redirect' => $redirect, 'rol' => $_SESSION['user_rol']], 'Sesión iniciada correctamente.');
-        } else {
-
-            $this->fail("Credenciales inválidas", 401);
+            return;
         }
+
+        $this->fail('Credenciales inválidas.', 401);
     }
 
     public function logout()

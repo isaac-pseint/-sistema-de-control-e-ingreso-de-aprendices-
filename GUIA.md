@@ -127,46 +127,31 @@ BD → array → Controller → JSON → assets/js/*.js → DOM
 
 ```
 ControlAprendices/
-├── index.php                    ← API: router que SOLO responde JSON
-├── migrations/
-│   └── 001_esquema_inicial.sql  ← esquema de BD
-├── controllers/
-│   ├── ControllerBase.php       ← helpers de la API (json, ok, fail)
-│   ├── AuthController.php       ← login / logout / sesion
-│   ├── UsuarioController.php    ← CRUD de usuarios
-│   ├── FichaController.php      ← CRUD de fichas
-│   ├── ProgramaController.php   ← CRUD de programas
-│   └── AsistenciaController.php ← entrada/salida + listado
-├── models/
-│   ├── Database.php             ← conexión PDO (singleton)
-│   └── ...Model.php             ← consultas PDO por dominio
-├── views/                       ← HTML ESTÁTICO (sin PHP), separado POR ROL
-│   ├── public/                  ← login, entrada, salida (visible sin sesión)
-│   ├── admin/                   ← dashboard + usuarios, fichas, programas (Administrador)
-│   ├── instructor/              ← dashboard placeholder (gestión próximamente)
-│   └── aprendiz/                ← dashboard + asistencias (Aprendiz)
-└── assets/
-    ├── css/                     ← main.css (@import tokens/base/layout/components/)
-    └── js/                      ← Módulos ES (import / export)
-        ├── core/                ← api.js, ui.js, forms.js, validacion.js, modal.js (sin roles ni dominios)
-        ├── features/            ← auth.js (transversal) + un rol por carpeta (public, admin, aprendiz)
-        └── pages/               ← UN módulo de entrada por vista, espejando features/ y views/ por rol
+├── index.php              ← API JSON (?action=…)
+├── migrations/            ← 001…013 (ver migrations/GUIA.md)
+├── controllers/           ← Auth, Usuario, Ficha, Programa, Competencia, Sesion,
+│                          ← Asistencia, Horario, Reporte, Dashboard
+├── models/                ← Database + *Model por dominio
+├── views/                 ← HTML estático por rol (ver views/GUIA.md)
+├── assets/                ← css + js modular (ver assets/GUIA.md)
+└── PR-sesiones.md         ← notas del branch sesiones/competencias
 ```
 
 ---
 
 ## 7. Rutas de la API
 
-| `?action=` | Método | Controlador | Respuesta |
-|---|---|---|---|
-| `sesion` (GET) | `AuthController::sesion()` | estado de la sesión | `{ok:true, data:{usuario}}` o 401 |
-| `login` (POST) | `AuthController::login()` | autenticar | `{ok:true, redirect}` o `{ok:false, error}` |
-| `logout` (POST) | `AuthController::logout()` | cerrar sesión | `{ok:true}` |
-| `aprendices` (GET) | `AprendizController::index()` | listar | `{ok:true, data:[...]}` |
-| `aprendiz` (GET) | `AprendizController::show()` | uno por `?id=` | `{ok:true, data:{...}}` o `{ok:false}` |
-| `save` (POST) | `AprendizController::save()` | crear | `{ok:true, redirect}` o `{ok:false, error}` |
-| `update` (POST) | `AprendizController::update()` | actualizar | `{ok:true, redirect}` o `{ok:false, error}` |
-| `desactivar` (POST) | `AprendizController::deactivate()` | soft delete | `{ok:true}` o `{ok:false, error}` |
+Lista completa en el `switch` de `index.php`. Grupos principales:
+
+| Grupo | Ejemplos `?action=` |
+|---|---|
+| Auth | `login`, `logout`, `sesion` |
+| Usuarios / fichas / programas | `listarUsuarios`, `crearFicha`, `eliminarPrograma`, … |
+| Competencias y sesiones | `listarCompetencias`, `crearSesion`, `finalizarSesion`, `importarHorario`, … |
+| Asistencia | `marcarEntrada`, `marcarSalida`, `listarSesionAsistencia`, `listarAsistencias` |
+| Reportes y dashboards | `consultarReporte`, `exportarReporte`, `metricasDashboardAdmin`, … |
+
+Los aprendices se gestionan como **usuarios** con rol Aprendiz (`UsuarioController`), no hay `AprendizController`.
 
 ---
 
@@ -178,8 +163,8 @@ ControlAprendices/
 4. `controllers/ControllerBase.php` — helpers de la API
 5. `index.php` — router API (JSON)
 6. `AuthController` — login / sesión
-7. `AprendizController` — CRUD
-8. `views/*.html` + `assets/css` + los JS de `assets/js/` — el frontend
+7. Dominios de sesión/competencia/asistencia según `index.php`
+8. `views/*.html` + `assets/` — frontend modular
 9. Prueba completa con las herramientas del navegador (Red → peticiones JSON)
 
 ---

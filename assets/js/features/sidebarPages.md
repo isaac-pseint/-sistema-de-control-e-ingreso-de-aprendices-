@@ -1,18 +1,18 @@
 # sidebarPages.md — Cómo programar vistas de sesión (nuevo layout)
 
-Este archivo fija cómo se arman las páginas internas (de sesión) de ahora en
-adelante: layout, sidebar, título, breadcrumb y formularios. Complementa y, en
-caso de conflicto, **prevalece sobre** `Changes.md`.
+Este archivo fija cómo se arman las páginas internas (de sesión): layout,
+sidebar, título, breadcrumb y formularios. Complementa `assets/GUIA.md` y
+`views/GUIA.md` en temas de layout.
 
 ---
 
 ## 1. Regla de oro
 
-**Las vistas de sesión NO usan tarjetas contenedoras.** Quedaron eliminadas
-`login-container`, `login-card`, `lista-container` y `lista-card` de todas las
-vistas internas (listado, crear, editar, dashboards). Solo las **vistas
-públicas** (`views/public/login.html`, `entrada.html`, `salida.html`)
-conservan `login-container` / `login-card`.
+**Las vistas de sesión NO usan tarjetas contenedoras** (`lista-container`,
+`lista-card`) en listados, crear, editar ni dashboards. Excepciones con
+`login-container` / `login-card`: `views/public/login.html` y los kioscos del
+instructor (`views/instructor/sesiones/entrada.html`, `salida.html`).
+No existe kiosco público sin login.
 
 El contenido interno va directo en `<main class="app-main">`, con su título.
 

@@ -3,14 +3,18 @@
 // UserModel — Consultas de usuario (autenticación) con PDO.
 class UserModel
 {
-    // Busca el usuario por email y verifica la contraseña.
-    // Devuelve el array del usuario o false.
+    /** Usuario inactivo con contraseña correcta (solo para distinguir en login). */
+    public const AUTH_INACTIVO = 'inactivo';
+
+    /**
+     * Busca por email, verifica contraseña y estado.
+     * @return array|false|string Devuelve el usuario, false si credenciales inválidas,
+     *                            o AUTH_INACTIVO si la contraseña es correcta pero estado ≠ Activo.
+     */
     public function auth($email, $password)
     {
         $db = Database::conn();
 
-        // prepare() + execute() = prepared statement. Los datos se envían por
-        // separado y nunca se concatenan al SQL (anti inyección SQL).
         $stmt = $db->prepare("
     SELECT
         u.id,
@@ -19,29 +23,29 @@ class UserModel
         u.identificacion,
         u.email,
         u.password,
+        u.estado,
         u.codigo_llavero,
-        r.nombre AS rol,      -- nombre del rol (Administrador, Instructor, Aprendiz)
-        f.codigo AS ficha     -- código de la ficha (puede ser null)
+        r.nombre AS rol,
+        f.codigo AS ficha
     FROM usuario u
-    INNER JOIN rol r          -- une con la tabla rol mediante el id del rol
-        ON u.Rol_id = r.id
-    LEFT JOIN ficha f         -- LEFT: si no hay ficha, igual trae el usuario
-        ON u.Ficha_id = f.id
+    INNER JOIN rol r ON u.Rol_id = r.id
+    LEFT JOIN ficha f ON u.Ficha_id = f.id
     WHERE u.email = :email
-        AND u.estado = 'Activo'
 ");
-        // Conecta la variable $email al :email del SQL.
         $stmt->bindParam(':email', $email);
         $stmt->execute();
-        // fetch() trae una sola fila (array asociativo) o false si no existe.
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // password_verify() compara la contraseña escrita con el hash guardado.
-        // Las contraseñas nunca se guardan en texto plano.
-        if ($user && password_verify($password, $user['password'])) {
-            return $user;
+        if (!$user || !password_verify($password, $user['password'])) {
+            return false;
         }
-        return false;
+
+        if (($user['estado'] ?? '') !== 'Activo') {
+            return self::AUTH_INACTIVO;
+        }
+
+        unset($user['password'], $user['estado']);
+        return $user;
     }
 
     public function buscarPorEmail(string $email, ?int $excluirId = null): ?array

@@ -31,24 +31,24 @@ Las vistas se agrupan **por rol** (primera carpeta) y luego **por dominio**, esp
 
 ```
 views/
-├── public/                   ← visible sin sesión (kiosco y acceso)
-│   ├── login.html            ← pantalla de acceso
-│   ├── entrada.html          ← registro de entrada (kiosco)
-│   └── salida.html           ← registro de salida (kiosco)
-├── admin/                    ← solo rol Administrador
-│   ├── dashboard.html        ← panel del administrador
-│   ├── usuarios/
-│   │   ├── listado.html      ← tabla que llena el JS
-│   │   ├── crear.html        ← formulario para crear
-│   │   └── editar.html       ← formulario para editar (lee ?id= de la URL)
-│   ├── fichas/               ← listado, crear, editar
-│   └── programas/            ← listado, crear, editar
-├── instructor/               ← rol Instructor
-│   └── dashboard.html        ← placeholder ("Próximamente: gestión de fichas y aprendices")
-└── aprendiz/                 ← rol Aprendiz
-    ├── dashboard.html        ← panel del aprendiz
-    └── asistencias/
-        └── listado.html      ← historial propio del aprendiz
+├── public/
+│   └── login.html
+├── admin/
+│   ├── dashboard.html
+│   ├── usuarios/      ← listado, crear, editar
+│   ├── fichas/
+│   ├── programas/
+│   ├── competencias/
+│   ├── sesiones/      ← listado, crear, editar (+ importar horario si aplica)
+│   └── reportes/
+├── instructor/
+│   ├── dashboard.html
+│   ├── sesiones/      ← listado, detalle, entrada, salida (kiosco), editar
+│   └── reportes/
+└── aprendiz/
+    ├── dashboard.html
+    ├── sesiones/listado.html   ← historial (Mis sesiones)
+    └── asistencias/listado.html ← redirect a sesiones/listado (enlaces viejos)
 ```
 
 La navegación se hace con **enlaces normales**, relativos a la carpeta: una vista y

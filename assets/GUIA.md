@@ -10,63 +10,24 @@
 
 ```
 assets/
-├── css/
-│   ├── main.css                   ← punto de entrada (@import de todo lo demás)
-│   ├── tokens.css                 ← variables :root (colores, sombras, radios)
-│   ├── base.css                   ← reset y estilos base
-│   ├── layout.css                 ← estructura de páginas (header, login, dashboards, filtros)
-│   └── components/                ← un archivo por pieza visual
-│       ├── botones.css            ← .btn-*
-│       ├── formularios.css        ← .form-*
-│       ├── tablas.css             ← .table-*
-│       ├── modales.css            ← .modal-*
-│       ├── toasts.css             ← .toast-*
-│       └── utilidades.css         ← .text-*
+├── css/          ← main.css, tokens, base, layout, components/*
 └── js/
-    ├── core/                      ← responsabilidades técnicas (sin lógica de negocio)
-    │   ├── api.js                 ← exporta api(): el único cliente del servidor
-    │   ├── ui.js                  ← exporta showToast() + esc(): helpers de interfaz
-    │   ├── forms.js               ← exporta conectarFormulario() + mostrarErrorCampo()
-    │   ├── validacion.js          ← reglas genéricas: validarRequerido(), validarEmail()
-    │   └── modal.js               ← crearModalConfirmacion(): modal de confirmación genérico
-    ├── features/                  ← auth.js (transversal) + un rol por carpeta
-    │   ├── auth.js                ← login, comprobarSesion(), requerirRol(), cerrarSesion()
-    │   ├── public/                ← lo que ve cualquiera sin sesión (kiosco)
-    │   │   ├── entrada.js         ← form de entrada
-    │   │   └── salida.js          ← form de salida
-    │   ├── admin/                 ← acciones del rol Administrador
-    │   │   ├── usuarios/          ← listado.js, formulario.js, acciones.js
-    │   │   ├── fichas/            ← listado.js, formulario.js, acciones.js
-    │   │   └── programas/         ← listado.js, formulario.js, acciones.js
-    │   └── aprendiz/              ← acciones del rol Aprendiz
-    │       └── asistencias/
-    │           └── listado.js     ← historial propio (tabla + filtros de fechas)
-    └── pages/                     ← UN módulo de entrada por página (lo que carga el HTML)
-        ├── public/
-        │   ├── login.js
-        │   ├── entrada.js
-        │   └── salida.js
-        ├── admin/
-        │   ├── dashboard.js       ← dashboard de administrador
-        │   ├── usuarios/
-        │   │   ├── listado.js
-        │   │   ├── crear.js
-        │   │   └── editar.js
-        │   ├── fichas/
-        │   │   ├── listado.js
-        │   │   ├── crear.js
-        │   │   └── editar.js
-        │   └── programas/
-        │       ├── listado.js
-        │       ├── crear.js
-        │       └── editar.js
-        ├── instructor/
-        │   └── dashboard.js       ← placeholder (gestión próximamente)
-        └── aprendiz/
-            ├── dashboard.js       ← dashboard del aprendiz
-            └── asistencias/
-                └── listado.js
+    ├── core/     ← api, ui, forms, validacion, modal, filtros-registro
+    ├── features/
+    │   ├── auth.js, sidebar.js
+    │   ├── admin/     ← usuarios, fichas, programas, competencias, sesiones, reportes, dashboard
+    │   ├── instructor/← sesiones (listado, detalle, entrada/salida kiosco, editar), reportes, dashboard
+    │   └── aprendiz/  ← sesiones/listado.js (historial vía listarAsistencias), dashboard
+    └── pages/         ← UN módulo por vista HTML (import estático de features; sin import() dinámico salvo necesidad)
+        ├── public/login.js
+        ├── admin/     ← dashboard + CRUD por dominio + sesiones + reportes
+        ├── instructor/← dashboard + sesiones/*
+        └── aprendiz/  ← dashboard + sesiones/listado.js
 ```
+
+Marcaje entrada/salida: solo instructor autenticado en `instructor/sesiones/entrada.html`
+y `salida.html` (no hay `features/public/` ni `pages/public/entrada.js`).
+Layout de páginas internas: ver `features/sidebarPages.md`.
 
 ### Por qué Módulos ES (`import`/`export`)
 
@@ -84,7 +45,7 @@ Convención de imports (todas relativas, resueltas de izquierda a derecha):
 ```
 core/*                    → se importan entre sí con "./"          (ej. forms.js → ./api.js)
 features/auth.js          → importa core con "../core/..."         (ej. auth.js → ../core/api.js)
-features/public/*         → dos niveles: "../../core/..."          (ej. public/entrada.js → ../../core/api.js)
+pages/public/login.js     → importa features/auth con "../../features/..."
 features/<rol>/<dominio>/*→ tres niveles: "../../../core/..."      (ej. admin/usuarios/listado.js → ../../../core/api.js)
 pages/public/*            → importan features con "../../features/..."     (ej. pages/public/login.js → ../../features/auth.js)
 pages/<rol>/dashboard.js  → dos niveles: "../../features/..."     (ej. pages/aprendiz/dashboard.js → ../../features/auth.js)
@@ -262,9 +223,9 @@ const modalEliminar = crearModalConfirmacion({
 
 ## 8. features/<rol>/<dominio>/ — lógica de negocio por rol y responsabilidad
 
-`features/` espeja los roles del sistema: `public/` (kiosco de entrada/salida),
-`admin/` (CRUD de usuarios, fichas y programas) y `aprendiz/asistencias/` (el
-historial propio del aprendiz). `auth.js` queda en la raíz por ser transversal.
+`features/` espeja los roles: `admin/` (usuarios, fichas, programas, competencias,
+sesiones, reportes), `instructor/` (sesiones y marcaje, reportes) y `aprendiz/`
+(historial en `sesiones/listado.js`). `auth.js` y `sidebar.js` son transversales.
 
 Cada dominio se divide en UN archivo por responsabilidad (patrón de los CRUD de admin):
 
@@ -274,8 +235,9 @@ Cada dominio se divide en UN archivo por responsabilidad (patrón de los CRUD de
 | `<rol>/<dominio>/formulario.js` | llenar selects y conectar formularios crear/editar |
 | `<rol>/<dominio>/acciones.js` | acciones con confirmación (usa `core/modal.js`) |
 
-Los dominios que no necesitan una fase no llevan el archivo (por ejemplo el historial
-del aprendiz es solo `asistencias/listado.js`; la entrada/salida del kiosco no tiene CRUD).
+Los dominios que no necesitan una fase no llevan el archivo (p. ej. el aprendiz solo
+tiene `sesiones/listado.js`; el kiosco del instructor vive en `instructor/sesiones/entrada.js`
+y `salida.js`).
 
 La tabla se pinta sin `onclick` inline: se usa **event delegation** (un solo
 `addEventListener` sobre el `<tbody>`) porque con módulos no hay funciones globales.
@@ -435,15 +397,13 @@ el navegador resuelve solo todas las dependencias (import).
 **Mapa de dependencias (quién importa a quién):**
 
 ```
-pages/public/login.js               → features/auth.js → core/forms.js, core/validacion.js → core/api.js, core/ui.js
-pages/public/entrada.js / salida.js → features/public/entrada.js (o salida.js) → core/*
-pages/admin/dashboard.js            → features/auth.js → core/*
-pages/admin/usuarios/listado.js     → features/auth.js, features/admin/usuarios/listado.js, features/admin/usuarios/acciones.js → core/*
-pages/admin/usuarios/crear.js / editar.js → features/auth.js, features/admin/usuarios/formulario.js → core/*
-pages/admin/fichas/* y pages/admin/programas/* → mismos patrones bajo su dominio
-pages/instructor/dashboard.js       → features/auth.js (placeholder)
-pages/aprendiz/dashboard.js         → features/auth.js
-pages/aprendiz/asistencias/listado.js → features/auth.js, features/aprendiz/asistencias/listado.js → core/*
+pages/public/login.js                    → features/auth.js → core/*
+pages/admin/<dominio>/*                  → features/admin/<dominio>/* + auth + sidebar
+pages/admin/sesiones/*                   → features/admin/sesiones/*
+pages/instructor/sesiones/*              → features/instructor/sesiones/* (detalle, kiosco, etc.)
+pages/instructor/dashboard.js            → features/instructor/dashboard.js
+pages/aprendiz/sesiones/listado.js       → features/aprendiz/sesiones/listado.js
+pages/aprendiz/dashboard.js              → features/aprendiz/dashboard.js
 ```
 
 Nada importa nada de forma manual "en orden": cada módulo declara lo suyo y el

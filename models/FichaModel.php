@@ -39,20 +39,6 @@ class FichaModel
         return $row ?: null;
     }
 
-    // Busca la ficha (activa) liderada por un instructor.
-    public function buscarPorInstructor(int $instructorId): ?array
-    {
-        $stmt = Database::conn()->prepare("
-            SELECT id, codigo, Programa_id, instructor_id, jornada_id, estado
-            FROM Ficha
-            WHERE instructor_id = ? AND estado = 'Activo'
-            LIMIT 1
-        ");
-        $stmt->execute([$instructorId]);
-        $row = $stmt->fetch();
-        return $row ?: null;
-    }
-
     // Busca una ficha por su ID con datos relacionados de programa e instructor.
     public function buscarPorId(int $id): ?array
     {

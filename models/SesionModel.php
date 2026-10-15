@@ -152,19 +152,6 @@ class SesionModel
         return $stmt->fetchAll();
     }
 
-    // Sesiones activas de una ficha en una fecha, ordenadas por hora de inicio.
-    public function sesionesDelDia(int $fichaId, string $fecha): array
-    {
-        $stmt = Database::conn()->prepare("
-            SELECT id, Competencia_id, Instructor_id, fecha, hora_inicio, hora_fin, estado
-            FROM sesion
-            WHERE Ficha_id = ? AND fecha = ? AND estado = 'Activo'
-            ORDER BY hora_inicio ASC
-        ");
-        $stmt->execute([$fichaId, $fecha]);
-        return $stmt->fetchAll();
-    }
-
     // Evita solapamientos: misma ficha o mismo instructor con dos clases a la misma hora y fecha.
     // FOR UPDATE: bloquea el rango leído hasta que la transacción termine. Sin esto dos
     // peticiones simultáneas pasan ambas la comprobación y ambas insertan (la SELECT
