@@ -46,12 +46,15 @@ export function cargarListadoSesiones() {
             if (p.cancelar) {
                 acciones += `<button type="button" class="btn btn-sm btn-danger btnCancelarSesionAdmin" data-id="${s.id}">Cancelar</button>`;
             }
+            if (p.finalizar) {
+                acciones += `<button type="button" class="btn btn-sm btn-info btnFinalizarSesionAdmin" data-id="${s.id}">Finalizar</button>`;
+            }
             if (p.reactivar) {
                 acciones += `<button type="button" class="btn btn-sm btn-outline btnActivarSesion" data-id="${s.id}">Reactivar</button>`;
             }
             if (!acciones) acciones = "—";
             return `
-            <tr>
+            <tr data-sesion-id="${s.id}">
                 <td>${esc(s.fecha)}</td>
                 <td>${esc(s.ficha)}</td>
                 <td>${esc(s.competencia || "Sin competencia")}</td>
@@ -65,6 +68,28 @@ export function cargarListadoSesiones() {
         }).join("");
         return data;
     });
+}
+
+/** Actualiza la fila al instante tras cancelar/finalizar; luego el listado completo confirma permisos. */
+export function reflejarEstadoSesionEnFila(sesionId, estado) {
+    const row = document.querySelector(`tr[data-sesion-id="${sesionId}"]`);
+    if (!row) return;
+
+    const celdas = row.querySelectorAll("td");
+    const estadoTd = celdas[5];
+    if (estadoTd) {
+        estadoTd.textContent = estado;
+        estadoTd.className = claseEstadoSesion(estado);
+    }
+
+    const grupo = row.querySelector(".btn-group");
+    if (!grupo) return;
+
+    grupo.querySelectorAll(".btnCancelarSesionAdmin, .btnFinalizarSesionAdmin").forEach(btn => btn.remove());
+
+    if (!grupo.children.length) {
+        grupo.textContent = "—";
+    }
 }
 
 export function configurarFiltrosSesiones(fichas) {
@@ -107,6 +132,7 @@ export function configurarAccionesAdminSesiones() {
         const data = await api("activarSesion", { method: "POST", body: fd });
         if (data.ok) {
             showToast("success", data.mensaje || "Sesión reactivada.");
+            reflejarEstadoSesionEnFila(activar.dataset.id, "Activo");
             cargarListadoSesiones();
         } else {
             showToast("danger", data.error || "No se pudo reactivar.");

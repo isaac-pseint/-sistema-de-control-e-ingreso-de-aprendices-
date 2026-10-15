@@ -134,6 +134,80 @@ function bloquearCampo(el, bloquear) {
     }
 }
 
+function aplicarBloqueoFormularioSesion(sesion, permisos = {}) {
+    const estado = document.getElementById("estado");
+    const selectInst = document.getElementById("instructor_id");
+    const aviso = document.getElementById("avisoSesionProgramacion");
+    const btnGuardar = document.querySelector("#formEditarSesion button[type=submit]");
+    const cerrada = Boolean(permisos.sesion_finalizada) || sesion.estado === "Finalizada";
+    const prog = Boolean(permisos.editar_programacion);
+
+    if (cerrada) {
+        bloquearCampo(document.getElementById("ficha_id"), true);
+        bloquearCampo(document.getElementById("competencia_id"), true);
+        bloquearCampo(selectInst, true);
+        bloquearCampo(document.getElementById("fecha"), true);
+        bloquearCampo(document.getElementById("hora_inicio"), true);
+        bloquearCampo(document.getElementById("hora_fin"), true);
+        bloquearCampo(estado, true);
+        if (aviso) {
+            aviso.textContent = "Esta sesión está finalizada; no admite más cambios.";
+            aviso.hidden = false;
+        }
+        if (btnGuardar) btnGuardar.disabled = true;
+        return;
+    }
+
+    bloquearCampo(document.getElementById("ficha_id"), !prog);
+    bloquearCampo(document.getElementById("competencia_id"), !prog);
+    bloquearCampo(selectInst, !prog);
+    bloquearCampo(document.getElementById("fecha"), !prog);
+    bloquearCampo(document.getElementById("hora_inicio"), !prog);
+    bloquearCampo(document.getElementById("hora_fin"), !prog);
+
+    if (estado) {
+        estado.disabled = !permisos.editar_estado;
+        const optActivo = estado.querySelector('option[value="Activo"]');
+        const optFinalizada = estado.querySelector('option[value="Finalizada"]');
+        const optCancelado = estado.querySelector('option[value="Cancelado"]');
+        if (optActivo) {
+            const puedeElegirActivo = permisos.antes_de_inicio
+                || (sesion.estado === "Cancelado" && permisos.antes_de_fin);
+            optActivo.disabled = !puedeElegirActivo && sesion.estado !== "Activo";
+        }
+        if (optFinalizada) {
+            optFinalizada.disabled = sesion.estado === "Cancelado";
+        }
+        if (optCancelado) {
+            optCancelado.disabled = sesion.estado !== "Activo";
+        }
+        if (sesion.estado === "Cancelado" && estado.value === "Finalizada") {
+            estado.value = "Cancelado";
+        }
+    }
+
+    if (aviso) {
+        if (!prog && permisos.editar_estado) {
+            if (sesion.estado === "Cancelado") {
+                aviso.textContent = "Sesión cancelada: puede reactivarla (Activo) si aún está dentro del horario programado. No se puede finalizar una sesión cancelada.";
+                aviso.hidden = false;
+            } else if (permisos.antes_de_fin) {
+                aviso.textContent = "La sesión ya inició: puede cambiar el estado. Al finalizar, se completan salidas pendientes a la hora de fin programada y las inasistencias de quien no marcó entrada.";
+            } else {
+                aviso.textContent = "La sesión ya terminó su horario: solo puede reactivar una sesión cancelada antes de que venza el bloque, o dejar el estado actual.";
+            }
+            aviso.hidden = false;
+        } else if (!permisos.guardar_admin) {
+            aviso.textContent = "Esta sesión no admite cambios desde aquí.";
+            aviso.hidden = false;
+        } else {
+            aviso.textContent = "";
+            aviso.hidden = true;
+        }
+    }
+    if (btnGuardar) btnGuardar.disabled = !permisos.guardar_admin;
+}
+
 export async function prellenarFormularioSesion(sesion, permisos = {}) {
     await cargarCatalogoSesion();
     document.getElementById("id").value = sesion.id;
@@ -149,50 +223,24 @@ export async function prellenarFormularioSesion(sesion, permisos = {}) {
     const estado = document.getElementById("estado");
     if (estado) estado.value = sesion.estado || "Activo";
 
-    const prog = Boolean(permisos.editar_programacion);
-    bloquearCampo(document.getElementById("ficha_id"), !prog);
-    bloquearCampo(document.getElementById("competencia_id"), !prog);
-    bloquearCampo(selectInst, !prog);
-    bloquearCampo(document.getElementById("fecha"), !prog);
-    bloquearCampo(document.getElementById("hora_inicio"), !prog);
-    bloquearCampo(document.getElementById("hora_fin"), !prog);
-    // Nota: no se vuelve a llamar mostrarInstructorCompetencia() aquí; el
-    // bloqueo por permisos debe quedar como último estado del select.
+    aplicarBloqueoFormularioSesion(sesion, permisos);
+}
 
-    if (estado) {
-        estado.disabled = !permisos.editar_estado;
-        const optActivo = estado.querySelector('option[value="Activo"]');
-        if (optActivo) {
-            const puedeElegirActivo = permisos.antes_de_inicio
-                || (sesion.estado === "Cancelado" && permisos.antes_de_fin);
-            optActivo.disabled = !puedeElegirActivo && sesion.estado !== "Activo";
-        }
+export async function refrescarSesionEnEdicion() {
+    const id = document.getElementById("id")?.value;
+    if (!id) return;
+    const payload = await cargarSesionPorId(id);
+    if (payload) {
+        await prellenarFormularioSesion(payload.sesion, payload.permisos);
     }
-
-    const aviso = document.getElementById("avisoSesionProgramacion");
-    const btnGuardar = document.querySelector("#formEditarSesion button[type=submit]");
-    if (aviso) {
-        if (!prog && permisos.editar_estado) {
-            if (permisos.antes_de_fin) {
-                aviso.textContent = "La sesión ya inició: solo puede cambiar el estado (ficha, competencia, fecha y horario bloqueados).";
-            } else {
-                aviso.textContent = "La sesión ya terminó: solo puede cambiar el estado (ficha, competencia, fecha y horario bloqueados).";
-            }
-            aviso.hidden = false;
-        } else if (!permisos.guardar_admin) {
-            aviso.textContent = "Esta sesión no admite cambios desde aquí.";
-            aviso.hidden = false;
-        } else {
-            aviso.textContent = "";
-            aviso.hidden = true;
-        }
-    }
-    if (btnGuardar) btnGuardar.disabled = !permisos.guardar_admin;
 }
 
 export function conectarFormularioEditarSesion() {
     conectarFormulario("formEditarSesion", "actualizarSesion", {
         textoEnviando: "Guardando...",
-        textoRestaurar: "Guardar cambios"
+        textoRestaurar: "Guardar cambios",
+        onExito: () => {
+            refrescarSesionEnEdicion();
+        }
     });
 }

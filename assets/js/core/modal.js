@@ -85,7 +85,7 @@ export function crearModalConfirmacion(opciones = {}) {
                     cerrar();
                     if (data && data.ok) {
                         showToast("success", data.mensaje || mensajeOk);
-                        if (despuesDeConfirmar) despuesDeConfirmar();
+                        if (despuesDeConfirmar) despuesDeConfirmar(id);
                     } else {
                         showToast("danger", (data && data.error) || mensajeError);
                     }

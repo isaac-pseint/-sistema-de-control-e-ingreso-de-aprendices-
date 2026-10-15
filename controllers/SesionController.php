@@ -68,18 +68,20 @@ class SesionController extends ControllerBase
         $antes = $this->antesDeInicio($sesion);
         $activa = $estado === 'Activo';
 
-        $editarProgramacion = $rol === 'Administrador' && $antes;
+        $finalizada = $estado === 'Finalizada';
+        $editarProgramacion = $rol === 'Administrador' && $antes && !$finalizada;
         $editarHorasInstructor = $rol === 'Instructor' && $activa && $antes;
-        $editarEstado = $rol === 'Administrador';
+        $editarEstado = $rol === 'Administrador' && !$finalizada;
         $marcaje = $activa && $rol === 'Instructor';
         $cancelar = $activa && in_array($rol, ['Administrador', 'Instructor'], true);
         $reactivar = $rol === 'Administrador' && $this->puedeReactivarSesion($sesion);
         $finalizar = $activa && in_array($rol, ['Administrador', 'Instructor'], true);
-        $editarAdmin = $rol === 'Administrador' && ($editarProgramacion || $editarEstado);
+        $editarAdmin = $rol === 'Administrador' && !$finalizada && ($editarProgramacion || $editarEstado);
 
         return [
             'antes_de_inicio' => $antes,
             'antes_de_fin' => $this->antesDeFin($sesion),
+            'sesion_finalizada' => $finalizada,
             'editar_programacion' => $editarProgramacion,
             'editar_horas_instructor' => $editarHorasInstructor,
             'editar_estado' => $editarEstado,
@@ -105,11 +107,27 @@ class SesionController extends ControllerBase
         }
     }
 
-    private function validarCambioEstadoAdmin(array $sesion, string $estadoNuevo, bool $conProgramacion): void
+    private function validarTransicionEstado(array $sesion, string $estadoNuevo): void
     {
         $estadoActual = (string)$sesion['estado'];
         if ($estadoNuevo === $estadoActual) {
             return;
+        }
+
+        if ($estadoActual === 'Finalizada') {
+            $this->fail('No se puede cambiar el estado de una sesión finalizada.');
+        }
+
+        if ($estadoActual === 'Cancelado' && $estadoNuevo === 'Finalizada') {
+            $this->fail('No se puede finalizar una sesión cancelada.');
+        }
+
+        if ($estadoNuevo === 'Cancelado' && $estadoActual !== 'Activo') {
+            $this->fail('Solo se pueden cancelar sesiones activas.');
+        }
+
+        if ($estadoNuevo === 'Finalizada' && $estadoActual !== 'Activo') {
+            $this->fail('Solo se pueden finalizar sesiones activas.');
         }
 
         if ($estadoNuevo === 'Activo') {
@@ -120,15 +138,67 @@ class SesionController extends ControllerBase
                 $this->fail('No se puede activar: ya pasó la hora de fin programada.');
             }
             if ($estadoActual === 'Cancelado' || $this->antesDeInicio($sesion)) {
-                $fichaId = (int)$sesion['Ficha_id'];
-                $instructorId = (int)$sesion['Instructor_id'];
-                $fecha = substr((string)$sesion['fecha'], 0, 10);
-                $hi = substr($this->normalizarHora((string)$sesion['hora_inicio']), 0, 5);
-                $hf = substr($this->normalizarHora((string)$sesion['hora_fin']), 0, 5);
-                $this->validarSuperposicion($fichaId, $instructorId, $fecha, $hi, $hf, (int)$sesion['id']);
                 return;
             }
             $this->fail('Solo se puede dejar activa una sesión cancelada dentro de su horario o antes del inicio.');
+        }
+    }
+
+    private function validarSalidasAntesDeFinalizar(int $sesionId): void
+    {
+        $aprendices = $this->asistenciaModel->listarPorSesion($sesionId);
+        foreach ($aprendices as $aprendiz) {
+            if (!empty($aprendiz['asistencia_id']) && empty($aprendiz['hora_salida'])) {
+                $this->fail('No puedes finalizar: hay aprendices con entrada sin salida registrada.');
+            }
+        }
+    }
+
+    private function reactivarSesionCancelada(int $id, array $sesion): void
+    {
+        $fichaId = (int)$sesion['Ficha_id'];
+        $instructorId = (int)$sesion['Instructor_id'];
+        $fecha = substr((string)$sesion['fecha'], 0, 10);
+        $horaInicio = substr($this->normalizarHora((string)$sesion['hora_inicio']), 0, 5);
+        $horaFin = substr($this->normalizarHora((string)$sesion['hora_fin']), 0, 5);
+        $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
+        if (!$this->model->activar($id)) {
+            $this->fail('No se pudo reactivar la sesión.');
+        }
+    }
+
+    /** Misma lógica para admin (formulario), listado y acciones del instructor. */
+    private function aplicarTransicionEstado(
+        int $id,
+        array $sesion,
+        string $estadoNuevo,
+        string $generadoPor,
+        bool $cierreAdmin = false
+    ): void {
+        $estadoActual = (string)$sesion['estado'];
+        if ($estadoNuevo === $estadoActual) {
+            return;
+        }
+
+        $this->validarTransicionEstado($sesion, $estadoNuevo);
+
+        if ($estadoNuevo === 'Finalizada') {
+            if (!$cierreAdmin) {
+                $this->validarSalidasAntesDeFinalizar($id);
+            }
+            $this->cerrarSesionConInasistencias($id, $generadoPor, $cierreAdmin);
+            return;
+        }
+
+        if ($estadoNuevo === 'Cancelado') {
+            if (!$this->model->cancelar($id)) {
+                $this->fail('No se pudo cancelar la sesión.');
+            }
+            return;
+        }
+
+        if ($estadoNuevo === 'Activo') {
+            $this->reactivarSesionCancelada($id, $sesion);
         }
     }
 
@@ -270,11 +340,25 @@ class SesionController extends ControllerBase
         return null;
     }
 
-    private function cerrarSesionConInasistencias(int $sesionId, string $generadoPor): void
+    private function completarSalidasPendientesHoraFin(int $sesionId, array $sesion): void
+    {
+        $horaFin = $this->normalizarHora((string)$sesion['hora_fin']);
+        foreach ($this->asistenciaModel->listarPorSesion($sesionId) as $aprendiz) {
+            if (!empty($aprendiz['asistencia_id']) && empty($aprendiz['hora_salida'])) {
+                $this->asistenciaModel->registrarSalida((int)$aprendiz['asistencia_id'], $horaFin, 0);
+            }
+        }
+    }
+
+    private function cerrarSesionConInasistencias(int $sesionId, string $generadoPor, bool $completarSalidasEnHoraFin = false): void
     {
         $sesion = $this->model->buscarPorId($sesionId);
         if (!$sesion || $sesion['estado'] !== 'Activo') {
             return;
+        }
+
+        if ($completarSalidasEnHoraFin) {
+            $this->completarSalidasPendientesHoraFin($sesionId, $sesion);
         }
 
         $aprendices = $this->asistenciaModel->listarPorSesion($sesionId);
@@ -296,7 +380,7 @@ class SesionController extends ControllerBase
     private function procesarCierresAutomaticos(): void
     {
         foreach ($this->model->listarIdsVencidas() as $sesionId) {
-            $this->cerrarSesionConInasistencias((int)$sesionId, 'cierre_automatico');
+            $this->cerrarSesionConInasistencias((int)$sesionId, 'cierre_automatico', true);
         }
     }
 
@@ -580,43 +664,79 @@ class SesionController extends ControllerBase
 
             $bloqueId = $this->bloqueParaHoras($fichaId, $horaInicio, $horaFin);
 
-            $this->validarCambioEstadoAdmin($sesion, $estadoNuevo, true);
+            $estadoActual = (string)$sesion['estado'];
+            $hayTransicion = $estadoNuevo !== $estadoActual;
+            $generadoPor = (string)($_SESSION['user_id'] ?? 'sistema');
+
+            $this->validarTransicionEstado($sesion, $estadoNuevo);
 
             try {
-                $this->conTransaccion(function () use ($id, $fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId, $estadoNuevo) {
-                    if ($estadoNuevo === 'Activo') {
+                $this->conTransaccion(function () use (
+                    $id,
+                    $sesion,
+                    $fichaId,
+                    $competenciaId,
+                    $instructorId,
+                    $fecha,
+                    $horaInicio,
+                    $horaFin,
+                    $bloqueId,
+                    $estadoNuevo,
+                    $estadoActual,
+                    $hayTransicion,
+                    $generadoPor
+                ) {
+                    if ($estadoActual === 'Activo' || ($estadoActual === 'Cancelado' && $estadoNuevo === 'Activo')) {
                         $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
                     }
+
+                    $estadoEnSql = $hayTransicion ? $estadoActual : $estadoNuevo;
                     $competencia = $competenciaId > 0 ? $competenciaId : null;
-                    if (!$this->model->actualizar($id, $fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId, $estadoNuevo)) {
+                    if (!$this->model->actualizar($id, $fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId, $estadoEnSql)) {
                         $this->fail('No se pudo actualizar la sesión.');
+                    }
+
+                    if ($hayTransicion) {
+                        $sesionActualizada = $this->model->buscarPorId($id);
+                        if (!$sesionActualizada) {
+                            $this->fail('Sesión no encontrada.', 404);
+                        }
+                        $cierreAdmin = $estadoNuevo === 'Finalizada';
+                        $this->aplicarTransicionEstado($id, $sesionActualizada, $estadoNuevo, $generadoPor, $cierreAdmin);
                     }
                 });
             } catch (PDOException $e) {
                 $this->fail('Error en la base de datos al actualizar la sesión.');
             }
 
-            $this->ok([], 'Sesión actualizada correctamente.');
+            $this->ok([], $hayTransicion && $estadoNuevo === 'Finalizada'
+                ? 'Sesión finalizada correctamente.'
+                : ($hayTransicion && $estadoNuevo === 'Cancelado'
+                    ? 'Sesión cancelada correctamente.'
+                    : 'Sesión actualizada correctamente.'));
             return;
         }
 
+        $generadoPor = (string)($_SESSION['user_id'] ?? 'sistema');
+
         try {
-            $this->conTransaccion(function () use ($id, $sesion, $estadoNuevo) {
-                // Después de la hora de inicio: solo estado (programación bloqueada).
-                $this->validarCambioEstadoAdmin($sesion, $estadoNuevo, false);
-
-                if ($estadoNuevo === 'Activo' && (string)$sesion['estado'] !== 'Cancelado') {
-                    $this->fail('No se puede activar una sesión en curso salvo reactivar una cancelada.');
-                }
-
-                if (!$this->model->actualizarEstado($id, $estadoNuevo)) {
-                    $this->fail('No se pudo actualizar el estado.');
-                }
+            $this->conTransaccion(function () use ($id, $sesion, $estadoNuevo, $generadoPor) {
+                $cierreAdmin = $estadoNuevo === 'Finalizada';
+                $this->aplicarTransicionEstado($id, $sesion, $estadoNuevo, $generadoPor, $cierreAdmin);
             });
         } catch (PDOException $e) {
             $this->fail('Error en la base de datos al actualizar la sesión.');
         }
 
+        $estadoActual = (string)$sesion['estado'];
+        if ($estadoNuevo !== $estadoActual && $estadoNuevo === 'Finalizada') {
+            $this->ok([], 'Sesión finalizada correctamente.');
+            return;
+        }
+        if ($estadoNuevo !== $estadoActual && $estadoNuevo === 'Cancelado') {
+            $this->ok([], 'Sesión cancelada correctamente.');
+            return;
+        }
         $this->ok([], 'Estado de la sesión actualizado.');
     }
 
@@ -635,27 +755,24 @@ class SesionController extends ControllerBase
             $this->fail('Sesión no encontrada.', 404);
         }
 
-        if ($sesion['estado'] !== 'Activo') {
-            $this->fail('Solo se pueden cancelar sesiones activas.');
-        }
-
         $rol = $_SESSION['user_rol'] ?? '';
-        if ($rol === 'Administrador') {
-            if ($this->model->cancelar($id)) {
-                $this->ok([], 'Sesión cancelada correctamente.');
-            }
-            $this->fail('No se pudo cancelar la sesión.');
-        }
-
         if ($rol === 'Instructor') {
             $this->validarInstructorSesion($sesion);
-            if ($this->model->cancelar($id)) {
-                $this->ok([], 'Sesión cancelada correctamente.');
-            }
-            $this->fail('No se pudo cancelar la sesión.');
+        } elseif ($rol !== 'Administrador') {
+            $this->fail('No tienes permisos para esta acción.', 403);
         }
 
-        $this->fail('No tienes permisos para esta acción.', 403);
+        $generadoPor = (string)($_SESSION['user_id'] ?? 'sistema');
+
+        try {
+            $this->conTransaccion(function () use ($id, $sesion, $generadoPor) {
+                $this->aplicarTransicionEstado($id, $sesion, 'Cancelado', $generadoPor);
+            });
+        } catch (PDOException $e) {
+            $this->fail('Error en la base de datos al cancelar la sesión.');
+        }
+
+        $this->ok([], 'Sesión cancelada correctamente.');
     }
 
     public function activar(): void
@@ -673,26 +790,10 @@ class SesionController extends ControllerBase
             $this->fail('Sesión no encontrada.', 404);
         }
 
-        if ($sesion['estado'] !== 'Cancelado') {
-            $this->fail('Solo se pueden reactivar sesiones canceladas.');
-        }
-
-        if (!$this->antesDeFin($sesion)) {
-            $this->fail('No se puede reactivar: ya pasó la hora de fin de la sesión.');
-        }
-
-        $fichaId = (int)$sesion['Ficha_id'];
-        $instructorId = (int)$sesion['Instructor_id'];
-        $fecha = substr((string)$sesion['fecha'], 0, 10);
-        $horaInicio = substr($this->normalizarHora((string)$sesion['hora_inicio']), 0, 5);
-        $horaFin = substr($this->normalizarHora((string)$sesion['hora_fin']), 0, 5);
-
         try {
-            $this->conTransaccion(function () use ($id, $fichaId, $instructorId, $fecha, $horaInicio, $horaFin) {
-                $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
-                if (!$this->model->activar($id)) {
-                    $this->fail('No se pudo reactivar la sesión.');
-                }
+            $this->conTransaccion(function () use ($id, $sesion) {
+                $generadoPor = (string)($_SESSION['user_id'] ?? 'sistema');
+                $this->aplicarTransicionEstado($id, $sesion, 'Activo', $generadoPor);
             });
         } catch (PDOException $e) {
             $this->fail('Error en la base de datos al reactivar la sesión.');
@@ -716,10 +817,6 @@ class SesionController extends ControllerBase
             $this->fail('Sesión no encontrada.', 404);
         }
 
-        if ($sesion['estado'] !== 'Activo') {
-            $this->fail('Solo se pueden finalizar sesiones activas.');
-        }
-
         $rol = $_SESSION['user_rol'] ?? '';
         if ($rol === 'Instructor') {
             $this->validarInstructorSesion($sesion);
@@ -727,15 +824,16 @@ class SesionController extends ControllerBase
             $this->fail('No tienes permisos para esta acción.', 403);
         }
 
-        $aprendices = $this->asistenciaModel->listarPorSesion($id);
-        foreach ($aprendices as $aprendiz) {
-            if (!empty($aprendiz['asistencia_id']) && empty($aprendiz['hora_salida'])) {
-                $this->fail('No puedes finalizar: hay aprendices con entrada sin salida registrada.');
-            }
-        }
-
         $generadoPor = (string)($_SESSION['user_id'] ?? 'sistema');
-        $this->cerrarSesionConInasistencias($id, $generadoPor);
+        $cierreAdmin = $rol === 'Administrador';
+
+        try {
+            $this->conTransaccion(function () use ($id, $sesion, $generadoPor, $cierreAdmin) {
+                $this->aplicarTransicionEstado($id, $sesion, 'Finalizada', $generadoPor, $cierreAdmin);
+            });
+        } catch (PDOException $e) {
+            $this->fail('Error en la base de datos al finalizar la sesión.');
+        }
 
         $this->ok([], 'Sesión finalizada correctamente.');
     }
