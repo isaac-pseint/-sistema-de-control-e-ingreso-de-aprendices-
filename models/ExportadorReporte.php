@@ -171,19 +171,40 @@ class ExportadorReporte
     {
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             . '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-            . '<fonts count="2">'
+            // 4 fuentes: 0=normal, 1=negrita, 2=negrita verde oscuro 12pt (título), 3=negrita blanca (encabezado), 4=negrita roja (alerta)
+            . '<fonts count="5">'
             .   '<font><sz val="11"/><name val="Calibri"/></font>'
             .   '<font><b/><sz val="11"/><name val="Calibri"/></font>'
+            .   '<font><b/><sz val="12"/><color rgb="FF1C7308"/><name val="Calibri"/></font>'
+            .   '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
+            .   '<font><b/><sz val="11"/><color rgb="FFC62828"/><name val="Calibri"/></font>'
             . '</fonts>'
-            . '<fills count="2">'
+            // 5 rellenos: 0=none, 1=gray125 (requerido), 2=verde SENA (encabezado), 3=verde muy suave (zebra), 4=sin relleno extra
+            . '<fills count="4">'
             .   '<fill><patternFill patternType="none"/></fill>'
             .   '<fill><patternFill patternType="gray125"/></fill>'
+            .   '<fill><patternFill patternType="solid"><fgColor rgb="FF28960C"/></patternFill></fill>'
+            .   '<fill><patternFill patternType="solid"><fgColor rgb="FFF2F9F0"/></patternFill></fill>'
             . '</fills>'
-            . '<borders count="1"><border/></borders>'
+            // 2 bordes: 0=ninguno, 1=bordes finos gris
+            . '<borders count="2">'
+            .   '<border/>'
+            .   '<border>'
+            .     '<left style="thin"><color rgb="FFD0D7DE"/></left>'
+            .     '<right style="thin"><color rgb="FFD0D7DE"/></right>'
+            .     '<top style="thin"><color rgb="FFD0D7DE"/></top>'
+            .     '<bottom style="thin"><color rgb="FFD0D7DE"/></bottom>'
+            .   '</border>'
+            . '</borders>'
             . '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-            . '<cellXfs count="2">'
+            // 6 estilos: s0=base, s1=título, s2=encabezado tabla, s3=dato normal, s4=dato zebra, s5=alerta
+            . '<cellXfs count="6">'
             .   '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
-            .   '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+            .   '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+            .   '<xf numFmtId="0" fontId="3" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>'
+            .   '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/>'
+            .   '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1"/>'
+            .   '<xf numFmtId="0" fontId="4" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1"/>'
             . '</cellXfs>'
             . '</styleSheet>';
     }
@@ -203,13 +224,13 @@ class ExportadorReporte
 
         $rows = '';
 
-        // Fila 1: Título
+        // Fila 1: Título (s=1 verde oscuro negrita)
         $rows .= '<row r="1">'
             . $this->xlsxCellStr('A1', 'REPORTE DE ASISTENCIA POR APRENDIZ - SENA', 1)
             . $this->xlsxCellStr('E1', $rango, 1)
             . '</row>';
 
-        // Fila 3: Encabezados
+        // Fila 3: Encabezados (s=2 fondo verde SENA, fuente blanca)
         $headers = [
             'A' => 'Identificación', 'B' => 'Aprendiz', 'C' => 'Ficha',
             'D' => 'Programa', 'E' => 'Asistencias', 'F' => 'A Tiempo',
@@ -219,11 +240,11 @@ class ExportadorReporte
         ];
         $headerCells = '';
         foreach ($headers as $col => $label) {
-            $headerCells .= $this->xlsxCellStr($col . '3', $label, 1);
+            $headerCells .= $this->xlsxCellStr($col . '3', $label, 2);
         }
         $rows .= '<row r="3">' . $headerCells . '</row>';
 
-        // Filas de datos
+        // Filas de datos con zebra striping y alertas semánticas
         $r = 4;
         foreach ($resumen as $ap) {
             $mins = (int) $ap['minutos_retardo'];
@@ -231,19 +252,28 @@ class ExportadorReporte
                 ? intdiv($mins, 60) . 'h ' . ($mins % 60) . 'm'
                 : $mins . ' min';
 
+            // Zebra: filas pares s=4, impares s=3
+            $base = ($r % 2 === 0) ? 4 : 3;
+            $retardos = (int) $ap['total_retardos'];
+            $inasist  = (int) $ap['total_inasistencias'];
+            // Alerta retardos (G, H, I)
+            $sRet = ($retardos > 0 || $mins > 0) ? 5 : $base;
+            // Alerta inasistencias (K, L)
+            $sIna = ($inasist > 0) ? 5 : $base;
+
             $rows .= '<row r="' . $r . '">'
-                . $this->xlsxCellStr('A' . $r, (string) $ap['identificacion'])
-                . $this->xlsxCellStr('B' . $r, $ap['nombre'] . ' ' . $ap['apellido'])
-                . $this->xlsxCellStr('C' . $r, (string) $ap['ficha_codigo'])
-                . $this->xlsxCellStr('D' . $r, $ap['programa_nombre'])
-                . $this->xlsxCellNum('E' . $r, (int) $ap['total_asistencias'])
-                . $this->xlsxCellNum('F' . $r, (int) $ap['total_a_tiempo'])
-                . $this->xlsxCellNum('G' . $r, (int) $ap['total_retardos'])
-                . $this->xlsxCellNum('H' . $r, $mins)
-                . $this->xlsxCellStr('I' . $r, $hm)
-                . $this->xlsxCellNum('J' . $r, (int) $ap['total_salidas_anticipadas'])
-                . $this->xlsxCellNum('K' . $r, (int) $ap['total_inasistencias'])
-                . $this->xlsxCellNum('L' . $r, (int) $ap['dias_inasistencia'])
+                . $this->xlsxCellStr('A' . $r, (string) $ap['identificacion'], $base)
+                . $this->xlsxCellStr('B' . $r, $ap['nombre'] . ' ' . $ap['apellido'], $base)
+                . $this->xlsxCellStr('C' . $r, (string) $ap['ficha_codigo'], $base)
+                . $this->xlsxCellStr('D' . $r, $ap['programa_nombre'], $base)
+                . $this->xlsxCellNum('E' . $r, (int) $ap['total_asistencias'], $base)
+                . $this->xlsxCellNum('F' . $r, (int) $ap['total_a_tiempo'], $base)
+                . $this->xlsxCellNum('G' . $r, $retardos, $sRet)
+                . $this->xlsxCellNum('H' . $r, $mins, $sRet)
+                . $this->xlsxCellStr('I' . $r, $hm, $sRet)
+                . $this->xlsxCellNum('J' . $r, (int) $ap['total_salidas_anticipadas'], $base)
+                . $this->xlsxCellNum('K' . $r, $inasist, $sIna)
+                . $this->xlsxCellNum('L' . $r, (int) $ap['dias_inasistencia'], $sIna)
                 . '</row>';
             $r++;
         }
@@ -255,12 +285,12 @@ class ExportadorReporte
     {
         $rows = '';
 
-        // Fila 1: Título
+        // Fila 1: Título (s=1 verde oscuro negrita)
         $rows .= '<row r="1">'
             . $this->xlsxCellStr('A1', 'DETALLE DE DÍAS DE INASISTENCIA E INSTRUCTOR', 1)
             . '</row>';
 
-        // Fila 3: Encabezados
+        // Fila 3: Encabezados (s=2 fondo verde SENA, fuente blanca)
         $headers = [
             'A' => 'Fecha', 'B' => 'Horario', 'C' => 'Identificación',
             'D' => 'Aprendiz', 'E' => 'Ficha', 'F' => 'Competencia',
@@ -268,22 +298,23 @@ class ExportadorReporte
         ];
         $headerCells = '';
         foreach ($headers as $col => $label) {
-            $headerCells .= $this->xlsxCellStr($col . '3', $label, 1);
+            $headerCells .= $this->xlsxCellStr($col . '3', $label, 2);
         }
         $rows .= '<row r="3">' . $headerCells . '</row>';
 
-        // Filas de datos
+        // Filas de datos con zebra striping; columna A (Fecha) siempre en alerta
         $r = 4;
         foreach ($inasistencias as $ina) {
             $horario = substr((string) $ina['hora_inicio'], 0, 5) . ' - ' . substr((string) $ina['hora_fin'], 0, 5);
+            $base = ($r % 2 === 0) ? 4 : 3;
             $rows .= '<row r="' . $r . '">'
-                . $this->xlsxCellStr('A' . $r, (string) $ina['fecha'])
-                . $this->xlsxCellStr('B' . $r, $horario)
-                . $this->xlsxCellStr('C' . $r, (string) $ina['aprendiz_identificacion'])
-                . $this->xlsxCellStr('D' . $r, $ina['aprendiz_nombre'] . ' ' . $ina['aprendiz_apellido'])
-                . $this->xlsxCellStr('E' . $r, (string) $ina['ficha_codigo'])
-                . $this->xlsxCellStr('F' . $r, (string) $ina['competencia_nombre'])
-                . $this->xlsxCellStr('G' . $r, $ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'])
+                . $this->xlsxCellStr('A' . $r, (string) $ina['fecha'], 5)
+                . $this->xlsxCellStr('B' . $r, $horario, $base)
+                . $this->xlsxCellStr('C' . $r, (string) $ina['aprendiz_identificacion'], $base)
+                . $this->xlsxCellStr('D' . $r, $ina['aprendiz_nombre'] . ' ' . $ina['aprendiz_apellido'], $base)
+                . $this->xlsxCellStr('E' . $r, (string) $ina['ficha_codigo'], $base)
+                . $this->xlsxCellStr('F' . $r, (string) $ina['competencia_nombre'], $base)
+                . $this->xlsxCellStr('G' . $r, $ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], $base)
                 . '</row>';
             $r++;
         }
@@ -302,14 +333,12 @@ class ExportadorReporte
     private function xlsxCellStr(string $ref, string $value, int $style = 0): string
     {
         $escaped = htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-        $s = $style > 0 ? ' s="' . $style . '"' : '';
-        return '<c r="' . $ref . '"' . $s . ' t="inlineStr"><is><t>' . $escaped . '</t></is></c>';
+        return '<c r="' . $ref . '" s="' . $style . '" t="inlineStr"><is><t>' . $escaped . '</t></is></c>';
     }
 
     private function xlsxCellNum(string $ref, int $value, int $style = 0): string
     {
-        $s = $style > 0 ? ' s="' . $style . '"' : '';
-        return '<c r="' . $ref . '"' . $s . '><v>' . $value . '</v></c>';
+        return '<c r="' . $ref . '" s="' . $style . '"><v>' . $value . '</v></c>';
     }
 
     // ========================================================================
@@ -379,16 +408,27 @@ class ExportadorReporte
         // ── Iniciar primera página ──────────────────────────────────────
         $this->pdfNewPage();
 
-        // ── Encabezado institucional ────────────────────────────────────
-        $this->pdfSetFont('F2', 14);
-        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, 'SENA - Sistema de Control de Ingreso de Aprendices');
-        $this->pdfY -= self::LINE_HEIGHT * 1.4;
-        $this->pdfSetFont('F2', 11);
-        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, 'Reporte de Asistencias, Retardos e Inasistencias');
-        $this->pdfY -= self::LINE_HEIGHT * 1.2;
+        // Ancho útil del contenido
+        $contentW = self::PAGE_W - 2 * self::MARGIN_LEFT; // 762
 
+        // ── 1) Banner Superior Institucional ────────────────────────────
+        $bannerH = 42.0;
+        $bannerY = $this->pdfY - 26;
+        $this->pdfRect(self::MARGIN_LEFT, $bannerY, $contentW, $bannerH, 0.16, 0.59, 0.05);
+
+        // Título principal en blanco dentro del banner
+        $this->pdfSetFont('F2', 14);
+        $this->pdfText(self::MARGIN_LEFT + 14, $bannerY + 24, 'SENA - Sistema de Control de Ingreso de Aprendices', 1.0, 1.0, 1.0);
+
+        // Subtítulo en blanco suave
+        $this->pdfSetFont('F1', 10);
+        $this->pdfText(self::MARGIN_LEFT + 14, $bannerY + 8, 'Reporte de Asistencias, Retardos e Inasistencias', 0.92, 0.98, 0.90);
+
+        $this->pdfY = $bannerY - 16;
+
+        // Fecha de generación y rango en gris oscuro
         $this->pdfSetFont('F1', 9);
-        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, 'Fecha de generación: ' . date('Y-m-d H:i'));
+        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, 'Fecha de generación: ' . date('Y-m-d H:i'), 0.35, 0.40, 0.45);
         $this->pdfY -= self::LINE_HEIGHT;
 
         $desde = $filtros['desde'] ?? null;
@@ -401,39 +441,57 @@ class ExportadorReporte
             if ($hasta) {
                 $rango .= ($rango !== '' ? '  |  ' : '') . 'Hasta: ' . $hasta;
             }
-            $this->pdfText(self::MARGIN_LEFT, $this->pdfY, $rango);
+            $this->pdfText(self::MARGIN_LEFT, $this->pdfY, $rango, 0.35, 0.40, 0.45);
             $this->pdfY -= self::LINE_HEIGHT;
         }
 
-        $this->pdfY -= self::LINE_HEIGHT;
+        $this->pdfY -= self::LINE_HEIGHT * 0.5;
 
-        // ── Resumen de Totales Generales ────────────────────────────────
-        $this->pdfSetFont('F2', 10);
-        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, 'RESUMEN DE TOTALES GENERALES');
-        $this->pdfY -= self::LINE_HEIGHT * 1.2;
+        // ── 2) Caja de Resumen de Totales Generales (Grilla 2×3) ────────
+        $boxH = 48.0;
+        $boxY = $this->pdfY - $boxH;
+        // Fondo verde muy suave
+        $this->pdfRect(self::MARGIN_LEFT, $boxY, $contentW, $boxH, 0.93, 0.97, 0.92);
+        // Barra lateral izquierda verde SENA como acento
+        $this->pdfRect(self::MARGIN_LEFT, $boxY, 4, $boxH, 0.16, 0.59, 0.05);
 
-        $this->pdfSetFont('F1', 9);
-        $lineasTotales = [
+        // Título del resumen
+        $this->pdfSetFont('F2', 9);
+        $this->pdfText(self::MARGIN_LEFT + 12, $boxY + $boxH - 12, 'RESUMEN DE TOTALES GENERALES', 0.11, 0.45, 0.03);
+
+        // 6 totales distribuidos en 3 columnas × 2 filas
+        $this->pdfSetFont('F1', 8);
+        $colTot = [
+            self::MARGIN_LEFT + 12,
+            self::MARGIN_LEFT + 260,
+            self::MARGIN_LEFT + 520,
+        ];
+        $totLabels = [
             'Aprendices: ' . ($totales['total_aprendices'] ?? 0),
-            'Asistencias: ' . ($totales['total_asistencias'] ?? 0),
             'Retardos: ' . ($totales['total_retardos'] ?? 0),
-            'Minutos de Retardo acumulados: ' . ($totales['minutos_retardo'] ?? 0),
             'Salidas Anticipadas: ' . ($totales['total_salidas_anticipadas'] ?? 0),
+            'Asistencias: ' . ($totales['total_asistencias'] ?? 0),
+            'Min. Retardo acumulados: ' . ($totales['minutos_retardo'] ?? 0),
             'Inasistencias: ' . ($totales['total_inasistencias'] ?? 0),
         ];
-        foreach ($lineasTotales as $linea) {
-            $this->pdfCheckPage();
-            $this->pdfText(self::MARGIN_LEFT + 10, $this->pdfY, $linea);
-            $this->pdfY -= self::LINE_HEIGHT;
+        // Fila 1 (índices 0,1,2)
+        $row1Y = $boxY + $boxH - 26;
+        for ($t = 0; $t < 3; $t++) {
+            $this->pdfText($colTot[$t], $row1Y, $totLabels[$t], 0.15, 0.18, 0.20);
+        }
+        // Fila 2 (índices 3,4,5)
+        $row2Y = $row1Y - 14;
+        for ($t = 3; $t < 6; $t++) {
+            $this->pdfText($colTot[$t - 3], $row2Y, $totLabels[$t], 0.15, 0.18, 0.20);
         }
 
-        $this->pdfY -= self::LINE_HEIGHT;
+        $this->pdfY = $boxY - 18;
 
-        // ── Sección 1: Resumen por Aprendiz ─────────────────────────────
+        // ── 3) Sección 1: Resumen por Aprendiz ─────────────────────────
         $this->pdfCheckPage();
         $this->pdfSetFont('F2', 11);
-        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, '1. Resumen por Aprendiz');
-        $this->pdfY -= self::LINE_HEIGHT * 1.3;
+        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, '1. Resumen por Aprendiz', 0.14, 0.52, 0.04);
+        $this->pdfY -= self::LINE_HEIGHT * 1.5;
 
         // Encabezados de tabla
         $col1 = [
@@ -449,15 +507,14 @@ class ExportadorReporte
         ];
         $hdr1 = ['Identificación', 'Aprendiz', 'Ficha', 'Asist.', 'Retardos', 'Tiempo Retardo', 'Sal. Ant.', 'Días Inasist.', 'Total Inasist.'];
 
+        // Franja de fondo verde SENA para encabezado
         $this->pdfCheckPage();
+        $this->pdfRect(self::MARGIN_LEFT, $this->pdfY - 4, $contentW, 16, 0.16, 0.59, 0.05);
         $this->pdfSetFont('F2', 8);
         foreach ($hdr1 as $i => $h) {
-            $this->pdfText($col1[$i], $this->pdfY, $h);
+            $this->pdfText($col1[$i], $this->pdfY, $h, 1.0, 1.0, 1.0);
         }
-        $this->pdfY -= 2;
-        // Línea separadora
-        $this->pdfLine(self::MARGIN_LEFT, $this->pdfY, self::PAGE_W - self::MARGIN_LEFT, $this->pdfY);
-        $this->pdfY -= self::LINE_HEIGHT;
+        $this->pdfY -= self::LINE_HEIGHT + 4;
 
         $this->pdfSetFont('F1', 7);
         if (empty($resumen)) {
@@ -466,8 +523,13 @@ class ExportadorReporte
             $this->pdfText(self::MARGIN_LEFT, $this->pdfY, 'Sin registros para los filtros seleccionados.');
             $this->pdfY -= self::LINE_HEIGHT;
         } else {
-            foreach ($resumen as $ap) {
+            foreach ($resumen as $idx => $ap) {
                 $this->pdfCheckPage();
+
+                // Zebra striping: filas pares (idx impar 0-indexed) con fondo suave
+                if ($idx % 2 === 1) {
+                    $this->pdfRect(self::MARGIN_LEFT, $this->pdfY - 3.5, $contentW, 14, 0.95, 0.98, 0.95);
+                }
 
                 $mins = (int) $ap['minutos_retardo'];
                 $tiempoRetardo = $mins >= 60
@@ -485,8 +547,21 @@ class ExportadorReporte
                     (string) $ap['dias_inasistencia'],
                     (string) $ap['total_inasistencias'],
                 ];
+
+                $retardos = (int) $ap['total_retardos'];
+                $minRet   = (int) $ap['minutos_retardo'];
+                $inasist  = (int) $ap['total_inasistencias'];
+
                 foreach ($fila as $i => $val) {
-                    $this->pdfText($col1[$i], $this->pdfY, $val);
+                    // Semántica: retardos/tiempo retardo en rojo-naranja si > 0
+                    if (($i === 4 || $i === 5) && ($retardos > 0 || $minRet > 0)) {
+                        $this->pdfText($col1[$i], $this->pdfY, $val, 0.78, 0.16, 0.16);
+                    // Semántica: días inasistencia y total inasistencias en rojo si > 0
+                    } elseif (($i === 7 || $i === 8) && $inasist > 0) {
+                        $this->pdfText($col1[$i], $this->pdfY, $val, 0.78, 0.16, 0.16);
+                    } else {
+                        $this->pdfText($col1[$i], $this->pdfY, $val);
+                    }
                 }
                 $this->pdfY -= self::LINE_HEIGHT;
             }
@@ -494,11 +569,11 @@ class ExportadorReporte
 
         $this->pdfY -= self::LINE_HEIGHT;
 
-        // ── Sección 2: Detalle de Inasistencias ─────────────────────────
+        // ── 4) Sección 2: Detalle de Inasistencias ──────────────────────
         $this->pdfCheckPage();
         $this->pdfSetFont('F2', 11);
-        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, '2. Días Específicos de Inasistencia con Instructor');
-        $this->pdfY -= self::LINE_HEIGHT * 1.3;
+        $this->pdfText(self::MARGIN_LEFT, $this->pdfY, '2. Días Específicos de Inasistencia con Instructor', 0.14, 0.52, 0.04);
+        $this->pdfY -= self::LINE_HEIGHT * 1.5;
 
         $col2 = [
             self::MARGIN_LEFT,        // Fecha
@@ -511,14 +586,14 @@ class ExportadorReporte
         ];
         $hdr2 = ['Fecha', 'Horario', 'Identificación', 'Aprendiz', 'Ficha', 'Competencia', 'Instructor'];
 
+        // Franja de fondo verde SENA para encabezado
         $this->pdfCheckPage();
+        $this->pdfRect(self::MARGIN_LEFT, $this->pdfY - 4, $contentW, 16, 0.16, 0.59, 0.05);
         $this->pdfSetFont('F2', 8);
         foreach ($hdr2 as $i => $h) {
-            $this->pdfText($col2[$i], $this->pdfY, $h);
+            $this->pdfText($col2[$i], $this->pdfY, $h, 1.0, 1.0, 1.0);
         }
-        $this->pdfY -= 2;
-        $this->pdfLine(self::MARGIN_LEFT, $this->pdfY, self::PAGE_W - self::MARGIN_LEFT, $this->pdfY);
-        $this->pdfY -= self::LINE_HEIGHT;
+        $this->pdfY -= self::LINE_HEIGHT + 4;
 
         $this->pdfSetFont('F1', 7);
         if (empty($inasistencias)) {
@@ -527,8 +602,13 @@ class ExportadorReporte
             $this->pdfText(self::MARGIN_LEFT, $this->pdfY, 'Sin inasistencias registradas en el periodo seleccionado.');
             $this->pdfY -= self::LINE_HEIGHT;
         } else {
-            foreach ($inasistencias as $ina) {
+            foreach ($inasistencias as $idx => $ina) {
                 $this->pdfCheckPage();
+
+                // Zebra striping
+                if ($idx % 2 === 1) {
+                    $this->pdfRect(self::MARGIN_LEFT, $this->pdfY - 3.5, $contentW, 14, 0.95, 0.98, 0.95);
+                }
 
                 $horario = substr((string) $ina['hora_inicio'], 0, 5) . ' - ' . substr((string) $ina['hora_fin'], 0, 5);
                 $fila = [
@@ -541,7 +621,12 @@ class ExportadorReporte
                     $this->recortarTexto($ina['instructor_nombre'] . ' ' . $ina['instructor_apellido'], 28),
                 ];
                 foreach ($fila as $i => $val) {
-                    $this->pdfText($col2[$i], $this->pdfY, $val);
+                    // Semántica: columna Fecha en rojo oscuro
+                    if ($i === 0) {
+                        $this->pdfText($col2[$i], $this->pdfY, $val, 0.75, 0.15, 0.15);
+                    } else {
+                        $this->pdfText($col2[$i], $this->pdfY, $val);
+                    }
                 }
                 $this->pdfY -= self::LINE_HEIGHT;
             }
@@ -635,15 +720,32 @@ class ExportadorReporte
         $this->pdfFontSize = $size;
     }
 
-    private function pdfText(float $x, float $y, string $text): void
+    /**
+     * Dibuja un rectángulo relleno con color RGB y restablece el color de relleno a negro.
+     */
+    private function pdfRect(float $x, float $y, float $w, float $h, float $r, float $g, float $b): void
     {
-        $escaped = $this->pdfEscape($text);
-        $this->pdfStream .= "BT /{$this->pdfFont} {$this->pdfFontSize} Tf $x $y Td ($escaped) Tj ET\n";
+        $this->pdfStream .= sprintf("%.3f %.3f %.3f rg %.2f %.2f %.2f %.2f re f 0 0 0 rg\n", $r, $g, $b, $x, $y, $w, $h);
     }
 
-    private function pdfLine(float $x1, float $y1, float $x2, float $y2): void
+    /**
+     * Emite texto con color RGB opcional (por defecto gris oscuro) y restablece a negro.
+     */
+    private function pdfText(float $x, float $y, string $text, float $r = 0.15, float $g = 0.18, float $b = 0.20): void
     {
-        $this->pdfStream .= "0.6 w $x1 $y1 m $x2 $y2 l S\n";
+        $escaped = $this->pdfEscape($text);
+        $this->pdfStream .= sprintf(
+            "BT %.3f %.3f %.3f rg /%s %.1f Tf %.2f %.2f Td (%s) Tj 0 0 0 rg ET\n",
+            $r, $g, $b, $this->pdfFont, $this->pdfFontSize, $x, $y, $escaped
+        );
+    }
+
+    /**
+     * Dibuja una línea con color RGB y grosor opcionales y restablece el color de trazo a negro.
+     */
+    private function pdfLine(float $x1, float $y1, float $x2, float $y2, float $r = 0.16, float $g = 0.59, float $b = 0.05, float $width = 0.8): void
+    {
+        $this->pdfStream .= sprintf("%.2f w %.3f %.3f %.3f RG %.2f %.2f m %.2f %.2f l S 0 0 0 RG\n", $width, $r, $g, $b, $x1, $y1, $x2, $y2);
     }
 
     private function pdfFinalize(): string
