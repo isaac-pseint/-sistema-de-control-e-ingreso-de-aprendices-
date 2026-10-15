@@ -13,6 +13,9 @@ function tieneAsistencia(a) {
 
 function etiquetaEstado(a) {
     if (!tieneAsistencia(a)) {
+        if (sesionActual?.estado === "Cancelado") {
+            return { texto: "No aplica (sesión cancelada)", clase: "text-muted" };
+        }
         const pendiente = sesionPermiteAcciones(sesionActual?.estado);
         return pendiente
             ? { texto: "Pendiente", clase: "text-warning" }
@@ -30,6 +33,9 @@ function etiquetaEstado(a) {
 function filtrarAprendices() {
     const presencia = document.getElementById("filtroPresencia")?.value || "todos";
     const anomalia = document.getElementById("filtroAnomalia")?.value || "todos";
+    if (sesionActual?.estado === "Cancelado" && presencia === "inasistencias") {
+        return [];
+    }
     return filtrarFilasSesion(aprendicesTodos, { presencia, anomalia }, tieneAsistencia);
 }
 
@@ -49,6 +55,9 @@ function celdaExcusa(a) {
         return `<a href="${href}" class="btn btn-outline btn-sm btn-a">${texto}</a>`;
     }
     if (tieneAsistencia(a)) {
+        return "—";
+    }
+    if (sesionActual?.estado === "Cancelado") {
         return "—";
     }
     if (sesionPermiteAcciones(sesionActual?.estado)) {
