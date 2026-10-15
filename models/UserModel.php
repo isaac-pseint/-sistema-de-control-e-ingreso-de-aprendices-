@@ -84,7 +84,7 @@ class UserModel
 
     public function buscarPorCodigoLlavero(string $codigoLlavero, ?int $excluirId = null): ?array
     {
-        $sql = "SELECT id, Ficha_id, estado FROM usuario WHERE codigo_llavero = ?";
+        $sql = "SELECT id, nombre, apellido, Ficha_id, estado FROM usuario WHERE codigo_llavero = ?";
         $params = [$codigoLlavero];
 
         if ($excluirId !== null) {

@@ -133,7 +133,8 @@ class AsistenciaController extends ControllerBase
             );
 
             if ($creado) {
-                $this->ok([], "Entrada registrada correctamente.");
+                $nombreAprendiz = trim($usuario['nombre'] . ' ' . $usuario['apellido']);
+                $this->ok([], "Entrada registrada correctamente para {$nombreAprendiz}.");
             }
             $this->fail("No se pudo registrar la entrada.");
         } catch (PDOException $e) {
@@ -174,7 +175,8 @@ class AsistenciaController extends ControllerBase
             $actualizado = $this->asistenciaModel->registrarSalida((int)$asistencia['id'], $hora, $minutosAnticipacion);
 
             if ($actualizado) {
-                $this->ok([], "Salida registrada correctamente.");
+                $nombreAprendiz = trim($usuario['nombre'] . ' ' . $usuario['apellido']);
+                $this->ok([], "Salida registrada correctamente para {$nombreAprendiz}.");
             }
             $this->fail("No se pudo registrar la salida.");
         } catch (PDOException $e) {
