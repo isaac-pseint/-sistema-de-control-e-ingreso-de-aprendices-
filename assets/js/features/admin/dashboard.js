@@ -145,7 +145,7 @@ export async function cargarDashboardAdmin() {
                     <tr>
                         <td>${esc(s.ficha)}</td>
                         <td>${esc(s.programa)}</td>
-                        <td>${esc(s.competencia)}</td>
+                        <td>${esc(s.competencia || "Sin competencia")}</td>
                         <td>${esc(s.instructor)}</td>
                         <td>${formatearHora12h(s.hora_inicio)} - ${formatearHora12h(s.hora_fin)}</td>
                         <td><span class="badge ${badgeClass}">${esc(s.estado)}</span></td>

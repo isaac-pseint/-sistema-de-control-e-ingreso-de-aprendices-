@@ -83,7 +83,8 @@ class AsistenciaModel
     {
         $sql = "
             SELECT DATE_FORMAT(a.fecha, '%Y-%m-%d') AS fecha,
-                   c.nombre AS competencia,
+                   COALESCE(c.nombre, 'Sin competencia') AS competencia,
+                   s.Competencia_id AS competencia_id,
                    DATE_FORMAT(a.hora_entrada, '%r') AS hora_entrada,
                    DATE_FORMAT(a.hora_salida, '%r') AS hora_salida,
                    a.estado,
@@ -96,13 +97,14 @@ class AsistenciaModel
                    'asistencia' AS tipo_registro
             FROM asistencia a
             INNER JOIN sesion s ON a.Sesion_id = s.id
-            INNER JOIN competencia c ON s.Competencia_id = c.id
+            LEFT JOIN competencia c ON s.Competencia_id = c.id
             WHERE a.Usuario_id = ?
 
             UNION ALL
 
             SELECT DATE_FORMAT(i.fecha, '%Y-%m-%d') AS fecha,
-                   c.nombre AS competencia,
+                   COALESCE(c.nombre, 'Sin competencia') AS competencia,
+                   s.Competencia_id AS competencia_id,
                    NULL AS hora_entrada,
                    NULL AS hora_salida,
                    'Inasistencia' AS estado,
@@ -115,7 +117,7 @@ class AsistenciaModel
                    'inasistencia' AS tipo_registro
             FROM inasistencia i
             INNER JOIN sesion s ON i.Sesion_id = s.id
-            INNER JOIN competencia c ON s.Competencia_id = c.id
+            LEFT JOIN competencia c ON s.Competencia_id = c.id
             WHERE i.Usuario_id = ?
               AND NOT EXISTS (
                   SELECT 1 FROM asistencia a2

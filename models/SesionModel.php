@@ -17,7 +17,7 @@ class SesionModel
         $sql = "SELECT s.id, s.Ficha_id, s.Competencia_id, s.Instructor_id, s.bloque_id,
                        s.fecha, s.hora_inicio, s.hora_fin, s.estado,
                        f.codigo AS ficha,
-                       c.nombre AS competencia,
+                       COALESCE(c.nombre, 'Sin competencia') AS competencia,
                        CONCAT(u.nombre, ' ', u.apellido) AS instructor,
                        b.nombre AS bloque
                 FROM sesion s
@@ -104,7 +104,7 @@ class SesionModel
         $sql = "SELECT s.id, s.Ficha_id, s.Competencia_id, s.Instructor_id, s.bloque_id,
                        s.fecha, s.hora_inicio, s.hora_fin, s.estado,
                        f.codigo AS ficha,
-                       c.nombre AS competencia,
+                       COALESCE(c.nombre, 'Sin competencia') AS competencia,
                        CONCAT(u.nombre, ' ', u.apellido) AS instructor,
                        b.nombre AS bloque
                 FROM sesion s

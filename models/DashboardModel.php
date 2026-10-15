@@ -194,12 +194,12 @@ class DashboardModel
                 s.estado,
                 f.codigo   AS ficha,
                 p.nombre   AS programa,
-                c.nombre   AS competencia,
+                COALESCE(c.nombre, 'Sin competencia') AS competencia,
                 CONCAT(u.nombre, ' ', u.apellido) AS instructor
             FROM sesion s
             INNER JOIN ficha       f ON s.Ficha_id       = f.id
             INNER JOIN programa    p ON f.Programa_id     = p.id
-            INNER JOIN competencia c ON s.Competencia_id  = c.id
+            LEFT JOIN competencia c ON s.Competencia_id  = c.id
             INNER JOIN usuario     u ON s.Instructor_id   = u.id
             WHERE s.fecha = CURDATE()
             ORDER BY s.hora_inicio ASC
@@ -292,11 +292,11 @@ class DashboardModel
                 s.estado,
                 f.codigo   AS ficha,
                 p.nombre   AS programa,
-                c.nombre   AS competencia
+                COALESCE(c.nombre, 'Sin competencia') AS competencia
             FROM sesion s
             INNER JOIN ficha       f ON s.Ficha_id       = f.id
             INNER JOIN programa    p ON f.Programa_id     = p.id
-            INNER JOIN competencia c ON s.Competencia_id  = c.id
+            LEFT JOIN competencia c ON s.Competencia_id  = c.id
             WHERE s.fecha = CURDATE()
               AND s.Instructor_id = ?
               AND s.estado = 'Activo'
@@ -320,11 +320,11 @@ class DashboardModel
                 s.estado,
                 f.codigo   AS ficha,
                 p.nombre   AS programa,
-                c.nombre   AS competencia
+                COALESCE(c.nombre, 'Sin competencia') AS competencia
             FROM sesion s
             INNER JOIN ficha       f ON s.Ficha_id       = f.id
             INNER JOIN programa    p ON f.Programa_id     = p.id
-            INNER JOIN competencia c ON s.Competencia_id  = c.id
+            LEFT JOIN competencia c ON s.Competencia_id  = c.id
             WHERE s.fecha = CURDATE()
               AND s.Instructor_id = ?
               AND s.estado = 'Activo'
@@ -360,10 +360,10 @@ class DashboardModel
                 s.hora_fin,
                 s.estado,
                 f.codigo   AS ficha,
-                c.nombre   AS competencia
+                COALESCE(c.nombre, 'Sin competencia') AS competencia
             FROM sesion s
             INNER JOIN ficha       f ON s.Ficha_id       = f.id
-            INNER JOIN competencia c ON s.Competencia_id  = c.id
+            LEFT JOIN competencia c ON s.Competencia_id  = c.id
             WHERE s.Instructor_id = ?
               AND s.fecha BETWEEN
                   DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)
@@ -485,10 +485,10 @@ class DashboardModel
                 s.hora_inicio,
                 s.hora_fin,
                 s.estado,
-                c.nombre AS competencia,
+                COALESCE(c.nombre, 'Sin competencia') AS competencia,
                 CONCAT(u.nombre, ' ', u.apellido) AS instructor
             FROM sesion s
-            INNER JOIN competencia c ON s.Competencia_id = c.id
+            LEFT JOIN competencia c ON s.Competencia_id = c.id
             INNER JOIN usuario     u ON s.Instructor_id  = u.id
             WHERE s.Ficha_id = ?
               AND s.estado   = 'Activo'
@@ -525,10 +525,10 @@ class DashboardModel
                 a.estado,
                 a.minutos_retardo,
                 a.minutos_anticipacion,
-                c.nombre AS competencia
+                COALESCE(c.nombre, 'Sin competencia') AS competencia
             FROM asistencia a
             INNER JOIN sesion      s ON a.Sesion_id      = s.id
-            INNER JOIN competencia c ON s.Competencia_id  = c.id
+            LEFT JOIN competencia c ON s.Competencia_id  = c.id
             WHERE a.Usuario_id = ?
             ORDER BY s.fecha DESC, a.hora_entrada DESC
             LIMIT 1

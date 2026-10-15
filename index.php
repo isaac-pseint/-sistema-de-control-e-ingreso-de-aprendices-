@@ -6,6 +6,16 @@
  * SIEMPRE JSON. El frontend (views/ + assets/js/) se comunica por fetch().
  * ===================================================================== */
 
+// Configura cookies de sesión antes de iniciarla.
+$cookieParams = session_get_cookie_params();
+$cookieParams['httponly'] = true;
+$cookieParams['samesite'] = 'Lax';
+$cookieParams['secure'] = (
+    (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+    || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443)
+);
+session_set_cookie_params($cookieParams);
+
 // Inicia/reanuda la sesión. Sin esto $_SESSION no guarda nada entre peticiones.
 session_start();
 
@@ -13,6 +23,20 @@ session_start();
 // que todo date()/time() del backend use la hora local correcta en cualquier
 // entorno, sin depender de la config de php.ini de cada máquina.
 date_default_timezone_set('America/Bogota');
+
+// Toda mutación desde el navegador debe venir de una petición AJAX del frontend.
+header("Content-Type: application/json; charset=UTF-8");
+if (
+    ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST'
+    && ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') !== 'XMLHttpRequest'
+) {
+    http_response_code(403);
+    echo json_encode(
+        ["ok" => false, "error" => "Petición no autorizada."],
+        JSON_UNESCAPED_UNICODE
+    );
+    exit;
+}
 
 // Acceso directo a la aplicación sin ?action=: redirige a login o dashboard
 // según haya una sesión activa. Nunca devuelve HTML desde aquí.
@@ -29,9 +53,6 @@ if ($action === null) {
     header('Location: views/' . $vista);
     exit;
 }
-
-// Cabecera global: le dice al navegador que la respuesta es JSON.
-header("Content-Type: application/json; charset=UTF-8");
 
 // Autoloader: cada vez que el código usa una clase (new X()), busca el archivo
 // X.php en controllers/ o models/ y lo incluye solo. Evita llenar de require.

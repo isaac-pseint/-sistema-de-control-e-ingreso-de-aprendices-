@@ -139,6 +139,7 @@ foreach (glob(__DIR__ . "/migrations/*.sql") as $file) {
 
 1. Un archivo por cambio, numerado secuencialmente, y **no se editan** los ya aplicados
    (si hay que cambiar algo, se crea una migración nueva).
-2. Usar `CREATE TABLE IF NOT EXISTS` y `ALTER TABLE` para que sea seguro repetirlas.
+2. Usar `CREATE TABLE IF NOT EXISTS`, operaciones idempotentes y `IF EXISTS` al
+   eliminar objetos para que las migraciones seguras puedan aplicarse en bases existentes.
 3. La BD siempre se referencia con `USE ControlAprendices;` al inicio.
 4. Mantener la BD en sincronía con lo que esperan `models/` (mismos nombres de columnas).

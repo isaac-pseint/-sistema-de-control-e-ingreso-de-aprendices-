@@ -22,6 +22,8 @@ class AuthController extends ControllerBase
         // auth() busca el usuario por email y verifica el hash de la contraseña.
         // Devuelve el array del usuario si es válido, o false si no.
         if ($user = $this->userModel->auth($email, $password)) {
+            session_regenerate_id(true);
+
             // Guarda los datos del usuario en la sesión para las próximas peticiones.
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_nombre'] = $user['nombre'];

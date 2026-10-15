@@ -73,7 +73,7 @@ export async function cargarDashboardAprendiz() {
             contProxima.innerHTML = `
                 <p><strong>Fecha:</strong> ${esc(proxima_clase.fecha)}</p>
                 <p><strong>Horario:</strong> ${formatearHora12h(proxima_clase.hora_inicio)} - ${formatearHora12h(proxima_clase.hora_fin)}</p>
-                <p><strong>Competencia:</strong> ${esc(proxima_clase.competencia)}</p>
+                <p><strong>Competencia:</strong> ${esc(proxima_clase.competencia || "Sin competencia")}</p>
                 <p><strong>Instructor:</strong> ${esc(proxima_clase.instructor)}</p>
             `;
         }
@@ -111,7 +111,7 @@ if (contUltima) {
             contUltima.innerHTML = `
                 <p><strong>Estado:</strong> <span class="insignias">${insignias.join("")}</span></p>
                 <p><strong>Fecha:</strong> ${esc(ultima_asistencia.fecha)}</p>
-                <p><strong>Competencia:</strong> ${esc(ultima_asistencia.competencia)}</p>
+                <p><strong>Competencia:</strong> ${esc(ultima_asistencia.competencia || "Sin competencia")}</p>
                 <p><strong>Hora Entrada:</strong> ${formatearHora12h(ultima_asistencia.hora_entrada)}</p>
                 <p><strong>Hora Salida:</strong> ${esc(horaSalidaText)}</p>
             `;

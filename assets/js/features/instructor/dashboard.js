@@ -60,7 +60,7 @@ export async function cargarDashboardInstructor() {
             contSesion.innerHTML = `
                 <p><strong>Ficha:</strong> ${esc(sesion_destacada.ficha)}</p>
                 <p><strong>Programa:</strong> ${esc(sesion_destacada.programa)}</p>
-                <p><strong>Competencia:</strong> ${esc(sesion_destacada.competencia)}</p>
+                <p><strong>Competencia:</strong> ${esc(sesion_destacada.competencia || "Sin competencia")}</p>
                 <p><strong>Horario:</strong> ${formatearHora12h(sesion_destacada.hora_inicio)} - ${formatearHora12h(sesion_destacada.hora_fin)}</p>
                 <p><strong>Estado:</strong> <span class="badge ${badgeClass}">${esc(sesion_destacada.estado)}</span></p>
             `;
@@ -102,7 +102,7 @@ export async function cargarDashboardInstructor() {
                         <td>${esc(s.fecha)}</td>
                         <td>${formatearHora12h(s.hora_inicio)} - ${formatearHora12h(s.hora_fin)}</td>
                         <td>${esc(s.ficha)}</td>
-                        <td>${esc(s.competencia)}</td>
+                        <td>${esc(s.competencia || "Sin competencia")}</td>
                         <td><span class="badge ${badgeClass}">${esc(s.estado)}</span></td>
                         <td class="col-acciones"><a href="sesiones/detalle.html?sesion_id=${esc(s.id)}" class="btn btn-sm btn-outline btn-a">Detalle</a></td>
                     </tr>

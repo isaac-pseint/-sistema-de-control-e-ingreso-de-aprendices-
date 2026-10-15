@@ -39,7 +39,7 @@ function actualizarSelectCompetencias() {
     for (const nombre of lista) {
         const opt = document.createElement("option");
         opt.value = nombre;
-        opt.textContent = nombre;
+        opt.textContent = nombre === "__sin_competencia__" ? "Sin competencia" : nombre;
         select.appendChild(opt);
     }
 
@@ -81,7 +81,7 @@ function renderizarListado() {
         return `
         <tr>
             <td>${esc(normalizarFecha(a.fecha))}</td>
-            <td>${a.competencia ? esc(a.competencia) : "—"}</td>
+            <td>${esc(a.competencia || "Sin competencia")}</td>
             <td>${horario}</td>
             <td>${a.hora_entrada ? esc(formatearHora(a.hora_entrada)) : "—"}</td>
             <td>${a.hora_salida ? esc(formatearHora(a.hora_salida)) : "—"}</td>

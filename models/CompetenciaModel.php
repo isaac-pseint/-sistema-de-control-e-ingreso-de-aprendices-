@@ -8,11 +8,7 @@ class CompetenciaModel
         $stmt = Database::conn()->prepare(
             "INSERT INTO competencia (Programa_id, Instructor_id, nombre, descripcion) VALUES (?, ?, ?, ?)"
         );
-        $ok = $stmt->execute([$programaId, $instructorId, $nombre, $descripcion]);
-        if ($ok) {
-            $this->sincronizarTablaLegacyInstructor($instructorId, (int)Database::conn()->lastInsertId());
-        }
-        return $ok;
+        return $stmt->execute([$programaId, $instructorId, $nombre, $descripcion]);
     }
 
     public function buscarPorNombre(string $nombre, int $programaId): ?array
@@ -45,11 +41,7 @@ class CompetenciaModel
         $stmt = Database::conn()->prepare(
             "UPDATE competencia SET nombre = ?, descripcion = ?, Programa_id = ?, Instructor_id = ? WHERE id = ?"
         );
-        $ok = $stmt->execute([$nombre, $descripcion, $programaId, $instructorId, $id]);
-        if ($ok) {
-            $this->sincronizarTablaLegacyInstructor($instructorId, $id);
-        }
-        return $ok;
+        return $stmt->execute([$nombre, $descripcion, $programaId, $instructorId, $id]);
     }
 
     public function tieneSesionesAsociadas(int $id): bool
@@ -64,7 +56,6 @@ class CompetenciaModel
     public function eliminar(int $id): bool
     {
         $db = Database::conn();
-        $db->prepare("DELETE FROM instructor_competencia WHERE Competencia_id = ?")->execute([$id]);
         $stmt = $db->prepare("DELETE FROM competencia WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->rowCount() > 0;
@@ -140,13 +131,4 @@ class CompetenciaModel
         return $stmt->fetchAll();
     }
 
-    // Mantiene instructor_competencia alineada por si hay entornos antiguos.
-    private function sincronizarTablaLegacyInstructor(int $instructorId, int $competenciaId): void
-    {
-        $db = Database::conn();
-        $db->prepare("DELETE FROM instructor_competencia WHERE Competencia_id = ?")->execute([$competenciaId]);
-        $db->prepare(
-            "INSERT INTO instructor_competencia (Instructor_id, Competencia_id) VALUES (?, ?)"
-        )->execute([$instructorId, $competenciaId]);
-    }
 }

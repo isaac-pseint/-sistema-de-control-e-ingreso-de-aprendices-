@@ -43,7 +43,13 @@ export function filtrarHistorialAprendiz(registros, { presencia, anomalia, compe
         const fecha = normalizarFecha(r.fecha);
         if (desde && fecha < desde) return false;
         if (hasta && fecha > hasta) return false;
-        if (competencia && competencia !== "todas" && r.competencia !== competencia) return false;
+        if (competencia === "__sin_competencia__" && r.competencia_id != null) return false;
+        if (
+            competencia
+            && competencia !== "todas"
+            && competencia !== "__sin_competencia__"
+            && r.competencia !== competencia
+        ) return false;
 
         const inasistencia = esRegistroInasistencia(r);
         if (presencia === "asistencias" && inasistencia) return false;
@@ -62,7 +68,11 @@ export function filtrarHistorialAprendiz(registros, { presencia, anomalia, compe
 export function competenciasUnicas(registros) {
     const nombres = new Set();
     for (const r of registros) {
-        if (r.competencia) nombres.add(r.competencia);
+        if (r.competencia_id != null && r.competencia) nombres.add(r.competencia);
     }
-    return [...nombres].sort((a, b) => a.localeCompare(b, "es"));
+    const lista = [...nombres].sort((a, b) => a.localeCompare(b, "es"));
+    if (registros.some(r => r.competencia_id == null)) {
+        lista.push("__sin_competencia__");
+    }
+    return lista;
 }

@@ -94,6 +94,10 @@ aprendices.js: api("aprendices") → JSON { ok:true, data:[...] }
 aprendices.js: renderTabla(data) → dibuja las filas dentro del <tbody>
 ```
 
+Todas las peticiones `POST` deben incluir `X-Requested-With: XMLHttpRequest`;
+si falta, `index.php` responde `403` en JSON. La cookie de sesión es `HttpOnly`
+y `SameSite=Lax`; `Secure` solo se activa en peticiones HTTPS.
+
 ---
 
 ## 5. Mapa de comunicación entre carpetas
@@ -192,3 +196,13 @@ ControlAprendices/
 5. Sesión caducada o rol incorrecto: la API responde **401** → `core/api.js` (o
    `features/auth.js`) redirige a `views/public/login.html`.
 6. Si la API no reconoce la acción → **404 JSON**, nunca una página HTML.
+
+## 10. Conceptos de dominio pendientes
+
+- El **instructor líder de la ficha** (`ficha.instructor_id`) es distinto del
+  **instructor asignado a cada sesión** (`sesion.Instructor_id`) y del instructor
+  asociado a una competencia (`competencia.Instructor_id`). El instructor líder
+  sigue siendo un dato vigente de la ficha; no debe confundirse con quien dicta
+  una sesión concreta.
+- Las tablas de **excusas** (`excusa` y `estado_excusa`) existen en el esquema,
+  pero su funcionalidad está pendiente. No se usan actualmente desde la aplicación.

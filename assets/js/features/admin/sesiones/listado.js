@@ -54,7 +54,7 @@ export function cargarListadoSesiones() {
             <tr>
                 <td>${esc(s.fecha)}</td>
                 <td>${esc(s.ficha)}</td>
-                <td>${s.competencia ? esc(s.competencia) : "—"}</td>
+                <td>${esc(s.competencia || "Sin competencia")}</td>
                 <td>${esc(s.instructor)}</td>
                 <td>${esc(formatearHora(s.hora_inicio))} - ${esc(formatearHora(s.hora_fin))}</td>
                 <td class="${claseEstadoSesion(s.estado)}">${esc(s.estado)}</td>
