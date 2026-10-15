@@ -60,6 +60,7 @@ export function conectarEntrada() {
     conectarFormulario("formEntrada", "marcarEntrada", {
         textoEnviando: "Registrando...",
         textoRestaurar: "Registrar Entrada",
-        validar: validarFormulario
+        validar: validarFormulario,
+        resetOnSuccess: true
     });
 }

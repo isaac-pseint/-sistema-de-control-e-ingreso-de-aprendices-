@@ -98,7 +98,8 @@ export function cargarCatalogoSesion() {
 export function conectarFormularioCrearSesion() {
     conectarFormulario("formCrearSesion", "crearSesion", {
         textoEnviando: "Guardando...",
-        textoRestaurar: "Guardar sesión"
+        textoRestaurar: "Guardar sesión",
+        resetOnSuccess: true
     });
 }
 

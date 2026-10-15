@@ -8,7 +8,8 @@ import { conectarFormulario } from "../../../core/forms.js";
 export function conectarFormularioCrearPrograma() {
     conectarFormulario("formCrearPrograma", "crearPrograma", {
         textoEnviando: "Guardando programa...",
-        textoRestaurar: "Guardar Programa"
+        textoRestaurar: "Guardar Programa",
+        resetOnSuccess: true
     });
 }
 

@@ -59,7 +59,8 @@ export function cargarDatosFormularioFicha(programaSeleccionado = null, instruct
 export function conectarFormularioCrearFicha() {
     conectarFormulario("formCrearFicha", "crearFicha", {
         textoEnviando: "Guardando ficha...",
-        textoRestaurar: "Guardar Ficha"
+        textoRestaurar: "Guardar Ficha",
+        resetOnSuccess: true
     });
 }
 

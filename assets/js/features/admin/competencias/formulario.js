@@ -35,7 +35,8 @@ export function cargarDatosFormularioCompetencia(programaSeleccionado = null, in
 export function conectarFormularioCrearCompetencia() {
     conectarFormulario("formCrearCompetencia", "crearCompetencia", {
         textoEnviando: "Guardando...",
-        textoRestaurar: "Guardar competencia"
+        textoRestaurar: "Guardar competencia",
+        resetOnSuccess: true
     });
 }
 

@@ -21,6 +21,17 @@ export function mostrarErrorCampo(input, mensaje) {
     return !mensaje;
 }
 
+// Limpia los mensajes de error de todos los campos del formulario.
+function limpiarErroresCampo(form) {
+    form.querySelectorAll(".error-text").forEach(error => {
+        error.textContent = "";
+        error.style.display = "none";
+    });
+    form.querySelectorAll(".form-control-invalid").forEach(input => {
+        input.classList.remove("form-control-invalid");
+    });
+}
+
 // Conecta un formulario a la API: valida (config.validar), envía por POST
 // y muestra la respuesta con un toast.
 export function conectarFormulario(formId, action, config = {}) {
@@ -58,6 +69,7 @@ export function conectarFormulario(formId, action, config = {}) {
 
                     if (config.resetOnSuccess) {
                         form.reset();
+                        limpiarErroresCampo(form);
                     }
 
                     if (typeof config.onExito === "function") {

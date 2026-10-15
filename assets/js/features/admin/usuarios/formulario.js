@@ -163,7 +163,9 @@ export function conectarFormularioCrearUsuario() {
     conectarFormulario("formCrearUsuario", "crearUsuario", {
         textoEnviando: "Creando usuario...",
         textoRestaurar: "Crear usuario",
-        validar: validarFormularioCrearUsuario
+        validar: validarFormularioCrearUsuario,
+        resetOnSuccess: true,
+        onExito: (data, form) => ajustarCamposSegunRol(form.rol_id)
     });
 }
 
