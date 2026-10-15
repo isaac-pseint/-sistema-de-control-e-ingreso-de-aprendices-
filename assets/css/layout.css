@@ -341,6 +341,16 @@
     min-width: 140px;
 }
 
+.filtro-registros .form-group.btn-group {
+    align-items: flex-end;
+}
+
+.filtro-registros .form-group.btn-group > .btn {
+    width: 100%;
+    padding: 12px 15px;
+    line-height: normal;
+}
+
 .form-group.filtro-oculto,
 .form-group[hidden] {
     display: none !important;
