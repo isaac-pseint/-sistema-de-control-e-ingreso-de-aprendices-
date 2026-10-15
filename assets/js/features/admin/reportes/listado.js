@@ -286,22 +286,32 @@ export function inicializarReportes() {
     const inputDesde = document.getElementById("filtro-desde");
     const inputHasta = document.getElementById("filtro-hasta");
     const selectFicha = document.getElementById("filtro-ficha");
-    const btnFiltrar = document.getElementById("btn-filtrar");
+    const selectAprendiz = document.getElementById("filtro-aprendiz");
     const btnLimpiar = document.getElementById("btn-limpiar");
     const btnExportarPdf = document.getElementById("btn-exportar-pdf");
     const btnExportarExcel = document.getElementById("btn-exportar-excel");
 
     selectPeriodo?.addEventListener("change", () => {
-        aplicarPeriodo(selectPeriodo.value);
+        if (selectPeriodo.value) {
+            aplicarPeriodo(selectPeriodo.value);
+        } else {
+            if (inputDesde) inputDesde.value = "";
+            if (inputHasta) inputHasta.value = "";
+        }
+        cargarReporte();
     });
 
     const resetPeriodoManual = () => {
         if (selectPeriodo) selectPeriodo.value = "";
     };
-    inputDesde?.addEventListener("input", resetPeriodoManual);
-    inputDesde?.addEventListener("change", resetPeriodoManual);
-    inputHasta?.addEventListener("input", resetPeriodoManual);
-    inputHasta?.addEventListener("change", resetPeriodoManual);
+    inputDesde?.addEventListener("change", () => {
+        resetPeriodoManual();
+        cargarReporte();
+    });
+    inputHasta?.addEventListener("change", () => {
+        resetPeriodoManual();
+        cargarReporte();
+    });
 
     selectFicha?.addEventListener("change", () => {
         const selectAprendiz = document.getElementById("filtro-aprendiz");
@@ -309,7 +319,7 @@ export function inicializarReportes() {
         cargarReporte();
     });
 
-    btnFiltrar?.addEventListener("click", () => {
+    selectAprendiz?.addEventListener("change", () => {
         cargarReporte();
     });
 
