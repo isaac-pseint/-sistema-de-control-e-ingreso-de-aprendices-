@@ -29,10 +29,10 @@
                 <a href="crear.html" class="btn btn-primary btn-auto btn-a">+ Nuevo usuario</a>
             </div>
 
-            <div class="filtro-inputs">
+            <div class="filtro-inputs filtro-registros">
                 <div class="form-group">
                     <label for="filtroBusqueda">Buscar</label>
-                    <input type="text" id="filtroBusqueda" class="form-control" placeholder="Buscar por nombre o apellido...">
+                    <input type="text" id="filtroBusqueda" class="form-control" placeholder="Nombre, apellido, email, identificación o código llavero">
                 </div>
                 <div class="form-group">
                     <label for="filtroRol">Rol</label>
@@ -41,6 +41,21 @@
                         <option value="Administrador">Administrador</option>
                         <option value="Instructor">Instructor</option>
                         <option value="Aprendiz">Aprendiz</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filtroFicha">Ficha</label>
+                    <select id="filtroFicha" class="form-control">
+                        <option value="">Todas las fichas</option>
+                        <option value="sin">Sin ficha</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filtroEstado">Estado</label>
+                    <select id="filtroEstado" class="form-control">
+                        <option value="">Todos los estados</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
                     </select>
                 </div>
             </div>

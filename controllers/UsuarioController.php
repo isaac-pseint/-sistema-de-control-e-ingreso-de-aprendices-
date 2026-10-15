@@ -181,8 +181,10 @@ class UsuarioController extends ControllerBase
 
         $rol = isset($_GET['rol']) && trim($_GET['rol']) !== '' ? trim($_GET['rol']) : null;
         $busqueda = isset($_GET['busqueda']) && trim($_GET['busqueda']) !== '' ? trim($_GET['busqueda']) : null;
+        $fichaId = isset($_GET['ficha_id']) && trim($_GET['ficha_id']) !== '' ? trim($_GET['ficha_id']) : null;
+        $estado = isset($_GET['estado']) && trim($_GET['estado']) !== '' ? trim($_GET['estado']) : null;
 
-        $usuarios = $this->model->listarTodos($rol, $busqueda);
+        $usuarios = $this->model->listarTodos($rol, $busqueda, $fichaId, $estado);
         $this->ok(['usuarios' => $usuarios]);
     }
 

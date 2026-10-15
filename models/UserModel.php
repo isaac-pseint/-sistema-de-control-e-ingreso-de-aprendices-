@@ -197,8 +197,12 @@ class UserModel
         return $stmt->fetchAll();
     }
 
-    public function listarTodos(?string $rolFiltro = null, ?string $busqueda = null): array
-    {
+    public function listarTodos(
+        ?string $rolFiltro = null,
+        ?string $busqueda = null,
+        ?string $fichaFiltro = null,
+        ?string $estadoFiltro = null
+    ): array {
         $sql = "SELECT 
                     u.id, 
                     u.nombre, 
@@ -222,8 +226,30 @@ class UserModel
         }
 
         if ($busqueda !== null && trim($busqueda) !== '') {
-            $where[] = "CONCAT(u.nombre, ' ', u.apellido) LIKE ?";
-            $params[] = '%' . trim($busqueda) . '%';
+            $term = '%' . trim($busqueda) . '%';
+            $where[] = "(
+                u.nombre LIKE ?
+                OR u.apellido LIKE ?
+                OR CONCAT(u.nombre, ' ', u.apellido) LIKE ?
+                OR u.email LIKE ?
+                OR u.identificacion LIKE ?
+                OR u.codigo_llavero LIKE ?
+            )";
+            $params = array_merge($params, [$term, $term, $term, $term, $term, $term]);
+        }
+
+        if ($fichaFiltro !== null && trim($fichaFiltro) !== '') {
+            if ($fichaFiltro === 'sin') {
+                $where[] = "u.Ficha_id IS NULL";
+            } else {
+                $where[] = "u.Ficha_id = ?";
+                $params[] = (int) $fichaFiltro;
+            }
+        }
+
+        if ($estadoFiltro !== null && trim($estadoFiltro) !== '') {
+            $where[] = "u.estado = ?";
+            $params[] = trim($estadoFiltro);
         }
 
         if (!empty($where)) {
