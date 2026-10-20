@@ -10,20 +10,24 @@
 
 ```
 assets/
-├── css/
-│   └── estilos.css              ← diseño visual de toda la app
+├── css/          ← main.css, tokens, base, layout, components/*
 └── js/
-    ├── api.js                   ← exporta api(): el cliente del servidor
-    ├── ui.js                    ← exporta showToast() + esc(): helpers de interfaz
-    ├── forms.js                 ← exporta conectarFormulario(): envío AJAX
-    ├── auth.js                  ← exporta comprobarSesion(), cerrarSesion(), conectarLogin()
-    ├── aprendices.js            ← exporta las funciones del módulo aprendices
-    └── pages/                   ← UN módulo de entrada por página (es lo que carga el HTML)
-        ├── login.js
-        ├── lista.js
-        ├── crear.js
-        └── editar.js
+    ├── core/     ← api, ui, forms, validacion, modal, filtros-registro
+    ├── features/
+    │   ├── auth.js, sidebar.js
+    │   ├── admin/     ← usuarios, fichas, programas, competencias, sesiones, reportes, dashboard
+    │   ├── instructor/← sesiones (listado, detalle, entrada/salida kiosco, editar), reportes, dashboard
+    │   └── aprendiz/  ← sesiones/listado.js (historial vía listarAsistencias), dashboard
+    └── pages/         ← UN módulo por vista HTML (import estático de features; sin import() dinámico salvo necesidad)
+        ├── public/login.js
+        ├── admin/     ← dashboard + CRUD por dominio + sesiones + reportes
+        ├── instructor/← dashboard + sesiones/*
+        └── aprendiz/  ← dashboard + sesiones/listado.js
 ```
+
+Marcaje entrada/salida: solo instructor autenticado en `instructor/sesiones/entrada.html`
+y `salida.html` (no hay `features/public/` ni `pages/public/entrada.js`).
+Layout de páginas internas: ver `features/sidebarPages.md`.
 
 ### Por qué Módulos ES (`import`/`export`)
 
@@ -36,34 +40,49 @@ assets/
 Consecuencia importante: al no haber funciones globales, **los `onclick="..."` inline
 dejan de funcionar**. Los eventos se conectan con `addEventListener` (event delegation).
 
+Convención de imports (todas relativas, resueltas de izquierda a derecha):
+
+```
+core/*                    → se importan entre sí con "./"          (ej. forms.js → ./api.js)
+features/auth.js          → importa core con "../core/..."         (ej. auth.js → ../core/api.js)
+pages/public/login.js     → importa features/auth con "../../features/..."
+features/<rol>/<dominio>/*→ tres niveles: "../../../core/..."      (ej. admin/usuarios/listado.js → ../../../core/api.js)
+pages/public/*            → importan features con "../../features/..."     (ej. pages/public/login.js → ../../features/auth.js)
+pages/<rol>/dashboard.js  → dos niveles: "../../features/..."     (ej. pages/aprendiz/dashboard.js → ../../features/auth.js)
+pages/<rol>/<dominio>/*   → tres niveles: "../../../features/..." (ej. pages/admin/usuarios/listado.js → ../../../features/admin/...)
+```
+
 ---
 
-## 2. css/estilos.css
+## 2. css/ — el sistema de estilos
 
-Hoja de estilos única. Se enlaza desde cada `views/*.html`:
+CSS dividido **por responsabilidad**. El HTML enlaza UN solo archivo, `main.css`,
+que importa el resto en orden de dependencia:
 
 ```html
-<link rel="stylesheet" href="../assets/css/estilos.css">
+<link rel="stylesheet" href="../assets/css/main.css">
 ```
 
-Recomendaciones:
-- Variables CSS para la paleta:
+Estructura y reglas para encontrar las clases:
 
-```css
-:root {
-    --color-primario: #008000;
-    --color-boton:    #28a745;
-    --color-peligro:  #dc3545;
-    --color-texto:    #212529;
-    --fondo-suave:    #f8f9fa;
-}
-```
+| Archivo | Qué contiene | Prefijo de clases |
+|---|---|---|
+| `tokens.css` | variables `:root` | — |
+| `base.css` | reset y `body` | — |
+| `layout.css` | header, login, dashboards, filtros | `.login-*`, `.app-*`, `.page-header` |
+| `components/botones.css` | botones | `.btn-*` |
+| `components/formularios.css` | campos y validación | `.form-*`, `.error-text` |
+| `components/tablas.css` | tablas de listados | `.table-*` |
+| `components/modales.css` | modales de confirmación | `.modal-*` |
+| `components/toasts.css` | notificaciones | `.toast-*` |
+| `components/utilidades.css` | textos de estado | `.text-*` |
 
-- Clases reutilizables: tablas, formularios, badges de estado, toasts, spinner.
+> **Regla**: el prefijo de la clase indica su archivo. Cada componente lleva un
+> índice de sus clases como comentario en la cabecera.
 
 ---
 
-## 3. js/api.js — exporta `api()`
+## 3. core/api.js — exporta `api()`
 
 El ÚNICO módulo que hace `fetch()`. Todos los demás importan `api()` desde aquí.
 
@@ -80,7 +99,7 @@ export function api(action, opciones = {}) {
         }
     }).then(res => {
         if (res.status === 401) {                 // sesión no válida
-            window.location.href = new URL("../views/login.html", import.meta.url).href;
+            window.location.href = new URL("../views/auth/login.html", import.meta.url).href;
             throw new Error("Sesión expirada");
         }
         return res.json();
@@ -90,7 +109,7 @@ export function api(action, opciones = {}) {
 
 ---
 
-## 4. js/ui.js — exporta `showToast()` y `esc()`
+## 4. core/ui.js — exporta `showToast()` y `esc()`
 
 Helpers de presentación reutilizables en cualquier módulo.
 
@@ -110,7 +129,7 @@ export function esc(texto) {
 
 ---
 
-## 5. js/forms.js — exporta `conectarFormulario()`
+## 5. core/forms.js — exporta `conectarFormulario()`
 
 Patrón genérico para formularios. Importa lo que necesita: `api` y `showToast`.
 
@@ -149,7 +168,7 @@ export function conectarFormulario(formId, action, config = {}) {
 
 ---
 
-## 6. js/auth.js — exporta las funciones de sesión
+## 6. features/auth.js — exporta las funciones de sesión
 
 ```js
 import { api } from "./api.js";
@@ -169,20 +188,63 @@ export function comprobarSesion() {
 
 export function cerrarSesion() {
     api("logout", { method: "POST" })
-        .then(() => window.location.href = new URL("../views/login.html", import.meta.url).href);
+        .then(() => window.location.href = new URL("../views/public/login.html", import.meta.url).href);
 }
 ```
 
 ---
 
-## 7. js/aprendices.js — exporta las funciones del módulo
+## 7. core/modal.js — exporta `crearModalConfirmacion()`
+
+Los modales de confirmación (eliminar/activar/desactivar) se repiten en todos los
+dominios. Para no reescribirlos, `core/modal.js` los construye con un factory.
+El estado (id pendiente) vive en el closure; el dominio solo configura overlay,
+botones, la acción de API y el refresco posterior.
+
+```js
+import { crearModalConfirmacion } from "../../../core/modal.js";
+
+const modalEliminar = crearModalConfirmacion({
+    overlay: "modalEliminarUsuario",
+    detalle: ["modalUsuarioDetalle"],
+    btnCerrar: ["btnCerrarModal", ".modal-close"],
+    btnCancelar: ["btnCancelarEliminar", ".btn-cancelar"],
+    btnConfirmar: ["btnConfirmarEliminar", ".btn-danger"],
+    accion: (id) => enviarConId("eliminarUsuario", id),
+    mensajeOk: "Usuario eliminado correctamente.",
+    despuesDeConfirmar: () => cargarListado()
+});
+
+// devuelve { abrir(id, texto), cerrar(), conectarse() } — conectarse() une
+// los eventos del overlay y botones; la delegación de la tabla llama a abrir().
+```
+
+---
+
+## 8. features/<rol>/<dominio>/ — lógica de negocio por rol y responsabilidad
+
+`features/` espeja los roles: `admin/` (usuarios, fichas, programas, competencias,
+sesiones, reportes), `instructor/` (sesiones y marcaje, reportes) y `aprendiz/`
+(historial en `sesiones/listado.js`). `auth.js` y `sidebar.js` son transversales.
+
+Cada dominio se divide en UN archivo por responsabilidad (patrón de los CRUD de admin):
+
+| Archivo | Responsabilidad |
+|---|---|
+| `<rol>/<dominio>/listado.js` | cargar, filtrar y pintar la tabla |
+| `<rol>/<dominio>/formulario.js` | llenar selects y conectar formularios crear/editar |
+| `<rol>/<dominio>/acciones.js` | acciones con confirmación (usa `core/modal.js`) |
+
+Los dominios que no necesitan una fase no llevan el archivo (p. ej. el aprendiz solo
+tiene `sesiones/listado.js`; el kiosco del instructor vive en `instructor/sesiones/entrada.js`
+y `salida.js`).
 
 La tabla se pinta sin `onclick` inline: se usa **event delegation** (un solo
 `addEventListener` sobre el `<tbody>`) porque con módulos no hay funciones globales.
 
 ```js
-import { api } from "./api.js";
-import { showToast, esc } from "./ui.js";
+import { api } from "../../core/api.js";
+import { showToast, esc } from "../../core/ui.js";
 
 export function cargarAprendices() {
     api("aprendices")
@@ -245,65 +307,88 @@ function desactivarAprendiz(id) {
 
 ---
 
-## 8. js/pages/*.js — módulos de entrada por página
+## 9. js/pages/*.js — módulos de entrada por página
 
 Cada página tiene UN módulo que **importa lo que necesita** y lo pone a funcionar.
 Aquí es donde el orden de carga dejó de importar: cada archivo importa sus
 dependencias explícitamente.
 
-**pages/login.js**
+**pages/public/login.js**
 ```js
-import { conectarLogin } from "../auth.js";
+import { conectarLogin } from "../../features/auth.js";
 conectarLogin();
 ```
 
-**pages/lista.js**
+**pages/admin/usuarios/listado.js**
 ```js
-import { comprobarSesion, cerrarSesion } from "../auth.js";
-import { cargarAprendices, configurarAccionesTabla } from "../aprendices.js";
+import { requerirRol, cerrarSesion } from "../../../features/auth.js";
+import { cargarListado, configurarFiltros } from "../../../features/admin/usuarios/listado.js";
+import { configurarAccionesListado } from "../../../features/admin/usuarios/acciones.js";
 
-comprobarSesion();
-cargarAprendices();
-configurarAccionesTabla();
+requerirRol("Administrador");
+cargarListado();
+configurarFiltros();
+configurarAccionesListado();
 
 // Sin onclick inline: se conecta el evento con addEventListener
-document.getElementById("btnSalir").addEventListener("click", cerrarSesion);
+document.getElementById("btnLogout")?.addEventListener("click", cerrarSesion);
 ```
 
-**pages/crear.js**
+Cada rol exige su propio rol al entrar (`requerirRol("Aprendiz")` en
+`pages/aprendiz/*`, `requerirRol("Instructor")` en `pages/instructor/*`); si no
+coincide, `features/auth.js` redirige a `views/public/login.html`.
+
+**pages/admin/usuarios/crear.js**
 ```js
-import { conectarFormulario } from "../forms.js";
-conectarFormulario("formAprendiz", "save");
+import { requerirRol, cerrarSesion } from "../../../features/auth.js";
+import { cargarDatosFormulario, conectarFormularioCrearUsuario } from "../../../features/admin/usuarios/formulario.js";
+
+requerirRol("Administrador");
+cargarDatosFormulario();
+conectarFormularioCrearUsuario();
 ```
 
-**pages/editar.js**
+**pages/admin/usuarios/editar.js**
 ```js
-import { conectarFormulario } from "../forms.js";
-import { cargarAprendizParaEditar } from "../aprendices.js";
+import { requerirRol, cerrarSesion } from "../../../features/auth.js";
+import { cargarPorId, conectarFormularioEditarUsuario } from "../../../features/admin/usuarios/formulario.js";
 
-cargarAprendizParaEditar();
-conectarFormulario("formEditar", "update");
+requerirRol("Administrador");
+cargarPorId();
+conectarFormularioEditarUsuario();
+```
+
+### pages/instructor/dashboard.js — placeholder
+
+El rol Instructor aún no tiene pantallas de gestión propias (solo existe en el seed
+de roles). Por ahora el módulo exige el rol y la vista muestra el aviso:
+"Próximamente: gestión de fichas y aprendices."
+
+```js
+// pages/instructor/dashboard.js
+import { cerrarSesion, requerirRol } from "../../features/auth.js";
+
+requerirRol("Instructor");
+
+document.getElementById("btnLogout")?.addEventListener("click", cerrarSesion);
 ```
 
 ---
 
-## 9. Cómo carga cada vista (UN solo script)
+## 10. Cómo carga cada vista (UN solo script)
 
 Cada `views/*.html` carga **un único `<script type="module">`** con su página:
 el navegador resuelve solo todas las dependencias (import).
 
 ```html
-<!-- views/login.html -->
-<script type="module" src="../assets/js/pages/login.js"></script>
+<!-- views/public/login.html -->
+<script type="module" src="../../assets/js/pages/public/login.js"></script>
 
-<!-- views/lista.html -->
-<script type="module" src="../assets/js/pages/lista.js"></script>
+<!-- views/admin/usuarios/listado.html -->
+<script type="module" src="../../../assets/js/pages/admin/usuarios/listado.js"></script>
 
-<!-- views/crear.html -->
-<script type="module" src="../assets/js/pages/crear.js"></script>
-
-<!-- views/editar.html -->
-<script type="module" src="../assets/js/pages/editar.js"></script>
+<!-- views/admin/usuarios/crear.html -->
+<script type="module" src="../../../assets/js/pages/admin/usuarios/crear.js"></script>
 ```
 
 > Los módulos se ejecutan de forma diferida (después de parsear el HTML), así que
@@ -312,10 +397,13 @@ el navegador resuelve solo todas las dependencias (import).
 **Mapa de dependencias (quién importa a quién):**
 
 ```
-pages/login.js  → auth.js  → forms.js → api.js, ui.js
-pages/lista.js  → auth.js, aprendices.js → api.js, ui.js
-pages/crear.js  → forms.js → api.js, ui.js
-pages/editar.js → forms.js, aprendices.js → api.js, ui.js
+pages/public/login.js                    → features/auth.js → core/*
+pages/admin/<dominio>/*                  → features/admin/<dominio>/* + auth + sidebar
+pages/admin/sesiones/*                   → features/admin/sesiones/*
+pages/instructor/sesiones/*              → features/instructor/sesiones/* (detalle, kiosco, etc.)
+pages/instructor/dashboard.js            → features/instructor/dashboard.js
+pages/aprendiz/sesiones/listado.js       → features/aprendiz/sesiones/listado.js
+pages/aprendiz/dashboard.js              → features/aprendiz/dashboard.js
 ```
 
 Nada importa nada de forma manual "en orden": cada módulo declara lo suyo y el
@@ -323,7 +411,7 @@ navegador construye el grafo de dependencias solo.
 
 ---
 
-## 10. Cómo se comunica el JS con la API
+## 11. Cómo se comunica el JS con la API
 
 ```
 formulario/botón → api("save", {method:"POST", body:FormData})
@@ -335,15 +423,22 @@ formulario/botón → api("save", {method:"POST", body:FormData})
 
 ---
 
-## 11. Reglas de esta carpeta
+## 12. Reglas de esta carpeta
 
 1. **Todo JS es un módulo ES**: cada archivo usa `export` y los que lo necesitan hacen `import`.
-2. **Solo `api.js` hace `fetch()`.** Ninguna vista ni otro módulo habla con el servidor directo.
+2. **Solo `core/api.js` hace `fetch()`.** Ninguna vista ni otro módulo habla con el servidor directo.
 3. **Nada de globales**: las funciones y constantes se exportan/importan explícitamente.
 4. **Nada de `onclick="..."` inline** (no funciona en módulos): se usa `addEventListener`
    y event delegation para los botones dinámicos (ej: `.btn-desactivar`).
 5. Las rutas relativas se resuelven con `new URL("...", import.meta.url)` para que
    funcionen sin importar desde qué página se cargue el módulo.
 6. Los datos del servidor se pintan con `esc()` para evitar XSS.
-7. Cada `views/*.html` carga UN solo `<script type="module" src=".../pages/X.js">`.
+7. Cada `views/<rol>/...` carga UN solo `<script type="module" src=".../assets/js/pages/<rol>/X.js">`.
 8. `FormData` se usa para enviar formularios (soporta archivos/imágenes).
+9. **Separación por responsabilidad**: `core/` nunca conoce dominios;
+   `features/<dominio>/` no mezcla listado con formulario ni acciones;
+   `pages/` solo orquesta (importa y llama).
+10. **Modales genéricos**: los modales de confirmación se crean con
+    `crearModalConfirmacion()` de `core/modal.js`; no se reescriben por dominio.
+11. **CSS por prefijo**: cada pieza visual vive en su archivo de `css/components/`
+    y el prefijo de clase (.btn-*, .modal-*, .toast-*) dice dónde está.

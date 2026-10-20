@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Sesiones</title>
+    <link rel="icon" type="image/png" href="../../../assets/img/sena-colombia-logo-green39a900png-20250120.png">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+
+            <div class="page-header">
+                <div class="page-header__titulo">
+                    <h1 class="titulo-seccion">Mis sesiones</h1>
+                    <p class="subtitulo-seccion">Consulta por fecha las sesiones de tus competencias</p>
+                </div>
+            </div>
+
+            <div class="filtro-fechas">
+                <div class="filtro-inputs">
+                    <div class="form-group">
+                        <label for="filtroDesde">Desde</label>
+                        <input type="date" id="filtroDesde" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="filtroHasta">Hasta</label>
+                        <input type="date" id="filtroHasta" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <table class="table-admin">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Competencia</th>
+                        <th>Ficha</th>
+                        <th>Horario</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaSesiones"></tbody>
+            </table>
+
+            <div id="contenedorMensajes" class="mensaje-vacio"></div>
+        </main>
+    </div>
+
+    <script type="module" src="../../../assets/js/pages/instructor/sesiones/listado.js"></script>
+</body>
+</html>

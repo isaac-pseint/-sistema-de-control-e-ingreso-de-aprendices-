@@ -13,8 +13,8 @@
 Lo que SÍ llevan:
 - El HTML de la pantalla (formularios, tablas, contenedores).
 - Enlaces y CSS (`.css`).
-- **UN** `<script type="module" src="../assets/js/pages/X.js">`: el módulo de esa página
-  (que a su vez importa `api.js`, `ui.js`, `forms.js`, `auth.js`, `aprendices.js`...).
+- **UN** `<script type="module" src=".../assets/js/pages/<rol>/X.js">`: el módulo de esa página
+  (que a su vez importa `core/api.js`, `core/ui.js`, `core/forms.js`, `features/auth.js`...).
 
 Lo que NO llevan (nunca):
 - `<?php ... ?>`
@@ -26,20 +26,36 @@ Lo que NO llevan (nunca):
 
 ## 2. Archivos que deben vivir aquí
 
+Las vistas se agrupan **por rol** (primera carpeta) y luego **por dominio**, espejando
+`assets/js/pages/<rol>/<dominio>/` y `assets/js/features/<rol>/<dominio>/`:
+
 ```
 views/
-├── login.html       ← pantalla de acceso
-├── lista.html       ← listado de aprendices (tabla que llena JS)
-├── crear.html       ← formulario para crear
-└── editar.html      ← formulario para editar (lee ?id= de la URL)
+├── public/
+│   └── login.html
+├── admin/
+│   ├── dashboard.html
+│   ├── usuarios/      ← listado, crear, editar
+│   ├── fichas/
+│   ├── programas/
+│   ├── competencias/
+│   ├── sesiones/      ← listado, crear, editar (+ importar horario si aplica)
+│   └── reportes/
+├── instructor/
+│   ├── dashboard.html
+│   ├── sesiones/      ← listado, detalle, entrada, salida (kiosco), editar
+│   └── reportes/
+└── aprendiz/
+    ├── dashboard.html
+    ├── sesiones/listado.html   ← historial (Mis sesiones)
+    └── asistencias/listado.html ← redirect a sesiones/listado (enlaces viejos)
 ```
 
-La navegación entre páginas se hace con **enlaces normales**:
-
-```html
-<a href="views/lista.html">Listado</a>
-<a href="views/crear.html">Nuevo</a>
-```
+La navegación se hace con **enlaces normales**, relativos a la carpeta: una vista y
+sus crear/editar viven juntas (mismo nivel `listado.html` ↔ `crear.html`),
+`../dashboard.html` sube al panel de su rol, `../fichas/listado.html` cambia de dominio
+dentro de admin. Un usuario nunca navega entre roles: los enlaces solo ocurren dentro
+de la misma rama-rol.
 
 Los datos dentro de cada página se cargan por **AJAX** al abrirla (ver `assets/GUIA.md`).
 
@@ -54,7 +70,7 @@ Los datos dentro de cada página se cargan por **AJAX** al abrirla (ver `assets/
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listado de Aprendices</title>
-    <link rel="stylesheet" href="../assets/css/estilos.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
     <nav>
@@ -104,7 +120,7 @@ Los datos dentro de cada página se cargan por **AJAX** al abrirla (ver `assets/
 <head>
     <meta charset="UTF-8">
     <title>Nuevo Aprendiz</title>
-    <link rel="stylesheet" href="../assets/css/estilos.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
     <main>
@@ -160,8 +176,10 @@ Los datos dentro de cada página se cargan por **AJAX** al abrirla (ver `assets/
 1. **Nada de PHP**: ni `<?php`, ni `echo`, ni variables del servidor.
 2. Nada de SQL: si la página necesita datos, se piden por AJAX a la API.
 3. Los elementos que se rellenan dinámicamente llevan `id`.
-4. Las rutas al CSS llevan `../` (las vistas están dentro de `views/`); las del JS se
-   resuelven en el propio módulo con `import.meta.url`.
-5. Cada página carga UN solo `<script type="module" src="../assets/js/pages/X.js">`.
-6. La seguridad (quién puede ver la página) la valida la API: si responde 401,
-   `api.js` redirige a `login.html`.
+4. Las rutas al CSS llevan ".." según la profundidad: `views/public/*` y
+   `views/<rol>/dashboard.html` usan `../../assets/...`; `views/<rol>/<dominio>/*`
+   usan `../../../assets/...`. Las del JS se resuelven en el propio módulo con `import.meta.url`.
+5. Cada página carga UN solo `<script type="module" src=".../pages/<dominio>/X.js">`.
+6. La seguridad la valida la API (401 → `core/api.js` redirige a `views/public/login.html`)
+   y además cada página pide su rol: `requerirRol("Administrador")`, `requerirRol("Instructor")`
+   o `requerirRol("Aprendiz")` según la rama-rol donde viva la vista.

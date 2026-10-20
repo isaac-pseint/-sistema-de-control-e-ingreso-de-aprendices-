@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Fichas</title>
+    <link rel="icon" type="image/png" href="../../../assets/img/sena-colombia-logo-green39a900png-20250120.png">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+
+            <div class="page-header">
+                <div class="page-header__titulo">
+                    <h1 class="titulo-seccion">Fichas</h1>
+                    <p class="subtitulo-seccion">Registra las fichas de formación y controla su estado</p>
+                </div>
+                <div class="btn-group">
+                    <a href="crear.html" class="btn btn-primary btn-auto btn-a">Crear Ficha</a>
+                    
+                </div>
+            </div>
+
+            <div class="filtro-inputs">
+                <div class="form-group">
+                    <label for="filtroBusqueda">Buscar</label>
+                    <input type="text" id="filtroBusqueda" class="form-control" placeholder="Buscar por código...">
+                </div>
+                <div class="form-group">
+                    <label for="filtroPrograma">Programa</label>
+                    <select id="filtroPrograma" class="form-control">
+                        <option value="">Todos los programas</option>
+                    </select>
+                </div>
+            </div>
+
+            <table class="table-admin">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Programa</th>
+                        <th>Instructor Líder</th>
+                        <th>Jornada</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaFichas">
+                </tbody>
+            </table>
+
+            <div id="contenedorMensajes" class="mensaje-vacio"></div>
+        </main>
+    </div>
+
+    <!-- Modal de confirmación para desactivar ficha -->
+    <div id="modalDesactivarFicha" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTituloDesactivar">
+            <div class="modal-header">
+                <h3 id="modalTituloDesactivar">Desactivar ficha</h3>
+                <button type="button" class="modal-close" id="btnCerrarModalDesactivar" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas desactivar esta ficha?</p>
+                <p class="modal-detalle" id="modalFichaDetalle"></p>
+                <p>El registro se desactivará y podrás volver a activarlo cuando lo necesites.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarDesactivar">Cancelar</button>
+                <button type="button" class="btn btn-danger btn-auto" id="btnConfirmarDesactivar">Desactivar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para activar ficha -->
+    <div id="modalActivarFicha" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTituloActivar">
+            <div class="modal-header">
+                <h3 id="modalTituloActivar">Activar ficha</h3>
+                <button type="button" class="modal-close" id="btnCerrarModalActivar" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas activar esta ficha?</p>
+                <p class="modal-detalle" id="modalActivarDetalle"></p>
+                <p>La ficha volverá a estar disponible en el sistema.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarActivar">Cancelar</button>
+                <button type="button" class="btn btn-info btn-auto" id="btnConfirmarActivar">Activar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../../../assets/js/pages/admin/fichas/listado.js"></script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi reporte de asistencia</title>
+    <link rel="icon" type="image/png" href="../../../assets/img/sena-colombia-logo-green39a900png-20250120.png">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+
+<body class="app-layout">
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside id="sidebar" class="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main main-content">
+            <div class="page-header">
+                <div class="page-header__titulo">
+                    <h1 class="titulo-seccion">Mi reporte de asistencia</h1>
+                    <p class="subtitulo-seccion">Consulta tu asistencia, inasistencias y excusas en el periodo que elijas</p>
+                </div>
+                <div class="btn-group">
+                    <button type="button" id="btn-exportar-pdf" class="btn btn-outline btn-auto">
+                        <svg class="icono" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM1.6 11.85H0v3.999h.791v-1.342h.803q.43 0 .732-.173.305-.175.463-.474a1.4 1.4 0 0 0 .161-.677q0-.375-.158-.677a1.2 1.2 0 0 0-.46-.477q-.3-.18-.732-.179m.545 1.309a.6.6 0 0 1-.224.226q-.141.072-.349.072H.79v-1.12h.782q.207 0 .349.07a.6.6 0 0 1 .224.225q.084.153.084.314a.66.66 0 0 1-.084.313m3.376-1.309h-1.6v3.999h1.6q.63 0 1.054-.367.426-.369.426-1.632 0-1.258-.426-1.63-.424-.37-1.054-.37m-.809 3.328V12.52h.8q.37 0 .584.241.217.239.217.809 0 .568-.217.81-.214.24-.584.24zm4.498-3.328H7.31v3.999h.79V14.1h1.1v-.669h-1.1v-1.229h1.2v-.67z"/></svg>
+                        Exportar PDF
+                    </button>
+                    <button type="button" id="btn-exportar-excel" class="btn btn-primary btn-auto">
+                        <svg class="icono" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM5.18 10.595q-.183.395-.382.814-.198.417-.387.838h-.02q-.193-.42-.394-.838-.198-.42-.382-.814l-1.42 4.254h.87l.794-2.457q.135-.42.247-.797h.02q.112.378.25.797l.79 2.457h.87zM8.48 10.595h-.842l-1.078 2.052q-.178.339-.33.666h-.02q.156-.33.333-.666l1.085-2.052h-.846l-.775 1.56q-.14.283-.263.559h-.02q-.12-.276-.263-.559l-.775-1.56h-.842l1.085 2.052q.177.336.333.666h.02q-.152-.33-.33-.666l-1.078-2.052h-.842l1.528 2.844-1.554 2.912h.85l1.106-2.148q.18-.35.334-.694h.02q.154.344.334.694l1.11 2.148h.852l-1.554-2.912z"/></svg>
+                        Exportar Excel
+                    </button>
+                </div>
+            </div>
+
+            <div id="contexto-academico" class="sesion-resumen" hidden></div>
+
+            <section class="dashboard-kpis" aria-label="Indicadores del periodo">
+                <article class="kpi-card" id="kpi-excusas">
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../../assets/img/iconos.svg#clipboard-check"></use></svg>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Excusas en el periodo</span>
+                    </div>
+                </article>
+                <article class="kpi-card" id="kpi-asistencias">
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../../assets/img/iconos.svg#check-circle"></use></svg>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Total asistencias</span>
+                    </div>
+                </article>
+                <article class="kpi-card" id="kpi-retardos">
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../../assets/img/iconos.svg#stopwatch"></use></svg>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Total retardos</span>
+                    </div>
+                </article>
+                <article class="kpi-card" id="kpi-tiempo-retardo">
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../../assets/img/iconos.svg#calendar-week"></use></svg>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Tiempo total de retardo</span>
+                    </div>
+                </article>
+                <article class="kpi-card" id="kpi-inasistencias">
+                    <svg class="icono kpi-icono" aria-hidden="true"><use href="../../../assets/img/iconos.svg#x-circle"></use></svg>
+                    <div class="kpi-info">
+                        <span class="kpi-valor">—</span>
+                        <span class="kpi-label">Total inasistencias</span>
+                    </div>
+                </article>
+            </section>
+
+            <div class="filtro-inputs filtro-registros">
+                <div class="form-group">
+                    <label for="filtro-periodo">Periodo</label>
+                    <select id="filtro-periodo" class="form-control">
+                        <option value="">Rango personalizado / Todos</option>
+                        <option value="hoy">Hoy</option>
+                        <option value="semana">Esta semana</option>
+                        <option value="mes">Este mes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filtro-desde">Fecha inicial</label>
+                    <input type="date" id="filtro-desde" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="filtro-hasta">Fecha final</label>
+                    <input type="date" id="filtro-hasta" class="form-control">
+                </div>
+                <div class="form-group btn-group">
+                    <button type="button" id="btn-limpiar" class="btn btn-outline">Limpiar</button>
+                </div>
+            </div>
+
+            <section class="dashboard-seccion" aria-label="Mi resumen">
+                <div class="seccion-header">
+                    <h2 class="titulo-seccion">1. Mi resumen</h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-admin">
+                        <thead>
+                            <tr>
+                                <th>Ficha</th>
+                                <th>Programa</th>
+                                <th>Asistencias</th>
+                                <th>A tiempo</th>
+                                <th>Retardos</th>
+                                <th>Tiempo de retardo</th>
+                                <th>Salidas anticipadas</th>
+                                <th>Días inasistencia</th>
+                                <th>Total inasistencias</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-resumen-body">
+                            <tr>
+                                <td colspan="9" class="text-center">Cargando datos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="dashboard-seccion" aria-label="Inasistencias">
+                <div class="seccion-header">
+                    <h2 class="titulo-seccion">2. Inasistencias en el periodo</h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-admin">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Horario</th>
+                                <th>Competencia</th>
+                                <th>Instructor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-inasistencias-body">
+                            <tr>
+                                <td colspan="4" class="text-center">Cargando datos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="dashboard-seccion" aria-label="Excusas">
+                <div class="seccion-header">
+                    <h2 class="titulo-seccion">3. Excusas en el periodo</h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="table-admin">
+                        <thead>
+                            <tr>
+                                <th>Fecha sesión</th>
+                                <th>Horario</th>
+                                <th>Competencia</th>
+                                <th>Instructor</th>
+                                <th>Fecha solicitud</th>
+                                <th>Estado</th>
+                                <th>Respuesta</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-excusas-body">
+                            <tr>
+                                <td colspan="8" class="text-center">Cargando datos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="../../../assets/js/pages/aprendiz/reportes/listado.js"></script>
+</body>
+
+</html>

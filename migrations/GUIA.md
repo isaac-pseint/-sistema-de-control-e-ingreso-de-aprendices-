@@ -139,6 +139,24 @@ foreach (glob(__DIR__ . "/migrations/*.sql") as $file) {
 
 1. Un archivo por cambio, numerado secuencialmente, y **no se editan** los ya aplicados
    (si hay que cambiar algo, se crea una migración nueva).
-2. Usar `CREATE TABLE IF NOT EXISTS` y `ALTER TABLE` para que sea seguro repetirlas.
-3. La BD siempre se referencia con `USE ControlAprendices;` al inicio.
+2. Usar `CREATE TABLE IF NOT EXISTS`, operaciones idempotentes y `IF EXISTS` al
+   eliminar objetos para que las migraciones seguras puedan aplicarse en bases existentes.
+3. La BD del proyecto usa `control_aprendices` (ver cada archivo; algunos ejemplos antiguos dicen `ControlAprendices`).
 4. Mantener la BD en sincronía con lo que esperan `models/` (mismos nombres de columnas).
+
+## 7. Migraciones actuales (orden de ejecución)
+
+| Archivo | Resumen |
+|---|---|
+| `001_esquema_inicial.sql` | Tablas base |
+| `002_foreign_key_instructor.sql` | FK instructor en ficha |
+| `003_seed.sql` | Datos demo |
+| `004_cambios_bd.sql` | Ajustes asistencia/inasistencia |
+| `005`–`007` | Estado usuario/ficha |
+| `008_sesiones_y_horarios.sql` | Jornada, competencia, sesión, asistencia por sesión |
+| `009_bloques_y_competencia_opcional.sql` | Bloques horario, competencia opcional en sesión |
+| `010`–`012` | Seeds/import horarios (entornos concretos) |
+| `013_eliminar_instructor_competencia.sql` | Quita tabla legacy `instructor_competencia` |
+| `014_excusa_por_inasistencia.sql` | UNIQUE una excusa por `inasistencia` |
+
+Ejecutar en orden numérico en entornos nuevos. Los seeds 010/012 son opcionales según el ambiente.

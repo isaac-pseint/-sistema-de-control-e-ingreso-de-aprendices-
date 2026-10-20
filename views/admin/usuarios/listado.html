@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios</title>
+    <link rel="icon" type="image/png" href="../../../assets/img/sena-colombia-logo-green39a900png-20250120.png">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+       
+        <main class="app-main">
+
+            
+            <div class="page-header">
+                <div class="page-header__titulo">
+                    <h1 class="titulo-seccion">Usuarios</h1>
+                    <p class="subtitulo-seccion">Crea, edita y activa o desactiva las cuentas del centro</p>
+                </div>
+                <a href="crear.html" class="btn btn-primary btn-auto btn-a">+ Nuevo usuario</a>
+            </div>
+
+            <div class="filtro-inputs filtro-registros">
+                <div class="form-group">
+                    <label for="filtroBusqueda">Buscar</label>
+                    <input type="text" id="filtroBusqueda" class="form-control" placeholder="Nombre, apellido, email, identificación o código llavero">
+                </div>
+                <div class="form-group">
+                    <label for="filtroRol">Rol</label>
+                    <select id="filtroRol" class="form-control">
+                        <option value="">Todos los roles</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Instructor">Instructor</option>
+                        <option value="Aprendiz">Aprendiz</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filtroFicha">Ficha</label>
+                    <select id="filtroFicha" class="form-control">
+                        <option value="">Todas las fichas</option>
+                        <option value="sin">Sin ficha</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filtroEstado">Estado</label>
+                    <select id="filtroEstado" class="form-control">
+                        <option value="">Todos los estados</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <table class="table-admin">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Identificación</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Ficha</th>
+                        <th>Código llavero</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaUsuarios">
+                </tbody>
+            </table>
+
+            <div id="contenedorMensajes" class="mensaje-vacio"></div>
+        </main>
+    </div>
+
+    <!-- Modal de confirmación para eliminar usuario -->
+    <div id="modalEliminarUsuario" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTituloEliminar">
+            <div class="modal-header">
+                <h3 id="modalTituloEliminar">Eliminar usuario</h3>
+                <button type="button" class="modal-close" id="btnCerrarModal" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar a este usuario?</p>
+                <p class="modal-detalle" id="modalUsuarioDetalle"></p>
+                <p>El registro se desactivará y podrás volver a activarlo cuando lo necesites.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarEliminar">Cancelar</button>
+                <button type="button" class="btn btn-danger btn-auto" id="btnConfirmarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para activar usuario -->
+    <div id="modalActivarUsuario" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTituloActivar">
+            <div class="modal-header">
+                <h3 id="modalTituloActivar">Activar usuario</h3>
+                <button type="button" class="modal-close" id="btnCerrarModalActivar" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas activar a este usuario?</p>
+                <p class="modal-detalle" id="modalActivarDetalle"></p>
+                <p>El usuario volverá a poder iniciar sesión.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarActivar">Cancelar</button>
+                <button type="button" class="btn btn-info btn-auto" id="btnConfirmarActivar">Activar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../../../assets/js/pages/admin/usuarios/listado.js"></script>
+</body>
+</html>

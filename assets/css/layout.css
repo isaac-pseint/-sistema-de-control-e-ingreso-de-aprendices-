@@ -1,0 +1,498 @@
+/* layout.css — Estructura general y layout de páginas.
+   Clases: .login-container, .login-card, .login-logo, .app-header, .app-title,
+.dashboard-content, .app-main, .page-header, .breadcrumb,
+            .filtro-fechas, .filtro-inputs, .btn-limpiar-filtro */
+
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--color-fondo) 0%, #e0ece5 100%);
+    padding: 20px;
+}
+
+.login-card {
+    background-color: var(--color-blanco);
+    border-radius: var(--borde-radio);
+    box-shadow: var(--sombra-card);
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    text-align: center;
+    transition: var(--transicion);
+}
+
+.login-card:hover {
+    box-shadow: var(--sombra-hover);
+}
+
+.login-logo {
+    display: block;
+    width: 120px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 20px;
+    object-fit: contain;
+}
+
+.login-card h1 {
+    color: var(--color-sena-verde);
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+}
+
+.app-header {
+    background-color: var(--color-blanco);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.app-title {
+    color: var(--color-sena-verde);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* En las vistas con sesión el título del header comparte estilo con el <h2>
+   de la sección (ver .page-header h1). */
+.app-layout .app-header .app-title {
+    font-size: 1.3rem;
+}
+
+.dashboard-content {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.kiosco-wrap {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.app-shell {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.app-main {
+    flex: 1;
+    min-width: 0;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+/* Sidebar: mismo blanco que el header, sin bordes. En escritorio sube hasta
+   arriba (columna izquierda de altura completa) y el header queda a su
+   derecha con el título del sistema.
+   Clases: .sidebar, .sidebar-marca, .sidebar-usuario(-nombre/-rol),
+           .sidebar-nav, .sidebar-pie, .sidebar-logout, .sidebar-overlay,
+           .btn-menu */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-ancho);
+    z-index: 1060;
+    background-color: var(--color-blanco);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-marca {
+    padding: 20px 20px 4px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--color-sena-verde);
+}
+
+.sidebar-usuario {
+    padding: 10px 20px ;
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--color-borde);
+   
+}
+
+.sidebar-usuario-nombre {
+    display: block;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.sidebar-usuario-rol {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--color-texto-ligero);
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    color: var(--color-texto);
+    text-decoration: none;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: var(--transicion);
+}
+
+.sidebar-nav a:hover {
+    background-color: var(--color-fondo);
+}
+
+.sidebar-nav a.activo {
+    background-color: rgba(57, 169, 0, 0.12);
+    color: var(--color-sena-verde);
+    border-left-color: var(--color-sena-verde);
+}
+
+.sidebar-pie {
+    padding: 0;
+}
+
+/* Cierre de sesión: fondo rojo suave en el pie del sidebar. */
+.sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 20px;
+    color: var(--color-danger);
+    background-color: rgba(220, 53, 69, 0.08);
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: left;
+    transition: var(--transicion);
+}
+
+.sidebar-logout:hover {
+    background-color: rgba(220, 53, 69, 0.14);
+}
+
+/* Botón hamburguesa: solo se muestra en pantallas pequeñas. */
+.btn-menu {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-texto);
+    padding: 4px 8px;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1055;
+}
+
+@media (min-width: 768px) {
+    /* En escritorio el sidebar sube hasta arriba (columna izquierda). El
+       header con el título del sistema queda a su derecha, sobre el contenido,
+       y el contenido reserva el ancho del sidebar. */
+    .app-layout .app-header {
+        margin-left: var(--sidebar-ancho);
+    }
+
+    .app-layout .app-main {
+        margin-left: var(--sidebar-ancho);
+    }
+
+    .app-layout .sidebar-overlay {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    .btn-menu {
+        display: inline-flex;
+    }
+
+    /* En móvil el header vuelve a ocupar todo el ancho y el sidebar es un
+       panel off-canvas que se desliza desde la izquierda, debajo del header. */
+    .app-layout .app-header,
+    .app-layout .app-main {
+        margin-left: 0;
+    }
+
+    .sidebar {
+        top: var(--app-header-alto);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.abierto {
+        transform: translateX(0);
+    }
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+/* Migas de pan: navegación sobre el título de la sección actual. */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    color: var(--color-texto-ligero);
+}
+
+.breadcrumb a {
+    color: var(--color-texto-ligero);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.breadcrumb a:hover {
+    color: var(--color-sena-verde);
+    text-decoration: underline;
+}
+
+.breadcrumb-actual {
+    color: var(--color-sena-verde);
+    font-weight: 600;
+}
+
+/* Título suelto dentro de .app-main que todavía no usa .titulo-seccion.
+   El :not() evita que esta regla le pise el font-size a los títulos que sí la
+   llevan, que deben verse igual que los del dashboard. */
+.app-main > h1:not(.titulo-seccion),
+.app-main > h2:not(.titulo-seccion) {
+    color: var(--color-sena-verde);
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+/* Título y subtítulo se apilan a la izquierda; el botón o toolbar de la
+   derecha sigue ocupando su lugar en el flex. */
+.page-header__titulo {
+    min-width: 0;
+}
+
+.page-header h1 {
+    color: var(--color-sena-verde);
+    margin-bottom: 0;
+}
+
+/* Cuando el título lleva subtítulo, el espacio vertical entre el contenido y
+   el título lo aporta el subtítulo, no el margin-bottom del título. Sin esto
+   el dashboard abría 24px entre el h1 y su subtítulo, contra 8px en los
+   listados. */
+.dashboard-header > .titulo-seccion,
+.page-header__titulo > .titulo-seccion,
+.app-main > h1.titulo-seccion,
+.app-main > h2.titulo-seccion {
+    margin-bottom: 0.25rem;
+}
+
+/* En las páginas sin contenedor (.page-header / .dashboard-header) no hay
+   nadie que aporte el espacio bajo el subtítulo, así que lo aporta él. */
+.app-main > h1.titulo-seccion + .subtitulo-seccion,
+.app-main > h2.titulo-seccion + .subtitulo-seccion {
+    margin-bottom: 20px;
+}
+
+.filtro-fechas {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    max-width: 420px;
+}
+
+.filtro-inputs {
+    display: flex;
+    gap: 15px;
+}
+
+.filtro-inputs .form-group {
+    flex: 1;
+}
+
+.filtro-registros {
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    align-items: flex-end;
+}
+
+.filtro-registros .form-group {
+    flex: 1 1 160px;
+    min-width: 140px;
+}
+
+.filtro-registros .form-group.btn-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+    flex: 0 1 160px;
+}
+
+.filtro-registros .form-group.btn-group::before {
+    content: "";
+    display: block;
+    height: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.filtro-registros .form-group.btn-group > .btn {
+    width: 100%;
+    padding: 12px 15px;
+    line-height: normal;
+}
+
+.form-group.filtro-oculto,
+.form-group[hidden] {
+    display: none !important;
+    margin: 0 !important;
+}
+
+.btn-limpiar-filtro {
+    margin-top: 8px;
+    align-self: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--color-sena-verde);
+    text-decoration: underline;
+    transition: var(--transicion);
+}
+
+.btn-limpiar-filtro:hover {
+    color: var(--color-texto-ligero);
+}
+
+.page-header--acciones {
+    flex-wrap: wrap;
+    gap: 12px 16px;
+}
+
+/* El que crece es el bloque título+subtítulo, no el h1 suelto: así el toolbar
+   de la derecha se sigue empujando al borde. */
+.page-header--acciones .page-header__titulo {
+    flex: 1 1 auto;
+    min-width: min(100%, 12rem);
+}
+
+.sesion-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px 14px;
+    margin-left: auto;
+}
+
+.sesion-toolbar[hidden] {
+    display: none !important;
+}
+
+.sesion-toolbar__editar[hidden] {
+    display: none !important;
+}
+
+.sesion-toolbar__marcaje,
+.sesion-toolbar__gestion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.sesion-toolbar__sep {
+    width: 1px;
+    align-self: stretch;
+    min-height: 2rem;
+    background: var(--color-borde, #dee2e6);
+}
+
+@media (max-width: 640px) {
+    .sesion-toolbar {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
+    }
+
+    .sesion-toolbar__sep {
+        display: none;
+    }
+}
+
+.sesion-toolbar .btn {
+    width: auto;
+}
+
+.seccion-aprendices {
+    margin-top: 36px;
+    padding-top: 28px;
+    border-top: 1px solid var(--color-borde);
+}
+
+.titulo-seccion {
+    color: var(--color-sena-verde);
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0 0 20px;
+}
+
+/* Subtítulo opcional bajo el título de la página. Antes vivía en
+   dashboard.css como .dashboard-subtitulo; se mudó aquí para que cualquier
+   página pueda usarlo, no solo los dashboards. */
+.subtitulo-seccion {
+    color: var(--color-texto-muted, #6c757d);
+    font-size: var(--text-sm, 0.875rem);
+    margin-top: 0.25rem;
+}
+
+.seccion-aprendices__filtros {
+    margin-bottom: 24px;
+}
+
+.sesion-resumen {
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid var(--color-borde, #dee2e6);
+    border-radius: var(--borde-radio, 8px);
+    background: var(--color-fondo-alt, #f8f9fa);
+}
+
+.sesion-resumen p {
+    margin: 0 0 8px;
+}
+
+.sesion-resumen p:last-child {
+    margin-bottom: 0;
+}
+
+.campo-lectura {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--color-borde, #dee2e6);
+    border-radius: var(--borde-radio, 8px);
+    background: var(--color-fondo-alt, #f8f9fa);
+}

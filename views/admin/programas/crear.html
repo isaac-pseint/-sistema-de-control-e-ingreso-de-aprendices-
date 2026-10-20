@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Programa</title>
+    <link rel="icon" type="image/png" href="../../../assets/img/sena-colombia-logo-green39a900png-20250120.png">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+
+<body class="app-layout">
+
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+
+            <nav class="breadcrumb" aria-label="Migas de pan">
+                <a href="listado.html">Listado de Programas</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-actual">Crear Programa</span>
+            </nav>
+
+            <h1 class="titulo-seccion">Crear Programa</h1>
+            <p class="subtitulo-seccion">Define un programa de formación y su carga horaria</p>
+
+            <form id="formCrearPrograma" novalidate>
+                <div class="form-group">
+                    <label for="nombre">Nombre del programa</label>
+                    <input type="text" id="nombre" name="nombre" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción (opcional)</label>
+                    <textarea id="descripcion" name="descripcion" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary" id="btnGuardarPrograma">Guardar Programa</button>
+                    <a href="listado.html" class="btn btn-outline btn-a">Volver</a>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script type="module" src="../../../assets/js/pages/admin/programas/crear.js"></script>
+</body>
+
+</html>

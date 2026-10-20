@@ -21,8 +21,14 @@ Reglas de oro:
 
 | Archivo | Contenido |
 |---|---|
-| `Database.php` | Clase base: conexión **PDO** (singleton) |
-| `AprendizModel.php` | Consultas de aprendices (u otro por entidad: `XModel.php`) |
+| `Database.php` | Conexión PDO (singleton) |
+| `UserModel.php` | Usuarios y roles |
+| `FichaModel.php`, `ProgramaModel.php` | Fichas y programas |
+| `CompetenciaModel.php`, `SesionModel.php` | Competencias y sesiones de clase |
+| `AsistenciaModel.php` | Entrada/salida e historial por `Sesion_id` |
+| `ReporteModel.php`, `ExportadorReporte.php` | Reportes |
+| `DashboardModel.php` | Agregados para dashboards |
+| `LectorHorarioXlsx.php` | Parseo de Excel para importar horarios |
 
 ---
 

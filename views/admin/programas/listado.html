@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Programas</title>
+    <link rel="icon" type="image/png" href="../../../assets/img/sena-colombia-logo-green39a900png-20250120.png">
+    <link rel="stylesheet" href="../../../assets/css/main.css">
+</head>
+<body class="app-layout">
+
+    <nav class="app-header">
+        <button id="btnMenu" class="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <span id="tituloSeccion" class="app-title"></span>
+    </nav>
+
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar" aria-label="Navegación"></aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+        <main class="app-main">
+
+            <div class="page-header">
+                <div class="page-header__titulo">
+                    <h1 class="titulo-seccion">Programas</h1>
+                    <p class="subtitulo-seccion">Administra los programas de formación y sus horas</p>
+                </div>
+                <a href="crear.html" class="btn btn-primary btn-auto btn-a">Crear Programa</a>
+            </div>
+
+            <div class="filtro-inputs">
+                <div class="form-group">
+                    <label for="filtroBusqueda">Buscar</label>
+                    <input type="text" id="filtroBusqueda" class="form-control" placeholder="Buscar por nombre...">
+                </div>
+            </div>
+
+            <table class="table-admin">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaProgramas">
+                </tbody>
+            </table>
+
+            <div id="contenedorMensajes" class="mensaje-vacio"></div>
+        </main>
+    </div>
+
+    <!-- Modal de confirmación para eliminar programa -->
+    <div id="modalEliminarPrograma" class="modal-overlay" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTituloEliminar">
+            <div class="modal-header">
+                <h3 id="modalTituloEliminar">Eliminar Programa</h3>
+                <button type="button" class="modal-close" id="btnCerrarModalEliminar" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este programa?</p>
+                <p class="modal-detalle" id="modalProgramaDetalle"></p>
+                <p>Esta acción es permanente y no se podrá deshacer. No se puede eliminar si tiene fichas o competencias asociadas.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-auto" id="btnCancelarEliminar">Cancelar</button>
+                <button type="button" class="btn btn-danger btn-auto" id="btnConfirmarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../../../assets/js/pages/admin/programas/listado.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+/* tablas.css — Tablas de los listados.
+   Clases: .table-admin, .col-acciones, .mensaje-vacio */
+
+.table-admin {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.table-admin th,
+.table-admin td {
+    padding: 10px;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.table-admin thead th {
+    color: var(--color-texto-ligero);
+    font-size: 0.9rem;
+}
+
+/* Columna de acciones: el botón queda centrado bajo su encabezado. */
+.table-admin th.col-acciones,
+.table-admin td.col-acciones {
+    text-align: center;
+}
+
+.mensaje-vacio {
+    margin-top: 15px;
+    text-align: center;
+    color: var(--color-texto-ligero);
+}

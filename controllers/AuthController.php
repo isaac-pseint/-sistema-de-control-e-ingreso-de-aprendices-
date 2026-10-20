@@ -2,7 +2,7 @@
 
 // AuthController — Autenticación de la API. Responde JSON.
 // Cada método público es una "acción": index.php lo llama según ?action=.
-class AuthController
+class AuthController extends ControllerBase
 {
     private UserModel $userModel;
 
@@ -19,9 +19,16 @@ class AuthController
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
 
-        // auth() busca el usuario por email y verifica el hash de la contraseña.
-        // Devuelve el array del usuario si es válido, o false si no.
-        if ($user = $this->userModel->auth($email, $password)) {
+        $auth = $this->userModel->auth($email, $password);
+
+        if ($auth === UserModel::AUTH_INACTIVO) {
+            $this->fail('El usuario está inactivo. Contacte al administrador.', 403);
+        }
+
+        if (is_array($auth)) {
+            $user = $auth;
+            session_regenerate_id(true);
+
             // Guarda los datos del usuario en la sesión para las próximas peticiones.
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_nombre'] = $user['nombre'];
@@ -32,39 +39,43 @@ class AuthController
             $_SESSION['user_rol'] = $user['rol'];
             $_SESSION['user_ficha'] = $user['ficha'];
 
-            // json_encode convierte el array en texto JSON. El frontend lo lee con res.json().
-            echo json_encode(['ok' => true, 'redirect' => 'dashboard.html']);
-        } else {
-            echo json_encode(['ok' => false, 'error' => 'Credenciales inválidas']);
+            // El servidor decide a dónde ir según el rol; el frontend solo consume data.redirect.
+            $redirect = match ($_SESSION['user_rol']) {
+                'Administrador' => '../admin/dashboard.html',
+                'Instructor' => '../instructor/dashboard.html',
+                'Aprendiz' => '../aprendiz/dashboard.html',
+                default => '../public/login.html'
+            };
+            $this->ok(['redirect' => $redirect, 'rol' => $_SESSION['user_rol']], 'Sesión iniciada correctamente.');
+            return;
         }
+
+        $this->fail('Credenciales inválidas.', 401);
     }
 
     public function logout()
     {
         // Limpiamos el array de sesión
         $_SESSION = [];
-        
+
         // Destruimos la sesión en el servidor
         session_destroy();
-        
-        echo json_encode(['ok' => true]);
+
+        $this->ok();
     }
 
     public function session()
     {
         if (isset($_SESSION['user_id'])) {
-            echo json_encode([
-                'ok' => true,
-                'data' => [
-                    'usuario' => [
-                        'nombre' => $_SESSION['user_nombre'],
-                        'email' => $_SESSION['user_email']
-                    ]
+            $this->ok([
+                'usuario' => [
+                    'nombre' => $_SESSION['user_nombre'],
+                    'email' => $_SESSION['user_email'],
+                    'rol' => $_SESSION['user_rol']
                 ]
             ]);
         } else {
-            http_response_code(401);
-            echo json_encode(['ok' => false, 'error' => 'No autorizado']);
+            $this->fail("No autorizado", 401);
         }
     }
 }

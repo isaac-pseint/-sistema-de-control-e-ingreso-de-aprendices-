@@ -94,6 +94,10 @@ aprendices.js: api("aprendices") → JSON { ok:true, data:[...] }
 aprendices.js: renderTabla(data) → dibuja las filas dentro del <tbody>
 ```
 
+Todas las peticiones `POST` deben incluir `X-Requested-With: XMLHttpRequest`;
+si falta, `index.php` responde `403` en JSON. La cookie de sesión es `HttpOnly`
+y `SameSite=Lax`; `Secure` solo se activa en peticiones HTTPS.
+
 ---
 
 ## 5. Mapa de comunicación entre carpetas
@@ -123,50 +127,31 @@ BD → array → Controller → JSON → assets/js/*.js → DOM
 
 ```
 ControlAprendices/
-├── index.php                    ← API: router que SOLO responde JSON
-├── migrations/
-│   └── 001_esquema_inicial.sql  ← esquema de BD
-├── controllers/
-│   ├── ControllerBase.php       ← helpers de la API (json, ok, fail, auth)
-│   ├── AuthController.php       ← login / logout / sesion
-│   └── AprendizController.php   ← CRUD de aprendices
-├── models/
-│   ├── Database.php             ← conexión PDO (singleton)
-│   └── AprendizModel.php        ← consultas PDO de aprendices
-├── views/                       ← HTML ESTÁTICO (sin PHP)
-│   ├── login.html
-│   ├── lista.html
-│   ├── crear.html
-│   └── editar.html
-└── assets/
-    ├── css/estilos.css
-    └── js/                        ← Módulos ES (import / export)
-        ├── api.js                 ← [base] exporta api(): cliente del servidor
-        ├── ui.js                  ← [base] exporta showToast + esc
-        ├── forms.js               ← exporta conectarFormulario (envío AJAX)
-        ├── auth.js                ← exporta sesión: login, logout, comprobar
-        ├── aprendices.js          ← exporta la lógica del módulo (tabla, editar, desactivar)
-        └── pages/                 ← UN módulo por página (lo carga la vista)
-            ├── login.js
-            ├── lista.js
-            ├── crear.js
-            └── editar.js
+├── index.php              ← API JSON (?action=…)
+├── migrations/            ← 001…013 (ver migrations/GUIA.md)
+├── controllers/           ← Auth, Usuario, Ficha, Programa, Competencia, Sesion,
+│                          ← Asistencia, Horario, Reporte, Dashboard
+├── models/                ← Database + *Model por dominio
+├── views/                 ← HTML estático por rol (ver views/GUIA.md)
+├── assets/                ← css + js modular (ver assets/GUIA.md)
+└── PR-sesiones.md         ← notas del branch sesiones/competencias
 ```
 
 ---
 
 ## 7. Rutas de la API
 
-| `?action=` | Método | Controlador | Respuesta |
-|---|---|---|---|
-| `sesion` (GET) | `AuthController::sesion()` | estado de la sesión | `{ok:true, data:{usuario}}` o 401 |
-| `login` (POST) | `AuthController::login()` | autenticar | `{ok:true, redirect}` o `{ok:false, error}` |
-| `logout` (POST) | `AuthController::logout()` | cerrar sesión | `{ok:true}` |
-| `aprendices` (GET) | `AprendizController::index()` | listar | `{ok:true, data:[...]}` |
-| `aprendiz` (GET) | `AprendizController::show()` | uno por `?id=` | `{ok:true, data:{...}}` o `{ok:false}` |
-| `save` (POST) | `AprendizController::save()` | crear | `{ok:true, redirect}` o `{ok:false, error}` |
-| `update` (POST) | `AprendizController::update()` | actualizar | `{ok:true, redirect}` o `{ok:false, error}` |
-| `desactivar` (POST) | `AprendizController::deactivate()` | soft delete | `{ok:true}` o `{ok:false, error}` |
+Lista completa en el `switch` de `index.php`. Grupos principales:
+
+| Grupo | Ejemplos `?action=` |
+|---|---|
+| Auth | `login`, `logout`, `sesion` |
+| Usuarios / fichas / programas | `listarUsuarios`, `crearFicha`, `eliminarPrograma`, … |
+| Competencias y sesiones | `listarCompetencias`, `crearSesion`, `finalizarSesion`, `importarHorario`, … |
+| Asistencia | `marcarEntrada`, `marcarSalida`, `listarSesionAsistencia`, `listarAsistencias` |
+| Reportes y dashboards | `consultarReporte`, `exportarReporte`, `metricasDashboardAdmin`, … |
+
+Los aprendices se gestionan como **usuarios** con rol Aprendiz (`UsuarioController`), no hay `AprendizController`.
 
 ---
 
@@ -178,8 +163,8 @@ ControlAprendices/
 4. `controllers/ControllerBase.php` — helpers de la API
 5. `index.php` — router API (JSON)
 6. `AuthController` — login / sesión
-7. `AprendizController` — CRUD
-8. `views/*.html` + `assets/css` + los JS de `assets/js/` — el frontend
+7. Dominios de sesión/competencia/asistencia según `index.php`
+8. `views/*.html` + `assets/` — frontend modular
 9. Prueba completa con las herramientas del navegador (Red → peticiones JSON)
 
 ---
@@ -189,7 +174,20 @@ ControlAprendices/
 1. **El servidor SOLO devuelve JSON.** Jamás HTML de páginas, jamás `render()` de vistas.
 2. **Las views son HTML estático**: cero PHP, cero SQL. Todo lo pinta JavaScript.
 3. **La capa de datos usa PDO** con prepared statements (anti inyección SQL).
-4. Las páginas `login.html`/`lista.html`/`crear.html`/`editar.html` se navegan con enlaces
-   normales (`<a href="views/lista.html">`); la información se carga por AJAX.
-5. Sesión caducada: la API responde **401** → `api.js` redirige a `login.html`.
+4. Las vistas se navegan con enlaces normales relativos a su carpeta (**rama-rol**):
+   una vista y sus crear/editar viven juntas (mismo nivel `listado.html` ↔ `crear.html`),
+   `../dashboard.html` sube al panel de su rol, `../fichas/listado.html` cambia de dominio
+   dentro del mismo rol; la información se carga por AJAX.
+5. Sesión caducada o rol incorrecto: la API responde **401** → `core/api.js` (o
+   `features/auth.js`) redirige a `views/public/login.html`.
 6. Si la API no reconoce la acción → **404 JSON**, nunca una página HTML.
+
+## 10. Conceptos de dominio pendientes
+
+- El **instructor líder de la ficha** (`ficha.instructor_id`) es distinto del
+  **instructor asignado a cada sesión** (`sesion.Instructor_id`) y del instructor
+  asociado a una competencia (`competencia.Instructor_id`). El instructor líder
+  sigue siendo un dato vigente de la ficha; no debe confundirse con quien dicta
+  una sesión concreta.
+- **Excusas:** el aprendiz solicita excusa desde `aprendiz/excusas/detalle.html` (vinculada a una `inasistencia` por sesión). El instructor de la sesión resuelve en `instructor/excusas/revisar.html`. Al aprobar se crea `asistencia` y se elimina la `inasistencia`. Evidencia opcional en `uploads/excusas/` (descarga vía `descargarEvidenciaExcusa`). API: `crearExcusa`, `obtenerExcusa`, `resolverExcusa`, `listarExcusasSesion`.
+- **Reportes aprendiz:** vista `aprendiz/reportes/listado.html` (mismos endpoints `consultarReporte` y `exportarReporte` que admin/instructor). El backend fuerza `aprendiz_id` a la sesión; la respuesta incluye `excusas` y la exportación PDF/Excel añade hoja o sección de excusas.

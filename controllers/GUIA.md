@@ -23,9 +23,18 @@ eso ya lo hace el frontend con JavaScript.
 
 | Archivo | Contenido |
 |---|---|
-| `ControllerBase.php` | Clase base con los helpers de la API. **Todos** los controladores la extienden |
-| `AuthController.php` | `sesion()`, `login()`, `logout()` |
-| `AprendizController.php` | CRUD de aprendices (`index`, `show`, `save`, `update`, `deactivate`) |
+| `ControllerBase.php` | Helpers JSON: `ok`, `fail`, `requireAuth`, `requireRol` |
+| `AuthController.php` | Login, logout, estado de sesión |
+| `UsuarioController.php` | CRUD usuarios (incluye aprendices e instructores por rol) |
+| `FichaController.php` | CRUD fichas (soft delete) |
+| `ProgramaController.php` | CRUD programas |
+| `CompetenciaController.php` | CRUD competencias |
+| `SesionController.php` | Sesiones, estados, permisos por horario |
+| `AsistenciaController.php` | Marcaje por sesión, historial aprendiz |
+| `HorarioController.php` | Importación Excel de horarios |
+| `ReporteController.php` | Consulta y exportación de reportes (`consultarReporte`, `exportarReporte`). Roles: Administrador, Instructor, Aprendiz (alcance propio + excusas en JSON/export) |
+| `DashboardController.php` | Métricas por rol |
+| `ExcusaController.php` | Excusas por inasistencia (crear, obtener, resolver, descarga evidencia) |
 
 ---
 
