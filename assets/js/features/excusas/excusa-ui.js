@@ -5,7 +5,7 @@ import { formatearHora } from "../instructor/sesiones/sesion-ui.js";
 
 export function urlDescargaEvidencia(excusaId) {
     return new URL(
-        `../../../../../index.php?action=descargarEvidenciaExcusa&excusa_id=${encodeURIComponent(excusaId)}`,
+        `../../../../index.php?action=descargarEvidenciaExcusa&excusa_id=${encodeURIComponent(excusaId)}`,
         import.meta.url
     ).href;
 }
