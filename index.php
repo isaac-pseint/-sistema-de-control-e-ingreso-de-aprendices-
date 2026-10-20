@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+Dotenv\Dotenv::createImmutable(__DIR__)->safeLoad();
+
 /* =====================================================================
  * index.php — API / Controlador frontal.
  * Enruta ?action= hacia el controlador correspondiente y responde

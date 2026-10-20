@@ -7,5 +7,8 @@ tmp_cookies.txt
 .env
 migrar.php
 
+# Dependencias instaladas por Composer
+/vendor/
+
 # Evidencias de excusas (generadas en servidor)
 uploads/

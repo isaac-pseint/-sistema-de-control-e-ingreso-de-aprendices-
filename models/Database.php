@@ -11,14 +11,17 @@ class Database
     public static function conn(): PDO
     {
         if (self::$pdo === null) {
-            // getenv('DB_HOST') ?: 'localhost' → usa la variable de entorno si existe,
-            // si no usa el valor por defecto. Así funciona en XAMPP sin configurar nada.
+            $host = $_ENV['DB_HOST'] ?? $_SERVER['DB_HOST'] ?? getenv('DB_HOST');
+            $name = $_ENV['DB_NAME'] ?? $_SERVER['DB_NAME'] ?? getenv('DB_NAME');
+            $user = $_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? getenv('DB_USER');
+            $pass = $_ENV['DB_PASS'] ?? $_SERVER['DB_PASS'] ?? getenv('DB_PASS');
+
             self::$pdo = new PDO(
-                "mysql:host=" . (getenv('DB_HOST') ?: 'localhost')
-                    . ";dbname=" . (getenv('DB_NAME') ?: 'control_aprendices')
+                "mysql:host=" . ($host ?: 'localhost')
+                    . ";dbname=" . ($name ?: 'control_aprendices')
                     . ";charset=utf8mb4", // utf8mb4: soporta tildes, ñ y emojis
-                getenv('DB_USER') ?: 'root',
-                getenv('DB_PASS') ?: '',
+                $user ?: 'root',
+                $pass ?: '',
                 [
                     // Opciones de PDO:
                     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // un error SQL lanza una excepción
