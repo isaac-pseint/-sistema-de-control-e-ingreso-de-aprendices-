@@ -31,7 +31,7 @@ class FichaModel
     {
         $stmt = Database::conn()->prepare("
             SELECT id, codigo, Programa_id, instructor_id, jornada_id, estado
-            FROM Ficha
+            FROM ficha
             WHERE codigo = ?
         ");
         $stmt->execute([$codigo]);
@@ -53,7 +53,7 @@ class FichaModel
                     j.nombre AS jornada,
                     u.nombre AS instructor_nombre,
                     u.apellido AS instructor_apellido
-                FROM Ficha f
+                FROM ficha f
                 INNER JOIN programa p ON f.Programa_id = p.id
                 LEFT JOIN jornada j ON f.jornada_id = j.id
                 LEFT JOIN usuario u ON f.instructor_id = u.id
@@ -73,7 +73,7 @@ class FichaModel
         int $jornadaId
     ): bool {
         $stmt = Database::conn()->prepare("
-            INSERT INTO Ficha (codigo, Programa_id, instructor_id, jornada_id, estado)
+            INSERT INTO ficha (codigo, Programa_id, instructor_id, jornada_id, estado)
             VALUES (?, ?, ?, ?, 'Activo')
         ");
         return $stmt->execute([
@@ -94,7 +94,7 @@ class FichaModel
         string $estado
     ): bool {
         $stmt = Database::conn()->prepare("
-            UPDATE Ficha
+            UPDATE ficha
             SET codigo = ?,
                 Programa_id = ?,
                 instructor_id = ?,
@@ -116,7 +116,7 @@ class FichaModel
     public function eliminar(int $id): bool
     {
         $stmt = Database::conn()->prepare(
-            "UPDATE Ficha SET estado = 'Inactivo' WHERE id = ?"
+            "UPDATE ficha SET estado = 'Inactivo' WHERE id = ?"
         );
         return $stmt->execute([$id]);
     }
@@ -125,7 +125,7 @@ class FichaModel
     public function activar(int $id): bool
     {
         $stmt = Database::conn()->prepare(
-            "UPDATE Ficha SET estado = 'Activo' WHERE id = ?"
+            "UPDATE ficha SET estado = 'Activo' WHERE id = ?"
         );
         return $stmt->execute([$id]);
     }
@@ -140,7 +140,7 @@ class FichaModel
                     j.nombre AS jornada, 
                     p.nombre AS programa, 
                     CONCAT(u.nombre, ' ', u.apellido) AS instructor
-                FROM Ficha f
+                FROM ficha f
                 INNER JOIN programa p ON f.Programa_id = p.id
                 LEFT JOIN jornada j ON f.jornada_id = j.id
                 LEFT JOIN usuario u ON f.instructor_id = u.id";
@@ -183,7 +183,7 @@ class FichaModel
     public function listarActivas(): array
     {
         $stmt = Database::conn()->prepare(
-            "SELECT id, codigo, Programa_id FROM Ficha WHERE estado = 'Activo' ORDER BY codigo ASC"
+            "SELECT id, codigo, Programa_id FROM ficha WHERE estado = 'Activo' ORDER BY codigo ASC"
         );
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

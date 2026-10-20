@@ -33,7 +33,7 @@ class ReporteModel
 
         $sql = "
             SELECT f.id, f.codigo, f.Programa_id AS programa_id, p.nombre AS programa_nombre
-            FROM Ficha f
+            FROM ficha f
             INNER JOIN programa p ON p.id = f.Programa_id
             WHERE f.estado = 'Activo'
         ";
@@ -108,7 +108,7 @@ class ReporteModel
                    p.nombre  AS programa_nombre
             FROM usuario u
             INNER JOIN rol r      ON u.Rol_id      = r.id
-            INNER JOIN Ficha f    ON u.Ficha_id     = f.id
+            INNER JOIN ficha f    ON u.Ficha_id     = f.id
             INNER JOIN programa p ON f.Programa_id  = p.id
             WHERE r.nombre = 'Aprendiz'
               AND u.estado = 'Activo'
@@ -326,7 +326,7 @@ class ReporteModel
             FROM inasistencia i
             INNER JOIN sesion s   ON s.id  = i.Sesion_id
             INNER JOIN usuario u  ON u.id  = i.Usuario_id
-            INNER JOIN Ficha f    ON f.id  = s.Ficha_id
+            INNER JOIN ficha f    ON f.id  = s.Ficha_id
             INNER JOIN usuario ins ON ins.id = s.Instructor_id
             LEFT  JOIN competencia c ON c.id = s.Competencia_id
             WHERE s.estado != 'Cancelado'

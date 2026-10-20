@@ -46,9 +46,9 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `Ficha`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `Ficha` ;
+DROP TABLE IF EXISTS `ficha` ;
 
-CREATE TABLE IF NOT EXISTS `Ficha` (
+CREATE TABLE IF NOT EXISTS `ficha` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `codigo` INT(7) NOT NULL,
   `Programa_id` INT NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `Usuario` (
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_Usuario_Ficha1`
     FOREIGN KEY (`Ficha_id`)
-    REFERENCES `Ficha` (`id`)
+    REFERENCES `ficha` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

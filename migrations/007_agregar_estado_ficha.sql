@@ -5,5 +5,5 @@
 
 USE control_aprendices;
 
-ALTER TABLE Ficha
+ALTER TABLE ficha
     ADD COLUMN estado ENUM('Activo','Inactivo') NOT NULL DEFAULT 'Activo';

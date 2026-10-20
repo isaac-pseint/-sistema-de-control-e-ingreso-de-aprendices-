@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `sesion` (
   `estado` ENUM('Activo','Cancelado','Finalizada') NOT NULL DEFAULT 'Activo',
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_sesion_ficha`
-    FOREIGN KEY (`Ficha_id`) REFERENCES `Ficha` (`id`),
+    FOREIGN KEY (`Ficha_id`) REFERENCES `ficha` (`id`),
   CONSTRAINT `fk_sesion_competencia`
     FOREIGN KEY (`Competencia_id`) REFERENCES `Competencia` (`id`),
   CONSTRAINT `fk_sesion_instructor`
@@ -79,12 +79,12 @@ CREATE TABLE IF NOT EXISTS `sesion` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Ficha: jornada en lugar de horas sueltas
-ALTER TABLE `Ficha`
+ALTER TABLE `ficha`
   ADD COLUMN `jornada_id` INT NULL AFTER `Programa_id`,
   ADD CONSTRAINT `fk_ficha_jornada`
     FOREIGN KEY (`jornada_id`) REFERENCES `jornada` (`id`);
 
-ALTER TABLE `Ficha`
+ALTER TABLE `ficha`
   DROP COLUMN `hora_entrada`,
   DROP COLUMN `hora_salida`;
 
