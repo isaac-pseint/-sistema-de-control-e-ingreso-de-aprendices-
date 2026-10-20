@@ -12,6 +12,6 @@
 
 USE control_aprendices;
 
-ALTER TABLE `Ficha`
+ALTER TABLE `ficha`
   MODIFY COLUMN `jornada_id` INT NOT NULL
   COMMENT 'Jornada obligatoria: define los bloques horarios válidos de la ficha.';
