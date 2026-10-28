@@ -1,6 +1,6 @@
 // core/validacion.js — Reglas de validación genéricas reutilizadas por features/.
 
-import { mostrarErrorCampo } from "./forms.js";
+import { mostrarErrorCampo } from "./forms.js?v=20261028-1";
 
 export function validarRequerido(input, mensaje = "Este campo es obligatorio.") {
     const valor = (input.value || "").trim();

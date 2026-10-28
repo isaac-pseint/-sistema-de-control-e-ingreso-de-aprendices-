@@ -1,9 +1,9 @@
 // features/admin/usuarios/formulario.js — Formularios de usuario (crear/editar) y sus validaciones.
 
-import { api } from "../../../core/api.js";
-import { showToast, esc } from "../../../core/ui.js";
-import { conectarFormulario, mostrarErrorCampo } from "../../../core/forms.js";
-import { validarEmail, validarRequerido } from "../../../core/validacion.js";
+import { api } from "../../../core/api.js?v=20261028-1";
+import { showToast, esc } from "../../../core/ui.js?v=20261028-1";
+import { conectarFormulario, mostrarErrorCampo } from "../../../core/forms.js?v=20261028-1";
+import { validarEmail, validarRequerido } from "../../../core/validacion.js?v=20261028-1";
 
 function validarNombre(input) {
     const valor = (input.value || "").trim();

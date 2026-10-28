@@ -101,6 +101,11 @@ filtros al conjunto completo y luego pasar las filas resultantes a
 página. En reportes, la paginación solo afecta lo que se muestra: los totales y
 las exportaciones conservan el conjunto completo devuelto por la API.
 
+Los recursos CSS y JavaScript usan el mismo parámetro de versión (`v`) en las
+vistas HTML, las importaciones CSS y las dependencias entre módulos JS. Al
+publicar cambios de frontend, se debe actualizar ese parámetro en todas esas
+referencias para que navegadores y cachés intermedias soliciten las URLs nuevas.
+
 Todas las peticiones `POST` deben incluir `X-Requested-With: XMLHttpRequest`;
 si falta, `index.php` responde `403` en JSON. La cookie de sesión es `HttpOnly`
 y `SameSite=Lax`; `Secure` solo se activa en peticiones HTTPS.

@@ -1,8 +1,8 @@
 // features/admin/programas/formulario.js — Formularios de programa (crear/editar).
 
-import { api } from "../../../core/api.js";
-import { showToast } from "../../../core/ui.js";
-import { conectarFormulario } from "../../../core/forms.js";
+import { api } from "../../../core/api.js?v=20261028-1";
+import { showToast } from "../../../core/ui.js?v=20261028-1";
+import { conectarFormulario } from "../../../core/forms.js?v=20261028-1";
 
 // Conecta el formulario de creación de programa con la API.
 export function conectarFormularioCrearPrograma() {

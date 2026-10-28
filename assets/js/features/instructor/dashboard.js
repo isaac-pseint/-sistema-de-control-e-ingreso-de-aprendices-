@@ -1,6 +1,6 @@
-import { api } from "../../core/api.js";
-import { esc } from "../../core/ui.js";
-import { renderizarFilasPaginadas } from "../../core/paginacion-tabla.js";
+import { api } from "../../core/api.js?v=20261028-1";
+import { esc } from "../../core/ui.js?v=20261028-1";
+import { renderizarFilasPaginadas } from "../../core/paginacion-tabla.js?v=20261028-1";
 
 // Helper de hora 12h
 function formatearHora12h(hora24) {

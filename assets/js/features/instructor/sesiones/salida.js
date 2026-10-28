@@ -1,10 +1,10 @@
 // features/instructor/sesiones/salida.js — Registro de salida por llavero en una sesión.
 
-import { api } from "../../../core/api.js";
-import { conectarFormulario } from "../../../core/forms.js";
-import { showToast } from "../../../core/ui.js";
-import { validarRequerido } from "../../../core/validacion.js";
-import { renderResumenSesion } from "./sesion-ui.js";
+import { api } from "../../../core/api.js?v=20261028-1";
+import { conectarFormulario } from "../../../core/forms.js?v=20261028-1";
+import { showToast } from "../../../core/ui.js?v=20261028-1";
+import { validarRequerido } from "../../../core/validacion.js?v=20261028-1";
+import { renderResumenSesion } from "./sesion-ui.js?v=20261028-1";
 
 function validarCodigoLlavero(input) {
     return validarRequerido(input, "El código del llavero es obligatorio.");

@@ -1,8 +1,8 @@
 // features/admin/programas/acciones.js — Eliminación de programas confirmada en modal.
 
-import { api } from "../../../core/api.js";
-import { crearModalConfirmacion } from "../../../core/modal.js";
-import { cargarListadoProgramas } from "./listado.js";
+import { api } from "../../../core/api.js?v=20261028-1";
+import { crearModalConfirmacion } from "../../../core/modal.js?v=20261028-1";
+import { cargarListadoProgramas } from "./listado.js?v=20261028-1";
 
 const modalEliminar = crearModalConfirmacion({
     overlay: "modalEliminarPrograma",

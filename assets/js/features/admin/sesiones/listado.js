@@ -1,7 +1,7 @@
-import { api } from "../../../core/api.js";
-import { showToast, esc } from "../../../core/ui.js";
-import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
-import { formatearHora, claseEstadoSesion } from "../../instructor/sesiones/sesion-ui.js";
+import { api } from "../../../core/api.js?v=20261028-1";
+import { showToast, esc } from "../../../core/ui.js?v=20261028-1";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-1";
+import { formatearHora, claseEstadoSesion } from "../../instructor/sesiones/sesion-ui.js?v=20261028-1";
 
 function hoyLocal() {
     const d = new Date();

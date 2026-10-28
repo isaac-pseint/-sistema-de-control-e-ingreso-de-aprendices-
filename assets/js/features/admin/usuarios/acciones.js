@@ -1,9 +1,9 @@
 // features/admin/usuarios/acciones.js — Acciones sobre usuarios (eliminar/activar)
 // confirmadas mediante modales genéricos de core/modal.js.
 
-import { api } from "../../../core/api.js";
-import { crearModalConfirmacion } from "../../../core/modal.js";
-import { cargarListado } from "./listado.js";
+import { api } from "../../../core/api.js?v=20261028-1";
+import { crearModalConfirmacion } from "../../../core/modal.js?v=20261028-1";
+import { cargarListado } from "./listado.js?v=20261028-1";
 
 function enviarConId(action, id) {
     const fd = new FormData();
