@@ -2,6 +2,7 @@
 
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 
 let fichasCargadas = false;
 let aprendicesBase = [];
@@ -97,11 +98,12 @@ function renderizarTablaResumen(resumen = []) {
     if (!tbody) return;
 
     if (!resumen.length) {
+        renderizarFilasPaginadas(tbody, []);
         tbody.innerHTML = `<tr><td colspan="11" class="text-center">Sin registros para los filtros seleccionados.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = resumen.map(r => `
+    renderizarFilasPaginadas(tbody, resumen.map(r => `
         <tr>
             <td>${esc(r.identificacion)}</td>
             <td>${esc(`${r.nombre} ${r.apellido}`.trim())}</td>
@@ -115,7 +117,7 @@ function renderizarTablaResumen(resumen = []) {
             <td>${esc(r.dias_inasistencia)}</td>
             <td>${esc(r.total_inasistencias)}</td>
         </tr>
-    `).join("");
+    `));
 }
 
 function renderizarTablaInasistencias(inasistencias = []) {
@@ -123,11 +125,12 @@ function renderizarTablaInasistencias(inasistencias = []) {
     if (!tbody) return;
 
     if (!inasistencias.length) {
+        renderizarFilasPaginadas(tbody, []);
         tbody.innerHTML = `<tr><td colspan="7" class="text-center">Sin inasistencias registradas en el periodo seleccionado.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = inasistencias.map(ina => `
+    renderizarFilasPaginadas(tbody, inasistencias.map(ina => `
         <tr>
             <td>${esc(ina.fecha)}</td>
             <td>${esc(`${recortarHora(ina.hora_inicio)} - ${recortarHora(ina.hora_fin)}`)}</td>
@@ -137,7 +140,7 @@ function renderizarTablaInasistencias(inasistencias = []) {
             <td>${esc(ina.competencia_nombre || "—")}</td>
             <td>${esc(`${ina.instructor_nombre} ${ina.instructor_apellido}`.trim())}</td>
         </tr>
-    `).join("");
+    `));
 }
 
 export async function cargarReporte() {
@@ -164,9 +167,11 @@ export async function cargarReporte() {
     const tbodyInasistencias = document.getElementById("tabla-inasistencias-body");
 
     if (tbodyResumen) {
+        renderizarFilasPaginadas(tbodyResumen, []);
         tbodyResumen.innerHTML = `<tr><td colspan="11" class="text-center">Cargando datos...</td></tr>`;
     }
     if (tbodyInasistencias) {
+        renderizarFilasPaginadas(tbodyInasistencias, []);
         tbodyInasistencias.innerHTML = `<tr><td colspan="7" class="text-center">Cargando datos...</td></tr>`;
     }
 
@@ -184,7 +189,7 @@ export async function cargarReporte() {
             if (selectFicha) {
                 const valorActual = selectFicha.value;
                 selectFicha.innerHTML = `<option value="">Todas las fichas</option>` +
-                    fichas.map(f => `<option value="${f.id}">${esc(f.codigo)}</option>`).join("");
+                    fichas.map(f => `<option value="${f.id}">${esc(f.codigo)}${f.estado === "Inactivo" ? " (Inactiva)" : ""}</option>`).join("");
                 if (valorActual) selectFicha.value = valorActual;
                 fichasCargadas = true;
             }

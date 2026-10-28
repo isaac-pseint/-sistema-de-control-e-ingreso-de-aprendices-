@@ -28,8 +28,15 @@ class ProgramaController extends ControllerBase
 
         $descripcion = $descripcion !== '' ? $descripcion : null;
 
-        if ($this->model->crear($nombre, $descripcion)) {
-            $this->ok([], 'Programa creado correctamente.');
+        try {
+            if ($this->model->crear($nombre, $descripcion)) {
+                $this->ok([], 'Programa creado correctamente.');
+            }
+        } catch (PDOException $e) {
+            if ($this->esConflictoDeUnicidad($e)) {
+                $this->fail('Ya existe un programa con ese nombre.');
+            }
+            $this->fail('Error en la base de datos al crear el programa.');
         }
 
         $this->fail('No se pudo crear el programa.');
@@ -54,11 +61,7 @@ class ProgramaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_GET['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de programa no válido.');
-        }
+        $id = $this->validarId($_GET['id'] ?? null, 'programa');
 
         $programa = $this->model->buscarPorId($id);
 
@@ -74,13 +77,9 @@ class ProgramaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_POST['id'] ?? 0);
+        $id = $this->validarId($_POST['id'] ?? null, 'programa');
         $nombre = trim($_POST['nombre'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
-
-        if ($id <= 0) {
-            $this->fail('ID de programa no válido.');
-        }
 
         if ($nombre === '') {
             $this->fail('El nombre del programa es obligatorio.');
@@ -94,8 +93,15 @@ class ProgramaController extends ControllerBase
 
         $descripcion = $descripcion !== '' ? $descripcion : null;
 
-        if ($this->model->actualizar($id, $nombre, $descripcion)) {
-            $this->ok([], 'Programa actualizado correctamente.');
+        try {
+            if ($this->model->actualizar($id, $nombre, $descripcion)) {
+                $this->ok([], 'Programa actualizado correctamente.');
+            }
+        } catch (PDOException $e) {
+            if ($this->esConflictoDeUnicidad($e)) {
+                $this->fail('El nombre del programa ya está en uso.');
+            }
+            $this->fail('Error en la base de datos al actualizar el programa.');
         }
 
         $this->fail('No se pudo actualizar el programa.');
@@ -106,11 +112,7 @@ class ProgramaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_POST['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de programa no válido.');
-        }
+        $id = $this->validarId($_POST['id'] ?? null, 'programa');
 
         if ($this->model->tieneFichasAsociadas($id)) {
             $this->fail('No se puede eliminar: hay fichas asociadas a este programa.');

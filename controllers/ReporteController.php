@@ -124,19 +124,8 @@ class ReporteController extends ControllerBase
         if ($esAprendiz) {
             $aprendizId = (int) $_SESSION['user_id'];
         } else {
-            $fichaId = isset($_GET['ficha_id']) && $_GET['ficha_id'] !== ''
-                ? (int) $_GET['ficha_id']
-                : null;
-            if ($fichaId !== null && $fichaId <= 0) {
-                $this->fail('La ficha seleccionada no es válida.');
-            }
-
-            $aprendizId = isset($_GET['aprendiz_id']) && $_GET['aprendiz_id'] !== ''
-                ? (int) $_GET['aprendiz_id']
-                : null;
-            if ($aprendizId !== null && $aprendizId <= 0) {
-                $this->fail('El aprendiz seleccionado no es válido.');
-            }
+            $fichaId = $this->validarIdOpcional($_GET['ficha_id'] ?? null, 'ficha');
+            $aprendizId = $this->validarIdOpcional($_GET['aprendiz_id'] ?? null, 'aprendiz');
 
             $instructorId = $rol === 'Instructor'
                 ? (int) $_SESSION['user_id']

@@ -2,6 +2,7 @@
 
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 import { formatearHora } from "../../instructor/sesiones/sesion-ui.js";
 import {
     sincronizarFiltroAnomalia,
@@ -74,13 +75,13 @@ function renderizarListado() {
             ? "Aún no tienes sesiones registradas en tu historial."
             : "No hay registros para los filtros seleccionados.";
         contenedorMensajes.hidden = false;
-        tbody.innerHTML = "";
+        renderizarFilasPaginadas(tbody, []);
         return;
     }
 
     contenedorMensajes.textContent = "";
     contenedorMensajes.hidden = true;
-    tbody.innerHTML = registros.map(a => {
+    renderizarFilasPaginadas(tbody, registros.map(a => {
         const horario = (a.sesion_inicio && a.sesion_fin)
             ? `${esc(formatearHora(a.sesion_inicio))} - ${esc(formatearHora(a.sesion_fin))}`
             : "—";
@@ -103,7 +104,7 @@ function renderizarListado() {
             <td>${anticipacion > 0 ? esc(anticipacion) : "—"}</td>
             <td>${acciones}</td>
         </tr>`;
-    }).join("");
+    }));
 }
 
 function onFiltrosChange() {

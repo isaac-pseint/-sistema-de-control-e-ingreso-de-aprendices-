@@ -2,6 +2,7 @@
 
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 import { badgeExcusa } from "../../excusas/excusa-ui.js";
 
 function formatearFechaISO(date) {
@@ -87,11 +88,12 @@ function renderizarTablaResumen(resumen = []) {
     if (!tbody) return;
 
     if (!resumen.length) {
+        renderizarFilasPaginadas(tbody, []);
         tbody.innerHTML = `<tr><td colspan="9" class="text-center">Sin registros para los filtros seleccionados.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = resumen.map(r => `
+    renderizarFilasPaginadas(tbody, resumen.map(r => `
         <tr>
             <td>${esc(r.ficha_codigo)}</td>
             <td>${esc(r.programa_nombre || "—")}</td>
@@ -103,7 +105,7 @@ function renderizarTablaResumen(resumen = []) {
             <td>${esc(r.dias_inasistencia)}</td>
             <td>${esc(r.total_inasistencias)}</td>
         </tr>
-    `).join("");
+    `));
 }
 
 function renderizarTablaInasistencias(inasistencias = []) {
@@ -111,18 +113,19 @@ function renderizarTablaInasistencias(inasistencias = []) {
     if (!tbody) return;
 
     if (!inasistencias.length) {
+        renderizarFilasPaginadas(tbody, []);
         tbody.innerHTML = `<tr><td colspan="4" class="text-center">Sin inasistencias registradas en el periodo seleccionado.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = inasistencias.map(ina => `
+    renderizarFilasPaginadas(tbody, inasistencias.map(ina => `
         <tr>
             <td>${esc(ina.fecha)}</td>
             <td>${esc(`${recortarHora(ina.hora_inicio)} - ${recortarHora(ina.hora_fin)}`)}</td>
             <td>${esc(ina.competencia_nombre || "—")}</td>
             <td>${esc(`${ina.instructor_nombre} ${ina.instructor_apellido}`.trim())}</td>
         </tr>
-    `).join("");
+    `));
 }
 
 function renderizarTablaExcusas(excusas = []) {
@@ -130,11 +133,12 @@ function renderizarTablaExcusas(excusas = []) {
     if (!tbody) return;
 
     if (!excusas.length) {
+        renderizarFilasPaginadas(tbody, []);
         tbody.innerHTML = `<tr><td colspan="8" class="text-center">Sin excusas registradas en el periodo seleccionado.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = excusas.map(ex => {
+    renderizarFilasPaginadas(tbody, excusas.map(ex => {
         const href = `../excusas/detalle.html?excusa_id=${encodeURIComponent(ex.excusa_id)}`;
         const resp = ex.respuesta_instructor ? esc(ex.respuesta_instructor) : "—";
         return `
@@ -148,7 +152,7 @@ function renderizarTablaExcusas(excusas = []) {
             <td>${resp}</td>
             <td><a href="${href}" class="btn btn-outline btn-sm btn-a">Ver</a></td>
         </tr>`;
-    }).join("");
+    }));
 }
 
 export async function cargarReporte() {
@@ -172,12 +176,15 @@ export async function cargarReporte() {
     const tbodyExcusas = document.getElementById("tabla-excusas-body");
 
     if (tbodyResumen) {
+        renderizarFilasPaginadas(tbodyResumen, []);
         tbodyResumen.innerHTML = `<tr><td colspan="9" class="text-center">Cargando datos...</td></tr>`;
     }
     if (tbodyInasistencias) {
+        renderizarFilasPaginadas(tbodyInasistencias, []);
         tbodyInasistencias.innerHTML = `<tr><td colspan="4" class="text-center">Cargando datos...</td></tr>`;
     }
     if (tbodyExcusas) {
+        renderizarFilasPaginadas(tbodyExcusas, []);
         tbodyExcusas.innerHTML = `<tr><td colspan="8" class="text-center">Cargando datos...</td></tr>`;
     }
 

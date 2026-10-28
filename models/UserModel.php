@@ -48,6 +48,18 @@ class UserModel
         return $user;
     }
 
+    public function sesionVigente(int $id, string $rol): bool
+    {
+        $stmt = Database::conn()->prepare("
+            SELECT 1
+            FROM usuario u
+            INNER JOIN rol r ON r.id = u.Rol_id
+            WHERE u.id = ? AND u.estado = 'Activo' AND r.nombre = ?
+        ");
+        $stmt->execute([$id, $rol]);
+        return $stmt->fetchColumn() !== false;
+    }
+
     public function buscarPorEmail(string $email, ?int $excluirId = null): ?array
     {
         $sql = "SELECT id FROM usuario WHERE email = ?";
@@ -84,11 +96,14 @@ class UserModel
 
     public function buscarPorCodigoLlavero(string $codigoLlavero, ?int $excluirId = null): ?array
     {
-        $sql = "SELECT id, nombre, apellido, Ficha_id, estado FROM usuario WHERE codigo_llavero = ?";
+        $sql = "SELECT u.id, u.nombre, u.apellido, u.Ficha_id, u.estado, r.nombre AS rol
+                FROM usuario u
+                INNER JOIN rol r ON r.id = u.Rol_id
+                WHERE u.codigo_llavero = ?";
         $params = [$codigoLlavero];
 
         if ($excluirId !== null) {
-            $sql .= " AND id != ?";
+            $sql .= " AND u.id != ?";
             $params[] = $excluirId;
         }
 

@@ -1,5 +1,6 @@
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 import { formatearHora, claseEstadoSesion } from "../../instructor/sesiones/sesion-ui.js";
 
 function hoyLocal() {
@@ -32,12 +33,12 @@ export function cargarListadoSesiones() {
         const sesiones = data.data?.sesiones || [];
         if (!sesiones.length) {
             contenedor.textContent = "No hay sesiones para los filtros seleccionados.";
-            tbody.innerHTML = "";
+            renderizarFilasPaginadas(tbody, []);
             return data;
         }
 
         contenedor.textContent = "";
-        tbody.innerHTML = sesiones.map(s => {
+        renderizarFilasPaginadas(tbody, sesiones.map(s => {
             const p = s.permisos || {};
             let acciones = "";
             if (p.editar_admin) {
@@ -65,7 +66,7 @@ export function cargarListadoSesiones() {
                     <div class="btn-group">${acciones}</div>
                 </td>
             </tr>`;
-        }).join("");
+        }));
         return data;
     });
 }
@@ -96,7 +97,10 @@ export function configurarFiltrosSesiones(fichas) {
     const select = document.getElementById("filtroFicha");
     if (select && fichas) {
         select.innerHTML = `<option value="">Todas las fichas</option>` +
-            fichas.map(f => `<option value="${f.id}">${esc(f.codigo)}</option>`).join("");
+            fichas.map(f => {
+                const estado = f.estado === "Inactivo" ? " (Inactiva)" : "";
+                return `<option value="${f.id}">${esc(f.codigo)}${estado}</option>`;
+            }).join("");
     }
 
     const desde = document.getElementById("filtroDesde");

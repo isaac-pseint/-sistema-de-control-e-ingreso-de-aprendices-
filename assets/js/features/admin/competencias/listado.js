@@ -1,5 +1,6 @@
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 
 let programaFiltroInicial = null;
 
@@ -32,12 +33,12 @@ export function cargarListadoCompetencias() {
         const items = data.data?.competencias || [];
         if (items.length === 0) {
             contenedorMensajes.textContent = "No hay competencias registradas.";
-            tbody.innerHTML = "";
+            renderizarFilasPaginadas(tbody, []);
             return data;
         }
 
         contenedorMensajes.textContent = "";
-        tbody.innerHTML = items.map(c => `
+        renderizarFilasPaginadas(tbody, items.map(c => `
             <tr>
                 <td>${esc(c.nombre)}</td>
                 <td>${esc(c.programa)}</td>
@@ -50,7 +51,7 @@ export function cargarListadoCompetencias() {
                     </div>
                 </td>
             </tr>
-        `).join("");
+        `));
         return data;
     }).catch(() => {
         showToast("danger", "Error de conexión al cargar el listado.");

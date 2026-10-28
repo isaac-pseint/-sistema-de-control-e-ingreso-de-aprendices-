@@ -1,5 +1,6 @@
 import { api } from "../../core/api.js";
 import { esc } from "../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../core/paginacion-tabla.js";
 
 // Helper to format time (e.g. "14:00:00" -> "02:00 PM")
 function formatearHora12h(hora24) {
@@ -131,17 +132,16 @@ export async function cargarDashboardAdmin() {
 
     if (!sesiones_hoy || sesiones_hoy.length === 0) {
         if (msjSinSesiones) msjSinSesiones.hidden = false;
-        if (tablaBody) tablaBody.innerHTML = "";
+        if (tablaBody) renderizarFilasPaginadas(tablaBody, []);
     } else {
         if (msjSinSesiones) msjSinSesiones.hidden = true;
         if (tablaBody) {
-            let filas = "";
-            sesiones_hoy.forEach(s => {
+            renderizarFilasPaginadas(tablaBody, sesiones_hoy.map(s => {
                 let badgeClass = "badge-success";
                 if (s.estado === "Finalizada") badgeClass = "badge-info";
                 if (s.estado === "Cancelado") badgeClass = "badge-danger";
 
-                filas += `
+                return `
                     <tr>
                         <td>${esc(s.ficha)}</td>
                         <td>${esc(s.programa)}</td>
@@ -152,8 +152,7 @@ export async function cargarDashboardAdmin() {
                         <td class="col-acciones"><a href="sesiones/editar.html?id=${esc(s.id)}" class="btn btn-sm btn-outline btn-a">Gestionar</a></td>
                     </tr>
                 `;
-            });
-            tablaBody.innerHTML = filas;
+            }));
         }
     }
 }

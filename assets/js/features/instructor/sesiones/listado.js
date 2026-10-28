@@ -1,6 +1,7 @@
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
 import { formatearHora, claseEstadoSesion } from "./sesion-ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 
 let todasLasSesiones = [];
 
@@ -33,12 +34,12 @@ function renderizarListado() {
         contenedorMensajes.textContent = (desde || hasta)
             ? "No hay sesiones para los criterios seleccionados."
             : "Aún no tienes sesiones programadas.";
-        tbody.innerHTML = "";
+        renderizarFilasPaginadas(tbody, []);
         return;
     }
 
     contenedorMensajes.textContent = "";
-    tbody.innerHTML = sesiones.map(s => `
+    renderizarFilasPaginadas(tbody, sesiones.map(s => `
         <tr>
             <td>${esc(s.fecha)}</td>
             <td>${esc(s.competencia || "Sin competencia")}</td>
@@ -47,7 +48,7 @@ function renderizarListado() {
             <td class="${claseEstadoSesion(s.estado)}">${esc(s.estado)}</td>
             <td>${accionesFila(s)}</td>
         </tr>
-    `).join("");
+    `));
 }
 
 export function cargarListado() {

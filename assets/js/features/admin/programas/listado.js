@@ -2,6 +2,7 @@
 
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 
 // Carga y renderiza el listado dinámico de programas con búsqueda opcional.
 export function cargarListadoProgramas(busqueda = "") {
@@ -29,13 +30,13 @@ export function cargarListadoProgramas(busqueda = "") {
                             ? "No se encontraron programas con la búsqueda aplicada."
                             : "No hay programas registrados.";
                     }
-                    tbody.innerHTML = "";
+                    renderizarFilasPaginadas(tbody, []);
                     return data;
                 }
 
                 if (contenedorMensajes) contenedorMensajes.textContent = "";
 
-                tbody.innerHTML = programas.map(p => `
+                renderizarFilasPaginadas(tbody, programas.map(p => `
                     <tr>
                         <td>${esc(p.nombre)}</td>
                         <td>${p.descripcion ? esc(p.descripcion) : "—"}</td>
@@ -47,7 +48,7 @@ export function cargarListadoProgramas(busqueda = "") {
                             </div>
                         </td>
                     </tr>
-                `).join("");
+                `));
             } else {
                 showToast("danger", data.error || "No se pudo cargar el listado de programas.");
                 if (contenedorMensajes) contenedorMensajes.textContent = "Error al cargar los datos.";

@@ -26,11 +26,15 @@ class CompetenciaController extends ControllerBase
 
         $nombre = trim($_POST['nombre'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
-        $programaId = (int)($_POST['programa_id'] ?? 0);
-        $instructorId = (int)($_POST['instructor_id'] ?? 0);
+        $programaId = $this->validarId($_POST['programa_id'] ?? null, 'programa');
+        $instructorId = $this->validarId($_POST['instructor_id'] ?? null, 'instructor');
 
         if ($nombre === '' || $programaId <= 0 || $instructorId <= 0) {
             $this->fail('Todos los campos obligatorios deben estar llenos.');
+        }
+
+        if (!$this->model->instructorActivo($instructorId)) {
+            $this->fail('El instructor seleccionado no es válido o no está activo.');
         }
 
         if ($this->model->buscarPorNombre($nombre, $programaId)) {
@@ -51,9 +55,7 @@ class CompetenciaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $programaId = isset($_GET['programa_id']) && trim($_GET['programa_id']) !== ''
-            ? (int)$_GET['programa_id']
-            : null;
+        $programaId = $this->validarIdOpcional($_GET['programa_id'] ?? null, 'programa');
 
         $busqueda = isset($_GET['busqueda']) && trim($_GET['busqueda']) !== ''
             ? trim($_GET['busqueda'])
@@ -68,11 +70,7 @@ class CompetenciaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_GET['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de competencia no válido.');
-        }
+        $id = $this->validarId($_GET['id'] ?? null, 'competencia');
 
         $competencia = $this->model->buscarPorId($id);
 
@@ -87,18 +85,18 @@ class CompetenciaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_POST['id'] ?? 0);
+        $id = $this->validarId($_POST['id'] ?? null, 'competencia');
         $nombre = trim($_POST['nombre'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
-        $programaId = (int)($_POST['programa_id'] ?? 0);
-        $instructorId = (int)($_POST['instructor_id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de competencia no válido.');
-        }
+        $programaId = $this->validarId($_POST['programa_id'] ?? null, 'programa');
+        $instructorId = $this->validarId($_POST['instructor_id'] ?? null, 'instructor');
 
         if ($nombre === '' || $programaId <= 0 || $instructorId <= 0) {
             $this->fail('Todos los campos obligatorios deben estar llenos.');
+        }
+
+        if (!$this->model->instructorActivo($instructorId)) {
+            $this->fail('El instructor seleccionado no es válido o no está activo.');
         }
 
         $existente = $this->model->buscarPorNombre($nombre, $programaId);
@@ -120,11 +118,7 @@ class CompetenciaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_POST['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de competencia no válido.');
-        }
+        $id = $this->validarId($_POST['id'] ?? null, 'competencia');
 
         if ($this->model->tieneSesionesAsociadas($id)) {
             $this->fail('No se puede eliminar: hay sesiones que usan esta competencia.');

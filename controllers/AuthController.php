@@ -66,16 +66,13 @@ class AuthController extends ControllerBase
 
     public function session()
     {
-        if (isset($_SESSION['user_id'])) {
-            $this->ok([
-                'usuario' => [
-                    'nombre' => $_SESSION['user_nombre'],
-                    'email' => $_SESSION['user_email'],
-                    'rol' => $_SESSION['user_rol']
-                ]
-            ]);
-        } else {
-            $this->fail("No autorizado", 401);
-        }
+        $this->requireAuth();
+        $this->ok([
+            'usuario' => [
+                'nombre' => $_SESSION['user_nombre'],
+                'email' => $_SESSION['user_email'],
+                'rol' => $_SESSION['user_rol']
+            ]
+        ]);
     }
 }

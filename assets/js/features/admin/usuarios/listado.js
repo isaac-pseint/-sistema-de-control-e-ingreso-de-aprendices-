@@ -2,6 +2,7 @@
 
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 
 function hayFiltrosActivos(rol, busq, ficha, estado) {
     return !!(rol || busq || ficha || estado);
@@ -41,12 +42,12 @@ export function cargarListado(rolFiltro = null, busqueda = null, fichaFiltro = n
                     contenedorMensajes.textContent = hayFiltrosActivos(rol, busq, ficha, estado)
                         ? "No se encontraron usuarios con los filtros aplicados."
                         : "No hay usuarios registrados.";
-                    tbody.innerHTML = "";
+                    renderizarFilasPaginadas(tbody, []);
                     return;
                 }
 
                 contenedorMensajes.textContent = "";
-                tbody.innerHTML = usuarios.map(u => `
+                renderizarFilasPaginadas(tbody, usuarios.map(u => `
                     <tr>
                         <td>${esc(u.nombre)}</td>
                         <td>${esc(u.apellido)}</td>
@@ -65,7 +66,7 @@ export function cargarListado(rolFiltro = null, busqueda = null, fichaFiltro = n
                         </div>
                         </td>
                     </tr>
-                `).join("");
+                `));
             } else {
                 showToast("danger", data.error || "No se pudo cargar el listado de usuarios.");
                 if (contenedorMensajes) contenedorMensajes.textContent = "Error al cargar los datos.";

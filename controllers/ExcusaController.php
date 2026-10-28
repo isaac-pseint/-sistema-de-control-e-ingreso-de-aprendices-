@@ -18,13 +18,10 @@ class ExcusaController extends ControllerBase
     {
         $this->requireRol('Aprendiz');
 
-        $inasistenciaId = (int) ($_POST['inasistencia_id'] ?? 0);
+        $inasistenciaId = $this->validarId($_POST['inasistencia_id'] ?? null, 'inasistencia');
         $motivo = trim($_POST['motivo'] ?? '');
         $aprendizId = (int) $_SESSION['user_id'];
 
-        if ($inasistenciaId <= 0) {
-            $this->fail('Inasistencia no válida.');
-        }
         if ($motivo === '') {
             $this->fail('El motivo de la excusa es obligatorio.');
         }
@@ -88,12 +85,12 @@ class ExcusaController extends ControllerBase
     {
         $this->requireAuth();
 
-        $inasistenciaId = isset($_GET['inasistencia_id']) ? (int) $_GET['inasistencia_id'] : 0;
-        $excusaId = isset($_GET['excusa_id']) ? (int) $_GET['excusa_id'] : 0;
+        $inasistenciaId = $this->validarIdOpcional($_GET['inasistencia_id'] ?? null, 'inasistencia');
+        $excusaId = $this->validarIdOpcional($_GET['excusa_id'] ?? null, 'excusa');
 
-        if ($excusaId > 0) {
+        if ($excusaId !== null) {
             $excusa = $this->excusaModel->buscarPorId($excusaId);
-        } elseif ($inasistenciaId > 0) {
+        } elseif ($inasistenciaId !== null) {
             $excusa = $this->excusaModel->buscarPorInasistenciaId($inasistenciaId);
             if ($excusa === null) {
                 $ctx = $this->excusaModel->inasistenciaConSesion($inasistenciaId);
@@ -128,10 +125,7 @@ class ExcusaController extends ControllerBase
     {
         $this->requireRol('Instructor');
 
-        $sesionId = (int) ($_GET['sesion_id'] ?? 0);
-        if ($sesionId <= 0) {
-            $this->fail('ID de sesión no válido.');
-        }
+        $sesionId = $this->validarId($_GET['sesion_id'] ?? null, 'sesión');
 
         $sesion = (new SesionModel())->buscarPorId($sesionId);
         if (!$sesion) {
@@ -148,14 +142,11 @@ class ExcusaController extends ControllerBase
     {
         $this->requireRol('Instructor');
 
-        $excusaId = (int) ($_POST['excusa_id'] ?? 0);
+        $excusaId = $this->validarId($_POST['excusa_id'] ?? null, 'excusa');
         $accion = strtolower(trim($_POST['accion'] ?? ''));
         $respuesta = trim($_POST['respuesta'] ?? '');
         $instructorId = (int) $_SESSION['user_id'];
 
-        if ($excusaId <= 0) {
-            $this->fail('Excusa no válida.');
-        }
         if (!in_array($accion, ['aprobar', 'rechazar'], true)) {
             $this->fail('Acción no válida.');
         }
@@ -233,12 +224,7 @@ class ExcusaController extends ControllerBase
     {
         $this->requireAuth();
 
-        $excusaId = (int) ($_GET['excusa_id'] ?? 0);
-        if ($excusaId <= 0) {
-            http_response_code(422);
-            echo 'Excusa no válida.';
-            exit;
-        }
+        $excusaId = $this->validarId($_GET['excusa_id'] ?? null, 'excusa');
 
         $excusa = $this->excusaModel->buscarPorId($excusaId);
         if ($excusa === null || empty($excusa['evidencia'])) {
