@@ -2,6 +2,7 @@
 
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 
 // Llena el selector de programas con los datos obtenidos del backend.
 export function cargarFiltroProgramas() {
@@ -62,13 +63,13 @@ export function cargarListadoFichas(programaId = "", busqueda = "") {
                             ? "No se encontraron fichas con los filtros aplicados."
                             : "No hay fichas registradas.";
                     }
-                    tbody.innerHTML = "";
+                    renderizarFilasPaginadas(tbody, []);
                     return data;
                 }
 
                 if (contenedorMensajes) contenedorMensajes.textContent = "";
 
-                tbody.innerHTML = fichas.map(f => `
+                renderizarFilasPaginadas(tbody, fichas.map(f => `
                     <tr>
                         <td>${esc(f.codigo)}</td>
                         <td>${esc(f.programa)}</td>
@@ -84,7 +85,7 @@ export function cargarListadoFichas(programaId = "", busqueda = "") {
                             </div>
                         </td>
                     </tr>
-                `).join("");
+                `));
             } else {
                 showToast("danger", data.error || "No se pudo cargar el listado de fichas.");
                 if (contenedorMensajes) contenedorMensajes.textContent = "Error al cargar los datos.";

@@ -94,6 +94,13 @@ aprendices.js: api("aprendices") → JSON { ok:true, data:[...] }
 aprendices.js: renderTabla(data) → dibuja las filas dentro del <tbody>
 ```
 
+Las tablas dinámicas usan `assets/js/core/paginacion-tabla.js` para paginar las
+filas en el cliente (10, 25, 50 o todas). Cada vista debe aplicar primero sus
+filtros al conjunto completo y luego pasar las filas resultantes a
+`renderizarFilasPaginadas`; al cambiar datos o filtros se vuelve a la primera
+página. En reportes, la paginación solo afecta lo que se muestra: los totales y
+las exportaciones conservan el conjunto completo devuelto por la API.
+
 Todas las peticiones `POST` deben incluir `X-Requested-With: XMLHttpRequest`;
 si falta, `index.php` responde `403` en JSON. La cookie de sesión es `HttpOnly`
 y `SameSite=Lax`; `Secure` solo se activa en peticiones HTTPS.

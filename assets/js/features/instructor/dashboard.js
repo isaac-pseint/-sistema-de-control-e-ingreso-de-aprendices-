@@ -1,5 +1,6 @@
 import { api } from "../../core/api.js";
 import { esc } from "../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../core/paginacion-tabla.js";
 
 // Helper de hora 12h
 function formatearHora12h(hora24) {
@@ -87,17 +88,16 @@ export async function cargarDashboardInstructor() {
 
     if (!sesiones_semana || sesiones_semana.length === 0) {
         if (msjSinSemana) msjSinSemana.hidden = false;
-        if (tablaBody) tablaBody.innerHTML = "";
+        if (tablaBody) renderizarFilasPaginadas(tablaBody, []);
     } else {
         if (msjSinSemana) msjSinSemana.hidden = true;
         if (tablaBody) {
-            let filas = "";
-            sesiones_semana.forEach(s => {
+            renderizarFilasPaginadas(tablaBody, sesiones_semana.map(s => {
                 let badgeClass = "badge-success";
                 if (s.estado === "Finalizada") badgeClass = "badge-info";
                 if (s.estado === "Cancelado") badgeClass = "badge-danger";
 
-                filas += `
+                return `
                     <tr>
                         <td>${esc(s.fecha)}</td>
                         <td>${formatearHora12h(s.hora_inicio)} - ${formatearHora12h(s.hora_fin)}</td>
@@ -107,8 +107,7 @@ export async function cargarDashboardInstructor() {
                         <td class="col-acciones"><a href="sesiones/detalle.html?sesion_id=${esc(s.id)}" class="btn btn-sm btn-outline btn-a">Detalle</a></td>
                     </tr>
                 `;
-            });
-            tablaBody.innerHTML = filas;
+            }));
         }
     }
 }

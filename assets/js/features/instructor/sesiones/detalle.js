@@ -1,5 +1,6 @@
 import { api } from "../../../core/api.js";
 import { showToast, esc } from "../../../core/ui.js";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js";
 import { renderResumenSesion, formatearHora } from "./sesion-ui.js";
 import { actualizarAccionesSesion, sesionPermiteAcciones } from "./acciones-sesion.js";
 import { sincronizarFiltroAnomalia, filtrarFilasSesion } from "../../../core/filtros-registro.js";
@@ -73,18 +74,18 @@ function renderTablaAprendices() {
 
     if (!aprendicesTodos.length) {
         contenedor.textContent = "No hay aprendices en la ficha de esta sesión.";
-        tbody.innerHTML = "";
+        renderizarFilasPaginadas(tbody, []);
         return;
     }
 
     if (!lista.length) {
         contenedor.textContent = "No hay registros para los filtros seleccionados.";
-        tbody.innerHTML = "";
+        renderizarFilasPaginadas(tbody, []);
         return;
     }
 
     contenedor.textContent = "";
-    tbody.innerHTML = lista.map(a => {
+    renderizarFilasPaginadas(tbody, lista.map(a => {
         const est = etiquetaEstado(a);
         return `
         <tr>
@@ -97,7 +98,7 @@ function renderTablaAprendices() {
             <td>${Number(a.minutos_anticipacion) > 0 ? esc(a.minutos_anticipacion) : "—"}</td>
             <td>${celdaExcusa(a)}</td>
         </tr>`;
-    }).join("");
+    }));
 }
 
 function cargarDatos() {
