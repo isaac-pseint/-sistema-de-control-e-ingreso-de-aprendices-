@@ -1,9 +1,9 @@
-import { api } from "../../../core/api.js?v=20261028-1";
-import { showToast, esc } from "../../../core/ui.js?v=20261028-1";
-import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-1";
-import { renderResumenSesion, formatearHora } from "./sesion-ui.js?v=20261028-1";
-import { actualizarAccionesSesion, sesionPermiteAcciones } from "./acciones-sesion.js?v=20261028-1";
-import { sincronizarFiltroAnomalia, filtrarFilasSesion } from "../../../core/filtros-registro.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { showToast, esc } from "../../../core/ui.js?v=20261028-2";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-2";
+import { renderResumenSesion, formatearHora } from "./sesion-ui.js?v=20261028-2";
+import { actualizarAccionesSesion, sesionPermiteAcciones } from "./acciones-sesion.js?v=20261028-2";
+import { sincronizarFiltroAnomalia, filtrarFilasSesion } from "../../../core/filtros-registro.js?v=20261028-2";
 
 let aprendicesTodos = [];
 let sesionActual = null;

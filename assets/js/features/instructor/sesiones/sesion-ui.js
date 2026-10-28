@@ -1,6 +1,6 @@
 // sesion-ui.js — Resumen de sesión reutilizable en detalle, entrada y salida.
 
-import { esc } from "../../../core/ui.js?v=20261028-1";
+import { esc } from "../../../core/ui.js?v=20261028-2";
 
 export function formatearHora(hora) {
     if (hora == null || hora === "") return "—";

@@ -22,6 +22,12 @@ session_set_cookie_params($cookieParams);
 // Inicia/reanuda la sesión. Sin esto $_SESSION no guarda nada entre peticiones.
 session_start();
 
+// Token CSRF sincronizado por sesión. Se genera una vez y se reutiliza
+// hasta que la sesión expire o el usuario haga login (donde se regenera).
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Zona horaria del servidor en tiempo real (Colombia, UTC-5). Fijarla aquí hace
 // que todo date()/time() del backend use la hora local correcta en cualquier
 // entorno, sin depender de la config de php.ini de cada máquina.
@@ -57,6 +63,21 @@ if (
     exit;
 }
 
+// Validación CSRF para toda petición POST.
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    $tokenRecibido = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!is_string($tokenRecibido) || $tokenRecibido === ''
+        || !hash_equals($_SESSION['csrf_token'], $tokenRecibido)
+    ) {
+        http_response_code(403);
+        echo json_encode(
+            ["ok" => false, "error" => "Token CSRF inválido."],
+            JSON_UNESCAPED_UNICODE
+        );
+        exit;
+    }
+}
+
 // Acceso directo a la aplicación sin ?action=: redirige a login o dashboard
 // según haya una sesión activa. Nunca devuelve HTML desde aquí.
 if ($action === null) {
@@ -85,6 +106,23 @@ spl_autoload_register(function ($className) {
 
 // Router: usa ?action= de la URL (ej: index.php?action=login) y ejecuta el método.
 switch ($action) {
+
+    // Devuelve el token CSRF actual de la sesión (solo GET, sin caché).
+    case 'csrfToken':
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            echo json_encode(
+                ["ok" => false, "error" => "Método no permitido."],
+                JSON_UNESCAPED_UNICODE
+            );
+            break;
+        }
+        header('Cache-Control: no-store');
+        echo json_encode(
+            ["ok" => true, "data" => ["csrf_token" => $_SESSION['csrf_token']]],
+            JSON_UNESCAPED_UNICODE
+        );
+        break;
 
     case 'login':
         // Valida credenciales y guarda la sesión. {ok:true, redirect} o {ok:false, error}.

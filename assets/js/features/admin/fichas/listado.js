@@ -1,8 +1,8 @@
 // features/admin/fichas/listado.js — Listado de fichas: carga, filtros y pintado.
 
-import { api } from "../../../core/api.js?v=20261028-1";
-import { showToast, esc } from "../../../core/ui.js?v=20261028-1";
-import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { showToast, esc } from "../../../core/ui.js?v=20261028-2";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-2";
 
 // Llena el selector de programas con los datos obtenidos del backend.
 export function cargarFiltroProgramas() {

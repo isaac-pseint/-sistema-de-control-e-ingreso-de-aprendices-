@@ -1,15 +1,15 @@
 // features/aprendiz/sesiones/listado.js — Historial de asistencia por sesión.
 
-import { api } from "../../../core/api.js?v=20261028-1";
-import { showToast, esc } from "../../../core/ui.js?v=20261028-1";
-import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-1";
-import { formatearHora } from "../../instructor/sesiones/sesion-ui.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { showToast, esc } from "../../../core/ui.js?v=20261028-2";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-2";
+import { formatearHora } from "../../instructor/sesiones/sesion-ui.js?v=20261028-2";
 import {
     sincronizarFiltroAnomalia,
     filtrarHistorialAprendiz,
     competenciasUnicas,
     normalizarFecha
-} from "../../../core/filtros-registro.js?v=20261028-1";
+} from "../../../core/filtros-registro.js?v=20261028-2";
 
 let todosLosRegistros = [];
 let filtrosListos = false;

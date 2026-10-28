@@ -28,6 +28,7 @@ class AuthController extends ControllerBase
         if (is_array($auth)) {
             $user = $auth;
             session_regenerate_id(true);
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
             // Guarda los datos del usuario en la sesión para las próximas peticiones.
             $_SESSION['user_id'] = $user['id'];
@@ -46,7 +47,7 @@ class AuthController extends ControllerBase
                 'Aprendiz' => '../aprendiz/dashboard.html',
                 default => '../public/login.html'
             };
-            $this->ok(['redirect' => $redirect, 'rol' => $_SESSION['user_rol']], 'Sesión iniciada correctamente.');
+            $this->ok(['redirect' => $redirect, 'rol' => $_SESSION['user_rol'], 'csrf_token' => $_SESSION['csrf_token']], 'Sesión iniciada correctamente.');
             return;
         }
 
@@ -55,6 +56,11 @@ class AuthController extends ControllerBase
 
     public function logout()
     {
+        // Solo se permite cerrar sesión mediante POST (protección CSRF).
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            $this->fail('Método no permitido.', 405);
+        }
+
         // Limpiamos el array de sesión
         $_SESSION = [];
 
@@ -70,9 +76,10 @@ class AuthController extends ControllerBase
         $this->ok([
             'usuario' => [
                 'nombre' => $_SESSION['user_nombre'],
-                'email' => $_SESSION['user_email'],
-                'rol' => $_SESSION['user_rol']
-            ]
+                'email'  => $_SESSION['user_email'],
+                'rol'    => $_SESSION['user_rol']
+            ],
+            'csrf_token' => $_SESSION['csrf_token']
         ]);
     }
 }

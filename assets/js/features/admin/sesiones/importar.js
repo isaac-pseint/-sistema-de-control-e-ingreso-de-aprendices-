@@ -1,6 +1,6 @@
-import { api } from "../../../core/api.js?v=20261028-1";
-import { showToast } from "../../../core/ui.js?v=20261028-1";
-import { cargarListadoSesiones } from "./listado.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { showToast } from "../../../core/ui.js?v=20261028-2";
+import { cargarListadoSesiones } from "./listado.js?v=20261028-2";
 
 export function conectarImportacionHorario() {
     const overlay = document.getElementById("modalImportarHorario");

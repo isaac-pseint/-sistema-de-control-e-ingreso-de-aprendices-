@@ -1,8 +1,8 @@
 // features/admin/programas/listado.js — Listado de programas: carga con búsqueda y pintado.
 
-import { api } from "../../../core/api.js?v=20261028-1";
-import { showToast, esc } from "../../../core/ui.js?v=20261028-1";
-import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { showToast, esc } from "../../../core/ui.js?v=20261028-2";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-2";
 
 // Carga y renderiza el listado dinámico de programas con búsqueda opcional.
 export function cargarListadoProgramas(busqueda = "") {
