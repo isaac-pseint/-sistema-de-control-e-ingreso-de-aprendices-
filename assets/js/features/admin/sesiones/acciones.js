@@ -1,6 +1,6 @@
-import { api } from "../../../core/api.js?v=20261028-1";
-import { crearModalConfirmacion } from "../../../core/modal.js?v=20261028-1";
-import { cargarListadoSesiones, reflejarEstadoSesionEnFila } from "./listado.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { crearModalConfirmacion } from "../../../core/modal.js?v=20261028-2";
+import { cargarListadoSesiones, reflejarEstadoSesionEnFila } from "./listado.js?v=20261028-2";
 
 const modalCancelar = crearModalConfirmacion({
     overlay: "modalCancelarSesion",

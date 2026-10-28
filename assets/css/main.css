@@ -12,14 +12,14 @@
    - components/iconos.css      → .icono, .kpi-icono, .acceso-icono
    - components/dashboard.css   → .dashboard-* */
 
-@import url("tokens.css?v=20261028-1");
-@import url("base.css?v=20261028-1");
-@import url("layout.css?v=20261028-1");
-@import url("components/botones.css?v=20261028-1");
-@import url("components/formularios.css?v=20261028-1");
-@import url("components/tablas.css?v=20261028-1");
-@import url("components/modales.css?v=20261028-1");
-@import url("components/toasts.css?v=20261028-1");
-@import url("components/utilidades.css?v=20261028-1");
-@import url("components/iconos.css?v=20261028-1");
-@import url("components/dashboard.css?v=20261028-1");
+@import url("tokens.css?v=20261028-2");
+@import url("base.css?v=20261028-2");
+@import url("layout.css?v=20261028-2");
+@import url("components/botones.css?v=20261028-2");
+@import url("components/formularios.css?v=20261028-2");
+@import url("components/tablas.css?v=20261028-2");
+@import url("components/modales.css?v=20261028-2");
+@import url("components/toasts.css?v=20261028-2");
+@import url("components/utilidades.css?v=20261028-2");
+@import url("components/iconos.css?v=20261028-2");
+@import url("components/dashboard.css?v=20261028-2");

@@ -1,5 +1,5 @@
 // pages/public/login.js — Punto de entrada de la vista login: activa el login.
 // El redirect por rol lo decide el servidor (AuthController::login → data.redirect).
-import { conectarLogin } from "../../features/auth.js?v=20261028-1";
+import { conectarLogin } from "../../features/auth.js?v=20261028-2";
 
 conectarLogin();

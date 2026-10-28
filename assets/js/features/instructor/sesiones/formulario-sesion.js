@@ -1,7 +1,7 @@
-import { api } from "../../../core/api.js?v=20261028-1";
-import { showToast } from "../../../core/ui.js?v=20261028-1";
-import { conectarFormulario } from "../../../core/forms.js?v=20261028-1";
-import { renderResumenSesion } from "./sesion-ui.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { showToast } from "../../../core/ui.js?v=20261028-2";
+import { conectarFormulario } from "../../../core/forms.js?v=20261028-2";
+import { renderResumenSesion } from "./sesion-ui.js?v=20261028-2";
 
 export function cargarEdicionSesionInstructor() {
     const id = new URLSearchParams(window.location.search).get("id");

@@ -1,13 +1,13 @@
-import { api } from "../../../core/api.js?v=20261028-1";
-import { showToast, esc } from "../../../core/ui.js?v=20261028-1";
-import { mostrarErrorCampo } from "../../../core/forms.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { showToast, esc } from "../../../core/ui.js?v=20261028-2";
+import { mostrarErrorCampo } from "../../../core/forms.js?v=20261028-2";
 import {
     badgeExcusa,
     envolverPanelExcusa,
     htmlBloqueEvidencia,
     htmlBloqueMotivo,
     htmlResumenSesionExcusa
-} from "../../excusas/excusa-ui.js?v=20261028-1";
+} from "../../excusas/excusa-ui.js?v=20261028-2";
 
 function renderSinExcusa(contenedor, ctx, inasistenciaId) {
     const cuerpo = `

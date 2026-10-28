@@ -1,6 +1,6 @@
-import { api } from "../../../core/api.js?v=20261028-1";
-import { crearModalConfirmacion } from "../../../core/modal.js?v=20261028-1";
-import { cargarListadoCompetencias } from "./listado.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { crearModalConfirmacion } from "../../../core/modal.js?v=20261028-2";
+import { cargarListadoCompetencias } from "./listado.js?v=20261028-2";
 
 const modalEliminar = crearModalConfirmacion({
     overlay: "modalEliminarCompetencia",

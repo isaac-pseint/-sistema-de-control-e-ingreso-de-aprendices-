@@ -1,9 +1,9 @@
 // features/aprendiz/reportes/listado.js — Reporte personal de asistencia e excusas.
 
-import { api } from "../../../core/api.js?v=20261028-1";
-import { showToast, esc } from "../../../core/ui.js?v=20261028-1";
-import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-1";
-import { badgeExcusa } from "../../excusas/excusa-ui.js?v=20261028-1";
+import { api } from "../../../core/api.js?v=20261028-2";
+import { showToast, esc } from "../../../core/ui.js?v=20261028-2";
+import { renderizarFilasPaginadas } from "../../../core/paginacion-tabla.js?v=20261028-2";
+import { badgeExcusa } from "../../excusas/excusa-ui.js?v=20261028-2";
 
 function formatearFechaISO(date) {
     const y = date.getFullYear();

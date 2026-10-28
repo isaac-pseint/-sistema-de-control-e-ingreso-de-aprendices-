@@ -3,7 +3,7 @@
 // La responsabilidad se divide: este módulo solo abre/cierra modales y ejecuta la
 // acción; el dominio (feature) define overlay, botones, acción de API y refresco.
 
-import { showToast } from "./ui.js?v=20261028-1";
+import { showToast } from "./ui.js?v=20261028-2";
 
 export function crearModalConfirmacion(opciones = {}) {
     const {
