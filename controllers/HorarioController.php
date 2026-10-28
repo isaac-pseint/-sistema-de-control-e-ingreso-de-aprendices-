@@ -141,6 +141,20 @@ class HorarioController extends ControllerBase
         try {
             $pdo->beginTransaction();
 
+            if (!$this->fichaModel->estaActiva($fichaId, true)) {
+                $pdo->rollBack();
+                $this->fail('La ficha del horario dejó de estar activa. No se importó nada.');
+            }
+
+            $instructoresAValidar = array_unique(array_column($aCrear, 'instructor_id'));
+            sort($instructoresAValidar, SORT_NUMERIC);
+            foreach ($instructoresAValidar as $instructorId) {
+                if (!$this->fichaModel->esInstructorActivo((int)$instructorId, true)) {
+                    $pdo->rollBack();
+                    $this->fail('Un instructor del horario dejó de estar activo. No se importó nada.');
+                }
+            }
+
             foreach ($aCrear as $clase) {
                 // 7a. Se vuelve a comprobar YA DENTRO de la transacción: aquí el
                 //     FOR UPDATE de existeSuperposicion() sí bloquea, así que dos

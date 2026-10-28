@@ -3,10 +3,36 @@
 class UsuarioController extends ControllerBase
 {
     private UserModel $model;
+    private FichaModel $fichaModel;
 
     public function __construct()
     {
         $this->model = new UserModel();
+        $this->fichaModel = new FichaModel();
+    }
+
+    private function validarFichaAsignada(?int $fichaId, ?int $usuarioId = null): void
+    {
+        if ($fichaId === null) {
+            return;
+        }
+
+        $ficha = $this->fichaModel->buscarPorId($fichaId);
+        if (!$ficha) {
+            $this->fail('La ficha seleccionada no existe.');
+        }
+        if (($ficha['estado'] ?? '') === 'Activo') {
+            return;
+        }
+
+        if ($usuarioId !== null) {
+            $usuario = $this->model->listarPorId($usuarioId);
+            if ($usuario && (int)($usuario['Ficha_id'] ?? 0) === $fichaId) {
+                return;
+            }
+        }
+
+        $this->fail('Solo se pueden asignar usuarios a fichas activas.');
     }
 
     public function datosFormulario(): void
@@ -18,7 +44,8 @@ class UsuarioController extends ControllerBase
 
         $this->ok([
             'roles' => $roles,
-            'fichas' => $fichas
+            'fichas' => $fichas,
+            'fichas_activas' => $this->fichaModel->listarActivas()
         ]);
     }
 
@@ -31,12 +58,12 @@ class UsuarioController extends ControllerBase
         $identificacion = trim($_POST['identificacion'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = trim($_POST['password'] ?? '');
-        $rol_id = trim($_POST['rol_id'] ?? '');
-        $ficha_id = trim($_POST['ficha_id'] ?? '');
+        $rol_id = $_POST['rol_id'] ?? null;
+        $ficha_id = $_POST['ficha_id'] ?? null;
         $codigo_llavero = trim($_POST['codigo_llavero'] ?? '');
 
         // Vacíos
-        if (!$nombre || !$apellido || !$identificacion || !$email || !$password || !$rol_id) {
+        if (!$nombre || !$apellido || !$identificacion || !$email || !$password || $rol_id === null || $rol_id === '') {
             $this->fail("Todos los campos obligatorios deben estar llenos.");
         }
 
@@ -56,8 +83,10 @@ class UsuarioController extends ControllerBase
         }
 
         // Ficha_id y codigo_llavero (opcionales)
-        $fichaIdInt = $ficha_id !== '' ? (int)$ficha_id : null;
+        $rolId = $this->validarId($rol_id, 'rol');
+        $fichaIdInt = $this->validarIdOpcional($ficha_id, 'ficha');
         $codigoLlaveroFinal = $codigo_llavero !== '' ? $codigo_llavero : null;
+        $this->validarFichaAsignada($fichaIdInt);
 
         // Unicidad
         if ($this->model->buscarPorEmail($email)) {
@@ -79,7 +108,7 @@ class UsuarioController extends ControllerBase
                 $identificacion,
                 $email,
                 $password,
-                (int)$rol_id,
+                $rolId,
                 $fichaIdInt,
                 $codigoLlaveroFinal
             );
@@ -99,23 +128,19 @@ class UsuarioController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = $this->validarId($_POST['id'] ?? null, 'usuario');
         $nombre = trim($_POST['nombre'] ?? '');
         $apellido = trim($_POST['apellido'] ?? '');
         $identificacion = trim($_POST['identificacion'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $password = trim($_POST['password'] ?? '');
-        $rol_id = trim($_POST['rol_id'] ?? '');
-        $ficha_id = trim($_POST['ficha_id'] ?? '');
+        $rol_id = $_POST['rol_id'] ?? null;
+        $ficha_id = $_POST['ficha_id'] ?? null;
         $codigo_llavero = trim($_POST['codigo_llavero'] ?? '');
 
         // Identificador del usuario a editar.
-        if ($id <= 0) {
-            $this->fail("ID de usuario no válido.");
-        }
-
         // Vacíos (la contraseña es opcional al editar).
-        if (!$nombre || !$apellido || !$identificacion || !$email || !$rol_id) {
+        if (!$nombre || !$apellido || !$identificacion || !$email || $rol_id === null || $rol_id === '') {
             $this->fail("Todos los campos obligatorios deben estar llenos.");
         }
 
@@ -136,8 +161,10 @@ class UsuarioController extends ControllerBase
         }
 
         // Ficha_id y codigo_llavero (opcionales)
-        $fichaIdInt = $ficha_id !== '' ? (int)$ficha_id : null;
+        $rolId = $this->validarId($rol_id, 'rol');
+        $fichaIdInt = $this->validarIdOpcional($ficha_id, 'ficha');
         $codigoLlaveroFinal = $codigo_llavero !== '' ? $codigo_llavero : null;
+        $this->validarFichaAsignada($fichaIdInt, $id);
 
         // Unicidad, excluyendo al propio usuario para poder guardar sin conflictos.
         if ($this->model->buscarPorEmail($email, $id)) {
@@ -160,7 +187,7 @@ class UsuarioController extends ControllerBase
                 $identificacion,
                 $email,
                 $passwordNula,
-                (int)$rol_id,
+                $rolId,
                 $fichaIdInt,
                 $codigoLlaveroFinal
             );
@@ -181,7 +208,13 @@ class UsuarioController extends ControllerBase
 
         $rol = isset($_GET['rol']) && trim($_GET['rol']) !== '' ? trim($_GET['rol']) : null;
         $busqueda = isset($_GET['busqueda']) && trim($_GET['busqueda']) !== '' ? trim($_GET['busqueda']) : null;
-        $fichaId = isset($_GET['ficha_id']) && trim($_GET['ficha_id']) !== '' ? trim($_GET['ficha_id']) : null;
+        $fichaIdRaw = $_GET['ficha_id'] ?? null;
+        if (is_string($fichaIdRaw) && trim($fichaIdRaw) === 'sin') {
+            $fichaId = 'sin';
+        } else {
+            $fichaIdValidado = $this->validarIdOpcional($fichaIdRaw, 'ficha');
+            $fichaId = $fichaIdValidado === null ? null : (string)$fichaIdValidado;
+        }
         $estado = isset($_GET['estado']) && trim($_GET['estado']) !== '' ? trim($_GET['estado']) : null;
 
         $usuarios = $this->model->listarTodos($rol, $busqueda, $fichaId, $estado);
@@ -192,12 +225,7 @@ class UsuarioController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int) ($_GET['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de usuario inválido', 400);
-            return;
-        }
+        $id = $this->validarId($_GET['id'] ?? null, 'usuario');
 
         $usuario = $this->model->listarPorId($id);
 
@@ -213,10 +241,10 @@ class UsuarioController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int) ($_POST['id'] ?? 0);
+        $id = $this->validarId($_POST['id'] ?? null, 'usuario');
 
-        if ($id <= 0) {
-            $this->fail('ID de usuario inválido.');
+        if ($id === (int)$_SESSION['user_id']) {
+            $this->fail('No puedes desactivar tu propia cuenta de administrador.');
         }
 
         // Soft delete: cambia el estado a 'Inactivo', no borra la fila.
@@ -230,11 +258,7 @@ class UsuarioController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int) ($_POST['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de usuario inválido.');
-        }
+        $id = $this->validarId($_POST['id'] ?? null, 'usuario');
 
         // Reactiva un usuario inactivo.
         if ($this->model->activar($id)) {

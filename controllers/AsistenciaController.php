@@ -6,22 +6,20 @@ class AsistenciaController extends ControllerBase
     private UserModel $userModel;
     private AsistenciaModel $asistenciaModel;
     private SesionModel $sesionModel;
+    private FichaModel $fichaModel;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
         $this->asistenciaModel = new AsistenciaModel();
         $this->sesionModel = new SesionModel();
+        $this->fichaModel = new FichaModel();
     }
 
     private function resolverAlcance(): array
     {
-        $sesionId = (int)($_POST['sesion_id'] ?? 0);
+        $sesionId = $this->validarId($_POST['sesion_id'] ?? null, 'sesión');
         $codigoLlavero = trim($_POST['codigo_llavero'] ?? '');
-
-        if ($sesionId <= 0) {
-            $this->fail("Debe indicar la sesión.");
-        }
 
         $sesion = $this->sesionModel->buscarPorId($sesionId);
         if (!$sesion) {
@@ -35,6 +33,9 @@ class AsistenciaController extends ControllerBase
         $usuario = $this->userModel->buscarPorCodigoLlavero($codigoLlavero);
         if (!$usuario) {
             $this->fail("No se encontró un usuario con ese código.");
+        }
+        if (($usuario['rol'] ?? '') !== 'Aprendiz') {
+            $this->fail("El código no pertenece a un aprendiz.");
         }
         if ($usuario['estado'] === 'Inactivo') {
             $this->fail("El usuario está inactivo.");
@@ -78,6 +79,11 @@ class AsistenciaController extends ControllerBase
         }
         if ($sesion['estado'] !== 'Activo') {
             $this->fail("La sesión no está disponible para registro.");
+        }
+
+        $ficha = $this->fichaModel->buscarPorId((int)$sesion['Ficha_id']);
+        if (!$ficha || ($ficha['estado'] ?? '') !== 'Activo') {
+            $this->fail("La ficha de esta sesión está inactiva.");
         }
     }
 
@@ -189,10 +195,7 @@ class AsistenciaController extends ControllerBase
         $this->requireAuth();
         (new SesionController())->ejecutarCierresAutomaticos();
 
-        $sesionId = (int)($_GET['sesion_id'] ?? 0);
-        if ($sesionId <= 0) {
-            $this->fail("ID de sesión no válido.");
-        }
+        $sesionId = $this->validarId($_GET['sesion_id'] ?? null, 'sesión');
 
         $sesion = $this->sesionModel->buscarPorId($sesionId);
         if (!$sesion) {

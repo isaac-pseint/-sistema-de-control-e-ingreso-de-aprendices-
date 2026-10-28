@@ -184,7 +184,7 @@ export async function cargarReporte() {
             if (selectFicha) {
                 const valorActual = selectFicha.value;
                 selectFicha.innerHTML = `<option value="">Todas las fichas</option>` +
-                    fichas.map(f => `<option value="${f.id}">${esc(f.codigo)}</option>`).join("");
+                    fichas.map(f => `<option value="${f.id}">${esc(f.codigo)}${f.estado === "Inactivo" ? " (Inactiva)" : ""}</option>`).join("");
                 if (valorActual) selectFicha.value = valorActual;
                 fichasCargadas = true;
             }

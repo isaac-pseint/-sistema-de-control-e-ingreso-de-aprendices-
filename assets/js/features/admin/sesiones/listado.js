@@ -96,7 +96,10 @@ export function configurarFiltrosSesiones(fichas) {
     const select = document.getElementById("filtroFicha");
     if (select && fichas) {
         select.innerHTML = `<option value="">Todas las fichas</option>` +
-            fichas.map(f => `<option value="${f.id}">${esc(f.codigo)}</option>`).join("");
+            fichas.map(f => {
+                const estado = f.estado === "Inactivo" ? " (Inactiva)" : "";
+                return `<option value="${f.id}">${esc(f.codigo)}${estado}</option>`;
+            }).join("");
     }
 
     const desde = document.getElementById("filtroDesde");

@@ -7,7 +7,7 @@ import { conectarImportacionHorario } from "../../../features/admin/sesiones/imp
 
 requerirRol("Administrador").then(usuario => montarSidebar("Administrador", usuario));
 api("datosFormularioSesion").then(data => {
-    if (data.ok) configurarFiltrosSesiones(data.data.fichas);
+    if (data.ok) configurarFiltrosSesiones(data.data.fichas_filtro || data.data.fichas);
     cargarListadoSesiones();
 });
 configurarAccionesAdminSesiones();

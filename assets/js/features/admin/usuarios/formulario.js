@@ -74,9 +74,19 @@ export function cargarDatosFormulario(rolSeleccionado = null, fichaSeleccionada 
                 .join("");
             selectRol.innerHTML = `<option value="">Seleccione un rol...</option>${rolesHtml}`;
 
-            // Llenar fichas (preseleccionando la ficha del usuario al editar)
-            const fichasHtml = data.data.fichas
-                .map(f => `<option value="${f.id}" ${String(f.id) === String(fichaSeleccionada) ? "selected" : ""}>${esc(f.codigo)}</option>`)
+            // Solo se pueden elegir fichas activas; conserva la ficha inactiva actual al editar.
+            const fichas = data.data.fichas_activas || data.data.fichas;
+            const fichaActual = data.data.fichas.find(f => String(f.id) === String(fichaSeleccionada));
+            const opcionesFicha = [...fichas];
+            if (fichaActual && !fichas.some(f => String(f.id) === String(fichaActual.id))) {
+                opcionesFicha.push({ ...fichaActual, estado: "Inactivo" });
+            }
+            const fichasHtml = opcionesFicha
+                .map(f => {
+                    const inactiva = f.estado === "Inactivo";
+                    const etiqueta = inactiva ? `${esc(f.codigo)} (Inactiva)` : esc(f.codigo);
+                    return `<option value="${f.id}" ${String(f.id) === String(fichaSeleccionada) ? "selected" : ""}>${etiqueta}</option>`;
+                })
                 .join("");
             selectFicha.innerHTML = `<option value="">Seleccione una ficha...</option>${fichasHtml}`;
 

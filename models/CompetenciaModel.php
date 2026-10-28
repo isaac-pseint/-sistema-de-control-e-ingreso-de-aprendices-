@@ -124,6 +124,18 @@ class CompetenciaModel
         return $stmt->fetchAll();
     }
 
+    public function instructorActivo(int $instructorId): bool
+    {
+        $stmt = Database::conn()->prepare("
+            SELECT 1
+            FROM usuario u
+            INNER JOIN rol r ON r.id = u.Rol_id
+            WHERE u.id = ? AND r.nombre = 'Instructor' AND u.estado = 'Activo'
+        ");
+        $stmt->execute([$instructorId]);
+        return $stmt->fetchColumn() !== false;
+    }
+
     public function listarProgramas(): array
     {
         $stmt = Database::conn()->prepare("SELECT id, nombre FROM programa ORDER BY nombre ASC");

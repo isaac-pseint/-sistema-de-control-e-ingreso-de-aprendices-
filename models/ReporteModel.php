@@ -18,24 +18,24 @@ class ReporteModel
     // ========================================================================
 
     /**
-     * Fichas activas disponibles para el selector de filtro.
+     * Fichas disponibles para consultar historial, incluidas las inactivas.
      *
      * Si se proporciona $instructorId, solo devuelve fichas donde el
      * instructor es líder (f.instructor_id) o donde tiene al menos
-     * una sesión no cancelada asignada.
+     * cualquier sesión asignada.
      *
      * @param int|null $instructorId  Restringir a fichas del instructor (null = todas).
-     * @return array<int, array{id: int, codigo: string, programa_id: int, programa_nombre: string}>
+     * @return array<int, array{id: int, codigo: string, estado: string, programa_id: int, programa_nombre: string}>
      */
     public function obtenerFichasParaFiltro(?int $instructorId = null): array
     {
         $db = Database::conn();
 
         $sql = "
-            SELECT f.id, f.codigo, f.Programa_id AS programa_id, p.nombre AS programa_nombre
+            SELECT f.id, f.codigo, f.estado, f.Programa_id AS programa_id, p.nombre AS programa_nombre
             FROM ficha f
             INNER JOIN programa p ON p.id = f.Programa_id
-            WHERE f.estado = 'Activo'
+            WHERE 1 = 1
         ";
         $params = [];
 
@@ -47,7 +47,6 @@ class ReporteModel
                       SELECT 1 FROM sesion s
                       WHERE s.Ficha_id = f.id
                         AND s.Instructor_id = ?
-                        AND s.estado != 'Cancelado'
                   )
               )
             ";
@@ -111,8 +110,6 @@ class ReporteModel
             INNER JOIN ficha f    ON u.Ficha_id     = f.id
             INNER JOIN programa p ON f.Programa_id  = p.id
             WHERE r.nombre = 'Aprendiz'
-              AND u.estado = 'Activo'
-              AND f.estado = 'Activo'
         ";
         $paramsBase = [];
 
@@ -129,7 +126,6 @@ class ReporteModel
                       SELECT 1 FROM sesion s
                       WHERE s.Ficha_id = f.id
                         AND s.Instructor_id = ?
-                        AND s.estado != 'Cancelado'
                   )
               )
             ";
@@ -330,8 +326,6 @@ class ReporteModel
             INNER JOIN usuario ins ON ins.id = s.Instructor_id
             LEFT  JOIN competencia c ON c.id = s.Competencia_id
             WHERE s.estado != 'Cancelado'
-              AND u.estado  = 'Activo'
-              AND f.estado  = 'Activo'
         ";
         $params = [];
 

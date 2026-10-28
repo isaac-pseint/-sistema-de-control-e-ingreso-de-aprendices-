@@ -4,10 +4,32 @@
 class FichaController extends ControllerBase
 {
     private FichaModel $model;
+    private SesionModel $sesionModel;
 
     public function __construct()
     {
         $this->model = new FichaModel();
+        $this->sesionModel = new SesionModel();
+    }
+
+    private function validarCodigoFicha(mixed $codigo): string
+    {
+        if (!is_string($codigo) && !is_int($codigo)) {
+            $this->fail('El código de ficha no es válido.');
+        }
+
+        $codigo = trim((string)$codigo);
+        if (!ctype_digit($codigo)) {
+            $this->fail('El código de ficha debe contener solo números.');
+        }
+
+        $normalizado = ltrim($codigo, '0');
+        $codigoNumerico = filter_var($normalizado === '' ? '0' : $normalizado, FILTER_VALIDATE_INT);
+        if ($codigoNumerico === false || $codigoNumerico <= 0 || $codigoNumerico > 2147483647) {
+            $this->fail('El código de ficha no es válido.');
+        }
+
+        return (string)$codigoNumerico;
     }
 
     // Retorna los instructores activos, programas y jornadas para cargar los selectores del formulario.
@@ -31,22 +53,15 @@ class FichaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $codigo = trim($_POST['codigo'] ?? '');
-        $programaIdRaw = trim($_POST['programa_id'] ?? '');
-        $instructorIdRaw = trim($_POST['instructor_id'] ?? '');
-        $jornadaIdRaw = trim($_POST['jornada_id'] ?? '');
+        $codigo = $_POST['codigo'] ?? null;
+        $programaIdRaw = $_POST['programa_id'] ?? null;
+        $instructorIdRaw = $_POST['instructor_id'] ?? null;
+        $jornadaIdRaw = $_POST['jornada_id'] ?? null;
 
-        if ($codigo === '' || $programaIdRaw === '' || $instructorIdRaw === '' || $jornadaIdRaw === '') {
-            $this->fail('Todos los campos obligatorios deben estar llenos.');
-        }
-
-        $programaId = (int)$programaIdRaw;
-        $instructorId = (int)$instructorIdRaw;
-        $jornadaId = (int)$jornadaIdRaw;
-
-        if ($programaId <= 0 || $instructorId <= 0 || $jornadaId <= 0) {
-            $this->fail('El programa, el instructor y la jornada seleccionados deben ser válidos.');
-        }
+        $codigo = $this->validarCodigoFicha($codigo);
+        $programaId = $this->validarId($programaIdRaw, 'programa');
+        $instructorId = $this->validarId($instructorIdRaw, 'instructor');
+        $jornadaId = $this->validarId($jornadaIdRaw, 'jornada');
 
         // Valida que el código de la ficha sea único
         if ($this->model->buscarPorCodigo($codigo)) {
@@ -86,6 +101,9 @@ class FichaController extends ControllerBase
                 $this->fail('No se pudo crear la ficha.');
             }
         } catch (PDOException $e) {
+            if ($this->esConflictoDeUnicidad($e)) {
+                $this->fail('El código de ficha ya está registrado.');
+            }
             $this->fail('Error en la base de datos al crear la ficha.');
         }
     }
@@ -95,9 +113,7 @@ class FichaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $programaId = isset($_GET['programa_id']) && trim($_GET['programa_id']) !== ''
-            ? (int)$_GET['programa_id']
-            : null;
+        $programaId = $this->validarIdOpcional($_GET['programa_id'] ?? null, 'programa');
 
         $busqueda = isset($_GET['busqueda']) && trim($_GET['busqueda']) !== ''
             ? trim($_GET['busqueda'])
@@ -113,11 +129,7 @@ class FichaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_GET['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de ficha no válido.');
-        }
+        $id = $this->validarId($_GET['id'] ?? null, 'ficha');
 
         $ficha = $this->model->buscarPorId($id);
 
@@ -133,28 +145,25 @@ class FichaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_POST['id'] ?? 0);
-        $codigo = trim($_POST['codigo'] ?? '');
-        $programaIdRaw = trim($_POST['programa_id'] ?? '');
-        $instructorIdRaw = trim($_POST['instructor_id'] ?? '');
-        $jornadaIdRaw = trim($_POST['jornada_id'] ?? '');
+        $id = $this->validarId($_POST['id'] ?? null, 'ficha');
+        $codigo = $_POST['codigo'] ?? null;
+        $programaIdRaw = $_POST['programa_id'] ?? null;
+        $instructorIdRaw = $_POST['instructor_id'] ?? null;
+        $jornadaIdRaw = $_POST['jornada_id'] ?? null;
         $estado = trim($_POST['estado'] ?? '');
 
-        if ($id <= 0) {
-            $this->fail('ID de ficha no válido.');
+        if ($this->model->buscarPorId($id) === null) {
+            $this->fail('Ficha no encontrada.', 404);
         }
 
-        if ($codigo === '' || $programaIdRaw === '' || $instructorIdRaw === '' || $jornadaIdRaw === '' || $estado === '') {
+        if ($estado === '') {
             $this->fail('Todos los campos obligatorios deben estar llenos.');
         }
 
-        $programaId = (int)$programaIdRaw;
-        $instructorId = (int)$instructorIdRaw;
-        $jornadaId = (int)$jornadaIdRaw;
-
-        if ($programaId <= 0 || $instructorId <= 0 || $jornadaId <= 0) {
-            $this->fail('El programa, el instructor y la jornada seleccionados deben ser válidos.');
-        }
+        $codigo = $this->validarCodigoFicha($codigo);
+        $programaId = $this->validarId($programaIdRaw, 'programa');
+        $instructorId = $this->validarId($instructorIdRaw, 'instructor');
+        $jornadaId = $this->validarId($jornadaIdRaw, 'jornada');
 
         if (!in_array($estado, ['Activo', 'Inactivo'], true)) {
             $this->fail('El estado debe ser Activo o Inactivo.');
@@ -185,7 +194,10 @@ class FichaController extends ControllerBase
             $this->fail('La jornada seleccionada no es válida.');
         }
 
+        $sesionesCanceladas = 0;
+        $db = Database::conn();
         try {
+            $db->beginTransaction();
             $actualizado = $this->model->actualizar(
                 $id,
                 $codigo,
@@ -196,13 +208,29 @@ class FichaController extends ControllerBase
             );
 
             if ($actualizado) {
-                $this->ok([], 'Ficha actualizada correctamente.');
+                if ($estado === 'Inactivo') {
+                    $sesionesCanceladas = $this->sesionModel->cancelarActivasDeFicha($id);
+                }
+                $db->commit();
             } else {
+                $db->rollBack();
                 $this->fail('No se pudo actualizar la ficha.');
             }
         } catch (PDOException $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            if ($this->esConflictoDeUnicidad($e)) {
+                $this->fail('El código de ficha ya está registrado en otra ficha.');
+            }
             $this->fail('Error en la base de datos al actualizar la ficha.');
         }
+
+        $mensaje = 'Ficha actualizada correctamente.';
+        if ($sesionesCanceladas > 0) {
+            $mensaje .= " Se cancelaron {$sesionesCanceladas} sesiones activas.";
+        }
+        $this->ok([], $mensaje);
     }
 
     // Soft delete: desactiva la ficha pasando su estado a 'Inactivo'.
@@ -210,17 +238,34 @@ class FichaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_POST['id'] ?? 0);
+        $id = $this->validarId($_POST['id'] ?? null, 'ficha');
 
-        if ($id <= 0) {
-            $this->fail('ID de ficha no válido.');
+        if ($this->model->buscarPorId($id) === null) {
+            $this->fail('Ficha no encontrada.', 404);
         }
 
-        if ($this->model->eliminar($id)) {
-            $this->ok([], 'Ficha desactivada correctamente.');
+        $sesionesCanceladas = 0;
+        $db = Database::conn();
+        try {
+            $db->beginTransaction();
+            if (!$this->model->eliminar($id)) {
+                $db->rollBack();
+                $this->fail('No se pudo desactivar la ficha.');
+            }
+            $sesionesCanceladas = $this->sesionModel->cancelarActivasDeFicha($id);
+            $db->commit();
+        } catch (PDOException $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            $this->fail('Error en la base de datos al desactivar la ficha.');
         }
 
-        $this->fail('No se pudo desactivar la ficha.');
+        $mensaje = 'Ficha desactivada correctamente.';
+        if ($sesionesCanceladas > 0) {
+            $mensaje .= " Se cancelaron {$sesionesCanceladas} sesiones activas.";
+        }
+        $this->ok([], $mensaje);
     }
 
     // Reactiva una ficha pasando su estado a 'Activo'.
@@ -228,11 +273,7 @@ class FichaController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_POST['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de ficha no válido.');
-        }
+        $id = $this->validarId($_POST['id'] ?? null, 'ficha');
 
         if ($this->model->activar($id)) {
             $this->ok([], 'Ficha activada correctamente.');

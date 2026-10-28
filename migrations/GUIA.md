@@ -158,5 +158,6 @@ foreach (glob(__DIR__ . "/migrations/*.sql") as $file) {
 | `010`–`012` | Seeds/import horarios (entornos concretos) |
 | `013_eliminar_instructor_competencia.sql` | Quita tabla legacy `instructor_competencia` |
 | `014_excusa_por_inasistencia.sql` | UNIQUE una excusa por `inasistencia` |
+| `015_unicidad_ficha_programa.sql` | UNIQUE para código de ficha y nombre de programa |
 
 Ejecutar en orden numérico en entornos nuevos. Los seeds 010/012 son opcionales según el ambiente.

@@ -128,7 +128,7 @@ BD → array → Controller → JSON → assets/js/*.js → DOM
 ```
 ControlAprendices/
 ├── index.php              ← API JSON (?action=…)
-├── migrations/            ← 001…013 (ver migrations/GUIA.md)
+├── migrations/            ← 001…015 (ver migrations/GUIA.md)
 ├── controllers/           ← Auth, Usuario, Ficha, Programa, Competencia, Sesion,
 │                          ← Asistencia, Horario, Reporte, Dashboard
 ├── models/                ← Database + *Model por dominio

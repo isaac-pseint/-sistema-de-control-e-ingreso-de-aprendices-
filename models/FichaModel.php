@@ -65,6 +65,27 @@ class FichaModel
         return $row ?: null;
     }
 
+    public function estaActiva(int $id, bool $bloquear = false): bool
+    {
+        $sql = "SELECT estado FROM ficha WHERE id = ?" . ($bloquear ? " FOR UPDATE" : "");
+        $stmt = Database::conn()->prepare($sql);
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn() === 'Activo';
+    }
+
+    public function esInstructorActivo(int $id, bool $bloquear = false): bool
+    {
+        $sql = "
+            SELECT u.id
+            FROM usuario u
+            INNER JOIN rol r ON r.id = u.Rol_id
+            WHERE u.id = ? AND u.estado = 'Activo' AND r.nombre = 'Instructor'
+        " . ($bloquear ? " FOR UPDATE" : "");
+        $stmt = Database::conn()->prepare($sql);
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn() !== false;
+    }
+
     // Crea un nuevo registro de ficha con estado inicial 'Activo'.
     public function crear(
         string $codigo,
@@ -184,6 +205,15 @@ class FichaModel
     {
         $stmt = Database::conn()->prepare(
             "SELECT id, codigo, Programa_id FROM ficha WHERE estado = 'Activo' ORDER BY codigo ASC"
+        );
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function listarParaFiltro(): array
+    {
+        $stmt = Database::conn()->prepare(
+            "SELECT id, codigo, estado FROM ficha ORDER BY codigo ASC"
         );
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

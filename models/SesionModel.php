@@ -67,6 +67,17 @@ class SesionModel
         return $stmt->execute([$id]);
     }
 
+    public function cancelarActivasDeFicha(int $fichaId): int
+    {
+        $stmt = Database::conn()->prepare("
+            UPDATE sesion
+            SET estado = 'Cancelado'
+            WHERE Ficha_id = ? AND estado = 'Activo'
+        ");
+        $stmt->execute([$fichaId]);
+        return $stmt->rowCount();
+    }
+
     public function activar(int $id): bool
     {
         $stmt = Database::conn()->prepare("UPDATE sesion SET estado = 'Activo' WHERE id = ? AND estado = 'Cancelado'");

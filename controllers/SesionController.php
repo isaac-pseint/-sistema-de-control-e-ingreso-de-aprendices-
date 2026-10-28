@@ -158,6 +158,8 @@ class SesionController extends ControllerBase
     {
         $fichaId = (int)$sesion['Ficha_id'];
         $instructorId = (int)$sesion['Instructor_id'];
+        $this->validarFichaActiva($fichaId, true);
+        $this->validarInstructorActivo($instructorId, true);
         $fecha = substr((string)$sesion['fecha'], 0, 10);
         $horaInicio = substr($this->normalizarHora((string)$sesion['hora_inicio']), 0, 5);
         $horaFin = substr($this->normalizarHora((string)$sesion['hora_fin']), 0, 5);
@@ -296,25 +298,22 @@ class SesionController extends ControllerBase
         }
     }
 
-    private function validarFichaActiva(int $fichaId): void
+    private function validarFichaActiva(int $fichaId, bool $bloquear = false): void
     {
         $ficha = $this->fichaModel->buscarPorId($fichaId);
         if (!$ficha) {
             $this->fail('La ficha no existe.');
         }
-        if (($ficha['estado'] ?? '') !== 'Activo') {
+        if (!$this->fichaModel->estaActiva($fichaId, $bloquear)) {
             $this->fail('No se pueden programar sesiones para una ficha inactiva.');
         }
     }
 
-    private function validarInstructorActivo(int $instructorId): void
+    private function validarInstructorActivo(int $instructorId, bool $bloquear = false): void
     {
-        foreach ($this->fichaModel->listarInstructores() as $instructor) {
-            if ((int)$instructor['id'] === $instructorId) {
-                return;
-            }
+        if (!$this->fichaModel->esInstructorActivo($instructorId, $bloquear)) {
+            $this->fail('El instructor seleccionado no es un instructor activo.');
         }
-        $this->fail('El instructor seleccionado no es un instructor activo.');
     }
 
     // Devuelve el bloque de la jornada de la ficha que contiene las horas; si
@@ -395,6 +394,7 @@ class SesionController extends ControllerBase
 
         $this->ok([
             'fichas' => $this->fichaModel->listarActivas(),
+            'fichas_filtro' => $this->fichaModel->listarParaFiltro(),
             'competencias' => $this->competenciaModel->listar(),
             'instructores' => $this->fichaModel->listarInstructores()
         ]);
@@ -404,9 +404,9 @@ class SesionController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $fichaId = (int)($_POST['ficha_id'] ?? 0);
-        $competenciaId = (int)($_POST['competencia_id'] ?? 0);
-        $instructorId = (int)($_POST['instructor_id'] ?? 0);
+        $fichaId = $this->validarId($_POST['ficha_id'] ?? null, 'ficha');
+        $competenciaId = $this->validarIdOpcional($_POST['competencia_id'] ?? null, 'competencia') ?? 0;
+        $instructorId = $this->validarIdOpcional($_POST['instructor_id'] ?? null, 'instructor') ?? 0;
         $fecha = trim($_POST['fecha'] ?? '');
         $horaInicio = trim($_POST['hora_inicio'] ?? '');
         $horaFin = trim($_POST['hora_fin'] ?? '');
@@ -448,6 +448,11 @@ class SesionController extends ControllerBase
 
         try {
             $this->conTransaccion(function () use ($fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId) {
+                $this->validarFichaActiva($fichaId, true);
+                $this->validarInstructorActivo($instructorId, true);
+                if ($competenciaId > 0) {
+                    $this->validarCoherenciaFichaCompetencia($fichaId, $competenciaId);
+                }
                 $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin);
                 $competencia = $competenciaId > 0 ? $competenciaId : null;
                 if (!$this->model->crear($fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId)) {
@@ -477,9 +482,7 @@ class SesionController extends ControllerBase
         }
 
         if ($rol === 'Administrador') {
-            $filtroFicha = isset($_GET['ficha_id']) && trim($_GET['ficha_id']) !== ''
-                ? (int)$_GET['ficha_id']
-                : null;
+            $filtroFicha = $this->validarIdOpcional($_GET['ficha_id'] ?? null, 'ficha');
         }
 
         $desde = isset($_GET['desde']) && trim($_GET['desde']) !== ''
@@ -500,9 +503,7 @@ class SesionController extends ControllerBase
             $this->fail("La fecha 'Desde' no puede ser mayor que 'Hasta'.");
         }
 
-        $competenciaId = isset($_GET['competencia_id']) && trim($_GET['competencia_id']) !== ''
-            ? (int)$_GET['competencia_id']
-            : null;
+        $competenciaId = $this->validarIdOpcional($_GET['competencia_id'] ?? null, 'competencia');
 
         $sesiones = $this->model->listar($filtroFicha, $desde, $hasta, $filtroInstructor, $competenciaId);
 
@@ -520,11 +521,7 @@ class SesionController extends ControllerBase
         $this->requireAuth();
         $this->procesarCierresAutomaticos();
 
-        $id = (int)($_GET['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de sesión no válido.');
-        }
+        $id = $this->validarId($_GET['id'] ?? null, 'sesión');
 
         $sesion = $this->model->buscarPorId($id);
 
@@ -549,11 +546,7 @@ class SesionController extends ControllerBase
     {
         $this->requireAuth();
 
-        $id = (int)($_POST['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de sesión no válido.');
-        }
+        $id = $this->validarId($_POST['id'] ?? null, 'sesión');
 
         $sesion = $this->model->buscarPorId($id);
         if (!$sesion) {
@@ -595,6 +588,8 @@ class SesionController extends ControllerBase
 
             try {
                 $this->conTransaccion(function () use ($id, $fichaId, $competenciaId, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId) {
+                    $this->validarFichaActiva($fichaId, true);
+                    $this->validarInstructorActivo($instructorId, true);
                     $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
                     $competencia = $competenciaId > 0 ? $competenciaId : null;
                     if (!$this->model->actualizar($id, $fichaId, $competencia, $instructorId, $fecha, $horaInicio, $horaFin, $bloqueId)) {
@@ -621,9 +616,9 @@ class SesionController extends ControllerBase
         $antes = $this->antesDeInicio($sesion);
 
         if ($antes) {
-            $fichaId = (int)($_POST['ficha_id'] ?? 0);
-            $competenciaId = (int)($_POST['competencia_id'] ?? 0);
-            $instructorId = (int)($_POST['instructor_id'] ?? 0);
+            $fichaId = $this->validarId($_POST['ficha_id'] ?? null, 'ficha');
+            $competenciaId = $this->validarIdOpcional($_POST['competencia_id'] ?? null, 'competencia') ?? 0;
+            $instructorId = $this->validarIdOpcional($_POST['instructor_id'] ?? null, 'instructor') ?? 0;
             $fecha = trim($_POST['fecha'] ?? '');
             $horaInicio = trim($_POST['hora_inicio'] ?? '');
             $horaFin = trim($_POST['hora_fin'] ?? '');
@@ -673,7 +668,6 @@ class SesionController extends ControllerBase
             try {
                 $this->conTransaccion(function () use (
                     $id,
-                    $sesion,
                     $fichaId,
                     $competenciaId,
                     $instructorId,
@@ -686,6 +680,11 @@ class SesionController extends ControllerBase
                     $hayTransicion,
                     $generadoPor
                 ) {
+                    $this->validarFichaActiva($fichaId, true);
+                    $this->validarInstructorActivo($instructorId, true);
+                    if ($competenciaId > 0) {
+                        $this->validarCoherenciaFichaCompetencia($fichaId, $competenciaId);
+                    }
                     if ($estadoActual === 'Activo' || ($estadoActual === 'Cancelado' && $estadoNuevo === 'Activo')) {
                         $this->validarSuperposicion($fichaId, $instructorId, $fecha, $horaInicio, $horaFin, $id);
                     }
@@ -744,11 +743,7 @@ class SesionController extends ControllerBase
     {
         $this->requireAuth();
 
-        $id = (int)($_POST['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de sesión no válido.');
-        }
+        $id = $this->validarId($_POST['id'] ?? null, 'sesión');
 
         $sesion = $this->model->buscarPorId($id);
         if (!$sesion) {
@@ -779,11 +774,7 @@ class SesionController extends ControllerBase
     {
         $this->requireRol('Administrador');
 
-        $id = (int)($_POST['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de sesión no válido.');
-        }
+        $id = $this->validarId($_POST['id'] ?? null, 'sesión');
 
         $sesion = $this->model->buscarPorId($id);
         if (!$sesion) {
@@ -806,11 +797,7 @@ class SesionController extends ControllerBase
     {
         $this->requireAuth();
 
-        $id = (int)($_POST['id'] ?? 0);
-
-        if ($id <= 0) {
-            $this->fail('ID de sesión no válido.');
-        }
+        $id = $this->validarId($_POST['id'] ?? null, 'sesión');
 
         $sesion = $this->model->buscarPorId($id);
         if (!$sesion) {
