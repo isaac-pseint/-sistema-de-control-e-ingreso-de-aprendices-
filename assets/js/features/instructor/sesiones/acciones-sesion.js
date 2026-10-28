@@ -1,6 +1,6 @@
-import { api } from "../../../core/api.js";
-import { crearModalConfirmacion } from "../../../core/modal.js";
-import { showToast } from "../../../core/ui.js";
+import { api } from "../../../core/api.js?v=20261028-1";
+import { crearModalConfirmacion } from "../../../core/modal.js?v=20261028-1";
+import { showToast } from "../../../core/ui.js?v=20261028-1";
 
 let sesionIdActual = null;
 let modalesListos = false;

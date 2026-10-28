@@ -1,7 +1,7 @@
 // excusa-ui.js — Resumen, badges y descarga de evidencia (aprendiz e instructor).
 
-import { esc } from "../../core/ui.js";
-import { formatearHora } from "../instructor/sesiones/sesion-ui.js";
+import { esc } from "../../core/ui.js?v=20261028-1";
+import { formatearHora } from "../instructor/sesiones/sesion-ui.js?v=20261028-1";
 
 export function urlDescargaEvidencia(excusaId) {
     return new URL(

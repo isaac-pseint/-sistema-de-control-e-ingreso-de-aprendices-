@@ -1,7 +1,7 @@
 // core/forms.js — Envío de formularios por AJAX + validación por campo.
 
-import { api } from "./api.js";
-import { showToast } from "./ui.js";
+import { api } from "./api.js?v=20261028-1";
+import { showToast } from "./ui.js?v=20261028-1";
 
 // Muestra/oculta el error bajo el campo. Devuelve true si es válido.
 export function mostrarErrorCampo(input, mensaje) {

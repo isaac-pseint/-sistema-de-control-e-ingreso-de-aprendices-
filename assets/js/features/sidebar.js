@@ -4,8 +4,8 @@
 // autenticada; aparece en todas las secciones (listado, crear, editar, etc.)
 // y en móvil opera como panel off-canvas con botón hamburguesa y overlay.
 
-import { cerrarSesion } from "./auth.js";
-import { esc } from "../core/ui.js";
+import { cerrarSesion } from "./auth.js?v=20261028-1";
+import { esc } from "../core/ui.js?v=20261028-1";
 
 // Enlaces por rol, relativos a la carpeta raíz del rol (views/<rol>/).
 // "seccion" agrupa los enlaces de una misma parte para que la vista quede

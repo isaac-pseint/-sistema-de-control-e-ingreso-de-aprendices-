@@ -1,8 +1,8 @@
 // features/auth.js — Autenticación: login, sesión y logout.
 
-import { api } from "../core/api.js";
-import { conectarFormulario } from "../core/forms.js";
-import { validarEmail, validarRequerido } from "../core/validacion.js";
+import { api } from "../core/api.js?v=20261028-1";
+import { conectarFormulario } from "../core/forms.js?v=20261028-1";
+import { validarEmail, validarRequerido } from "../core/validacion.js?v=20261028-1";
 
 function validarPassword(input) {
     return validarRequerido(input, "La contraseña es obligatoria.");

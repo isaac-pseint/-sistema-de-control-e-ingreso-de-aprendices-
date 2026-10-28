@@ -1,6 +1,6 @@
-import { api } from "../../../core/api.js";
-import { showToast, esc } from "../../../core/ui.js";
-import { conectarFormulario } from "../../../core/forms.js";
+import { api } from "../../../core/api.js?v=20261028-1";
+import { showToast, esc } from "../../../core/ui.js?v=20261028-1";
+import { conectarFormulario } from "../../../core/forms.js?v=20261028-1";
 
 let catalogo = { fichas: [], competencias: [], instructores: [] };
 
